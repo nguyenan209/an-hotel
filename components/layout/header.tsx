@@ -5,11 +5,19 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, User } from "lucide-react"
 import { useCartStore } from "@/lib/store/cartStore"
+import { useEffect, useState } from "react"
+import Cookies from "js-cookie"
 
 export function Header() {
   const pathname = usePathname()
   const cartItems = useCartStore((state) => state.items)
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0)
+  const totalItems = cartItems.reduce((acc: any, item: any) => acc + (item.quantity || 0), 0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token = Cookies.get("token")
+    setIsLoggedIn(!!token)
+  }, [])
 
   return (
     <header className="border-b bg-white">
@@ -54,17 +62,22 @@ export function Header() {
               )}
             </Button>
           </Link>
-          <Link href="/login">
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Link href="/login" className="hidden md:block">
-            <Button variant="outline">Đăng nhập</Button>
-          </Link>
-          <Link href="/register" className="hidden md:block">
-            <Button>Đăng ký</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/profile">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden md:block">
+                <Button variant="outline">Đăng nhập</Button>
+              </Link>
+              <Link href="/register" className="hidden md:block">
+                <Button>Đăng ký</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

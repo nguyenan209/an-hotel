@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import Cookies from "js-cookie"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -39,9 +40,24 @@ export function AuthForm({ type }: AuthFormProps) {
 
     try {
       if (type === "login") {
-        // In a real app, you would call an API to authenticate
-        console.log("Login data:", data)
-        router.push("/")
+        // Gọi API đăng nhập thực tế
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+          }),
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          setError(result.message || "Đăng nhập thất bại");
+          return;
+        }
+        // Lưu token và user vào cookies
+        Cookies.set("token", result.token, { expires: 7, path: "/" });
+        Cookies.set("user", JSON.stringify(result.user), { expires: 7, path: "/" });
+        router.push("/");
       } else {
         // Gọi API đăng ký thực tế
         const res = await fetch("/api/auth/register", {
