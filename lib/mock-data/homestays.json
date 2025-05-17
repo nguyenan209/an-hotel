@@ -1,0 +1,138 @@
+[
+  {
+    "id": "1",
+    "name": "Sunset Beach Villa",
+    "location": "Đà Nẵng",
+    "description": "Biệt thự hướng biển tuyệt đẹp với tầm nhìn panorama ra biển Đà Nẵng. Nằm cách bãi biển Mỹ Khê chỉ 5 phút đi bộ, biệt thự này cung cấp không gian nghỉ dưỡng sang trọng và yên tĩnh.",
+    "price": 1200000,
+    "rating": 4.8,
+    "maxGuests": 6,
+    "totalRooms": 3,
+    "images": [
+      "/images/sunset-beach-villa-1.png",
+      "/images/sunset-beach-villa-2.png",
+      "/images/sunset-beach-villa-3.png"
+    ],
+    "amenities": ["Wifi", "Bể bơi", "Bếp", "Máy lạnh", "Bãi đỗ xe", "TV", "Máy giặt"],
+    "featured": true,
+    "allowsPartialBooking": true,
+    "status": "active"
+  },
+  {
+    "id": "2",
+    "name": "Mountain Retreat",
+    "location": "Đà Lạt",
+    "description": "Căn nhà gỗ ấm cúng nằm giữa rừng thông Đà Lạt. Với thiết kế mộc mạc nhưng tiện nghi đầy đủ, đây là nơi lý tưởng để tận hưởng không khí trong lành và khung cảnh thiên nhiên tuyệt đẹp của cao nguyên.",
+    "price": 850000,
+    "rating": 4.6,
+    "maxGuests": 4,
+    "totalRooms": 2,
+    "images": ["/images/mountain-retreat-1.png", "/images/mountain-retreat-2.png", "/images/mountain-retreat-3.png"],
+    "amenities": ["Wifi", "Lò sưởi", "Bếp", "Máy lạnh", "TV", "Máy giặt"],
+    "featured": true,
+    "allowsPartialBooking": true,
+    "status": "active"
+  },
+  {
+    "id": "3",
+    "name": "Riverside Cottage",
+    "location": "Hội An",
+    "description": "Ngôi nhà nhỏ xinh nằm bên dòng sông Thu Bồn thơ mộng. Từ đây, bạn có thể dễ dàng đi bộ đến phố cổ Hội An trong vòng 10 phút. Không gian yên bình và view sông tuyệt đẹp sẽ mang đến cho bạn những trải nghiệm đáng nhớ.",
+    "price": 950000,
+    "rating": 4.7,
+    "maxGuests": 3,
+    "totalRooms": 2,
+    "images": ["/images/riverside-cottage-1.png", "/images/riverside-cottage-2.png", "/images/riverside-cottage-3.png"],
+    "amenities": ["Wifi", "Bếp", "Máy lạnh", "TV", "Máy giặt", "Ban công"],
+    "featured": true,
+    "allowsPartialBooking": true,
+    "status": "maintenance"
+  },
+  {
+    "id": "4",
+    "name": "City Center Apartment",
+    "location": "Hồ Chí Minh",
+    "description": "Căn hộ hiện đại nằm ở trung tâm Quận 1, TP.HCM. Với vị trí đắc địa, bạn có thể dễ dàng khám phá các điểm du lịch nổi tiếng như Nhà thờ Đức Bà, Bưu điện Trung tâm, phố đi bộ Nguyễn Huệ chỉ trong vài phút đi bộ.",
+    "price": 1100000,
+    "rating": 4.5,
+    "maxGuests": 4,
+    "totalRooms": 2,
+    "images": [
+      "/images/city-center-apartment-1.png",
+      "/images/city-center-apartment-2.png",
+      "/images/city-center-apartment-3.png"
+    ],
+    "amenities": ["Wifi", "Bếp", "Máy lạnh", "TV", "Máy giặt", "Bể bơi chung"],
+    "featured": false,
+    "allowsPartialBooking": false,
+    "status": "active"
+  },
+  {
+    "id": "5",
+    "name": "Lakeside Villa",
+    "location": "Hà Nội",
+    "description": "Biệt thự sang trọng bên Hồ Tây, Hà Nội. Không gian rộng rãi với kiến trúc hiện đại kết hợp nét truyền thống, mang đến cảm giác thoải mái và gần gũi với thiên nhiên ngay giữa lòng thủ đô.",
+    "price": 1500000,
+    "rating": 4.9,
+    "maxGuests": 8,
+    "totalRooms": 4,
+    "images": ["/images/lakeside-villa-1.png", "/images/lakeside-villa-2.png", "/images/lakeside-villa-3.png"],
+    "amenities": ["Wifi", "Bể bơi", "Bếp", "Máy lạnh", "Bãi đỗ xe", "TV", "Máy giặt", "Sân vườn"],
+    "featured": true,
+    "allowsPartialBooking": true,
+    "status": "inactive"
+  },
+  {
+    "id": "6",
+    "name": "Beachfront Bungalow",
+    "location": "Phú Quốc",
+    "description": "Bungalow nằm ngay trên bãi biển Bãi Sao, Phú Quốc. Với thiết kế mở, bạn có thể ngắm nhìn biển từ mọi góc nhìn trong nhà. Đây là nơi lý tưởng để tận hưởng những ngày nghỉ dưỡng bên bờ biển trong xanh.",
+    "price": 1300000,
+    "rating": 4.7,
+    "maxGuests": 2,
+    "totalRooms": 1,
+    "images": [
+      "/images/beachfront-bungalow-1.png",
+      "/images/beachfront-bungalow-2.png",
+      "/images/beachfront-bungalow-3.png"
+    ],
+    "amenities": ["Wifi", "Bếp", "Máy lạnh", "TV", "Bãi biển riêng", "Võng"],
+    "featured": true,
+    "allowsPartialBooking": false,
+    "status": "active"
+  },
+  {
+    "id": "7",
+    "name": "Countryside Farmstay",
+    "location": "Mộc Châu",
+    "description": "Farmstay nằm giữa thung lũng Mộc Châu xanh mát. Đây là nơi lý tưởng để trải nghiệm cuộc sống nông thôn, tham gia các hoạt động như hái trái cây, chăm sóc vườn rau và thưởng thức không khí trong lành của vùng cao nguyên.",
+    "price": 700000,
+    "rating": 4.5,
+    "maxGuests": 10,
+    "totalRooms": 5,
+    "images": [
+      "/images/countryside-farmstay-1.png",
+      "/images/countryside-farmstay-2.png",
+      "/images/countryside-farmstay-3.png"
+    ],
+    "amenities": ["Wifi", "Bếp", "Lò sưởi", "TV", "Sân vườn", "BBQ"],
+    "featured": false,
+    "allowsPartialBooking": true,
+    "status": "active"
+  },
+  {
+    "id": "8",
+    "name": "Luxury Penthouse",
+    "location": "Nha Trang",
+    "description": "Căn hộ penthouse sang trọng với tầm nhìn panorama ra vịnh Nha Trang. Nằm trên tầng cao nhất của tòa nhà, căn hộ này cung cấp không gian sống đẳng cấp với đầy đủ tiện nghi cao cấp.",
+    "price": 2000000,
+    "rating": 4.9,
+    "maxGuests": 6,
+    "totalRooms": 3,
+    "images": ["/images/luxury-penthouse-1.png", "/images/luxury-penthouse-2.png", "/images/luxury-penthouse-3.png"],
+    "amenities": ["Wifi", "Bể bơi", "Bếp", "Máy lạnh", "Bãi đỗ xe", "TV", "Máy giặt", "Jacuzzi", "Phòng gym"],
+    "featured": true,
+    "allowsPartialBooking": false,
+    "status": "active"
+  }
+]

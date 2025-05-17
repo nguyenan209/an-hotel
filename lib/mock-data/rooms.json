@@ -1,0 +1,121 @@
+[
+  {
+    "id": "1-1",
+    "homestayId": "1",
+    "name": "Master Suite",
+    "description": "Phòng ngủ chính với tầm nhìn ra biển, phòng tắm riêng và ban công rộng rãi.",
+    "price": 500000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "King",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng", "Ban công"],
+    "images": ["/images/sunset-beach-villa-room-1.png", "/images/sunset-beach-villa-room-2.png"],
+    "status": "available"
+  },
+  {
+    "id": "1-2",
+    "homestayId": "1",
+    "name": "Deluxe Room",
+    "description": "Phòng ngủ tiện nghi với giường đôi và tầm nhìn ra vườn.",
+    "price": 400000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "Queen",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng"],
+    "images": ["/images/sunset-beach-villa-room-3.png", "/images/sunset-beach-villa-room-4.png"],
+    "status": "available"
+  },
+  {
+    "id": "1-3",
+    "homestayId": "1",
+    "name": "Twin Room",
+    "description": "Phòng ngủ với hai giường đơn, phù hợp cho bạn bè hoặc gia đình.",
+    "price": 350000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "Single",
+        "count": 2
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng"],
+    "images": ["/images/sunset-beach-villa-room-5.png", "/images/sunset-beach-villa-room-6.png"],
+    "status": "available"
+  },
+  {
+    "id": "2-1",
+    "homestayId": "2",
+    "name": "Cozy Loft",
+    "description": "Phòng áp mái ấm cúng với tầm nhìn tuyệt đẹp ra rừng thông.",
+    "price": 300000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "Queen",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Lò sưởi", "TV", "Phòng tắm riêng"],
+    "images": ["/images/mountain-retreat-room-1.png", "/images/mountain-retreat-room-2.png"],
+    "status": "available"
+  },
+  {
+    "id": "2-2",
+    "homestayId": "2",
+    "name": "Forest View Room",
+    "description": "Phòng ngủ với tầm nhìn ra rừng, không gian yên tĩnh và thư giãn.",
+    "price": 250000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "Double",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng"],
+    "images": ["/images/mountain-retreat-room-3.png", "/images/mountain-retreat-room-4.png"],
+    "status": "available"
+  },
+  {
+    "id": "3-1",
+    "homestayId": "3",
+    "name": "River View Room",
+    "description": "Phòng ngủ với tầm nhìn ra sông, không gian yên bình và thư giãn.",
+    "price": 350000,
+    "capacity": 2,
+    "beds": [
+      {
+        "type": "Queen",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng", "Ban công"],
+    "images": ["/images/riverside-cottage-room-1.png", "/images/riverside-cottage-room-2.png"],
+    "status": "available"
+  },
+  {
+    "id": "3-2",
+    "homestayId": "3",
+    "name": "Garden Room",
+    "description": "Phòng ngủ với tầm nhìn ra vườn, không gian yên tĩnh và thư giãn.",
+    "price": 300000,
+    "capacity": 1,
+    "beds": [
+      {
+        "type": "Single",
+        "count": 1
+      }
+    ],
+    "amenities": ["Wifi", "Máy lạnh", "TV", "Phòng tắm riêng"],
+    "images": ["/images/riverside-cottage-room-3.png", "/images/riverside-cottage-room-4.png"],
+    "status": "available"
+  }
+]

@@ -1,0 +1,585 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Người dùng hệ thống
+model User {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  password          String
+  name              String
+  phone             String?
+  address           String?
+  avatar            String?
+  role              UserRole            @default(CUSTOMER)
+  status            UserStatus          @default(ACTIVE)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  customer          Customer?
+  owner             Owner?
+  admin             Admin?
+  bookings          Booking[]
+  reviews           Review[]
+  complaints        Complaint[]
+  notifications     Notification[]
+}
+
+enum UserRole {
+  ADMIN
+  OWNER
+  CUSTOMER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+// Thông tin khách hàng
+model Customer {
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalBookings     Int                 @default(0)
+  totalSpent        Float               @default(0)
+  preferences       Json?               // Lưu trữ các sở thích của khách hàng
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  bookings          Booking[]
+  reviews           Review[]
+  complaints        Complaint[]
+  wishlist          WishlistItem[]
+}
+
+// Thông tin chủ homestay
+model Owner {
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName      String?
+  businessAddress   String?
+  taxId             String?
+  bankAccount       String?
+  bankName          String?
+  verificationStatus VerificationStatus @default(PENDING)
+  commissionRate    Float               @default(10) // Tỷ lệ hoa hồng (%)
+  rating            Float               @default(0)
+  totalHomestays    Int                 @default(0)
+  totalBookings     Int                 @default(0)
+  totalRevenue      Float               @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  homestays         Homestay[]
+  transactions      OwnerTransaction[]
+  documents         OwnerDocument[]
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// Tài liệu xác minh chủ homestay
+model OwnerDocument {
+  id                String              @id @default(uuid())
+  ownerId           String
+  owner             Owner               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  type              DocumentType
+  fileUrl           String
+  status            DocumentStatus      @default(PENDING)
+  notes             String?
+  uploadedAt        DateTime            @default(now())
+  reviewedAt        DateTime?
+  reviewedBy        String?
+}
+
+enum DocumentType {
+  ID_CARD
+  BUSINESS_LICENSE
+  TAX_CERTIFICATE
+  BANK_STATEMENT
+  PROPERTY_DOCUMENT
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Thông tin quản trị viên
+model Admin {
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position          String?
+  permissions       String[]            // Mảng các quyền hạn
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  homestayApprovals HomestayApproval[]
+  reviewModerations ReviewModeration[]
+}
+
+// Homestay
+model Homestay {
+  id                String              @id @default(uuid())
+  ownerId           String
+  owner             Owner               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name              String
+  slug              String              @unique
+  description       String              @db.Text
+  location          String
+  address           String
+  latitude          Float?
+  longitude         Float?
+  price             Float               // Giá cho cả homestay
+  rating            Float               @default(0)
+  maxGuests         Int
+  totalRooms        Int
+  amenities         String[]
+  rules             String[]
+  checkInTime       String              @default("14:00")
+  checkOutTime      String              @default("12:00")
+  featured          Boolean             @default(false)
+  allowsPartialBooking Boolean          @default(true) // Cho phép đặt từng phòng
+  status            HomestayStatus      @default(PENDING)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  rooms             Room[]
+  images            HomestayImage[]
+  bookings          Booking[]
+  reviews           Review[]
+  approvals         HomestayApproval[]
+  unavailableDates  UnavailableDate[]
+  wishlistItems     WishlistItem[]
+}
+
+enum HomestayStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  REJECTED
+}
+
+// Hình ảnh homestay
+model HomestayImage {
+  id                String              @id @default(uuid())
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id], onDelete: Cascade)
+  url               String
+  caption           String?
+  isPrimary         Boolean             @default(false)
+  order             Int                 @default(0)
+  createdAt         DateTime            @default(now())
+}
+
+// Phòng trong homestay
+model Room {
+  id                String              @id @default(uuid())
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id], onDelete: Cascade)
+  name              String
+  description       String              @db.Text
+  price             Float
+  capacity          Int
+  size              Float?              // Kích thước phòng (m²)
+  amenities         String[]
+  status            RoomStatus          @default(AVAILABLE)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  beds              Bed[]
+  images            RoomImage[]
+  bookingItems      BookingItem[]
+  unavailableDates  UnavailableDate[]
+}
+
+enum RoomStatus {
+  AVAILABLE
+  BOOKED
+  MAINTENANCE
+}
+
+// Giường trong phòng
+model Bed {
+  id                String              @id @default(uuid())
+  roomId            String
+  room              Room                @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  type              BedType
+  count             Int                 @default(1)
+}
+
+enum BedType {
+  SINGLE
+  TWIN
+  DOUBLE
+  QUEEN
+  KING
+  SOFA_BED
+  BUNK_BED
+}
+
+// Hình ảnh phòng
+model RoomImage {
+  id                String              @id @default(uuid())
+  roomId            String
+  room              Room                @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  url               String
+  caption           String?
+  isPrimary         Boolean             @default(false)
+  order             Int                 @default(0)
+  createdAt         DateTime            @default(now())
+}
+
+// Ngày không khả dụng (đã đặt hoặc bảo trì)
+model UnavailableDate {
+  id                String              @id @default(uuid())
+  date              DateTime
+  reason            String?
+  
+  // Có thể áp dụng cho cả homestay hoặc phòng cụ thể
+  homestayId        String?
+  homestay          Homestay?           @relation(fields: [homestayId], references: [id], onDelete: Cascade)
+  roomId            String?
+  room              Room?               @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  // Đảm bảo mỗi ngày chỉ có một bản ghi cho mỗi homestay/phòng
+  @@unique([date, homestayId])
+  @@unique([date, roomId])
+}
+
+// Đặt phòng
+model Booking {
+  id                String              @id @default(uuid())
+  bookingNumber     String              @unique // Mã đặt phòng hiển thị cho người dùng
+  customerId        String
+  customer          Customer            @relation(fields: [customerId], references: [id])
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id])
+  checkIn           DateTime
+  checkOut          DateTime
+  guests            Int
+  totalPrice        Float
+  bookingType       BookingType
+  status            BookingStatus       @default(PENDING)
+  paymentStatus     PaymentStatus       @default(PENDING)
+  paymentMethod     PaymentMethod?
+  specialRequests   String?             @db.Text
+  cancellationReason String?            @db.Text
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  bookingItems      BookingItem[]
+  payments          Payment[]
+  refunds           Refund[]
+  reviews           Review[]
+  complaints        Complaint[]
+}
+
+enum BookingType {
+  WHOLE
+  ROOMS
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  CASH
+  PAYPAL
+  MOMO
+  VNPAY
+  ZALOPAY
+}
+
+// Chi tiết đặt phòng (khi đặt từng phòng)
+model BookingItem {
+  id                String              @id @default(uuid())
+  bookingId         String
+  booking           Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  roomId            String
+  room              Room                @relation(fields: [roomId], references: [id])
+  price             Float               // Giá tại thời điểm đặt
+  quantity          Int                 @default(1)
+  discount          Float               @default(0)
+  notes             String?
+}
+
+// Thanh toán
+model Payment {
+  id                String              @id @default(uuid())
+  bookingId         String
+  booking           Booking             @relation(fields: [bookingId], references: [id])
+  amount            Float
+  method            PaymentMethod
+  status            PaymentStatus       @default(PENDING)
+  transactionId     String?             // ID giao dịch từ cổng thanh toán
+  paymentDate       DateTime            @default(now())
+  notes             String?
+}
+
+// Hoàn tiền
+model Refund {
+  id                String              @id @default(uuid())
+  bookingId         String
+  booking           Booking             @relation(fields: [bookingId], references: [id])
+  amount            Float
+  reason            String
+  status            RefundStatus        @default(PENDING)
+  refundDate        DateTime?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  REJECTED
+}
+
+// Giao dịch với chủ homestay
+model OwnerTransaction {
+  id                String              @id @default(uuid())
+  ownerId           String
+  owner             Owner               @relation(fields: [ownerId], references: [id])
+  amount            Float
+  type              TransactionType
+  status            TransactionStatus   @default(PENDING)
+  description       String
+  transactionDate   DateTime            @default(now())
+  notes             String?
+}
+
+enum TransactionType {
+  PAYOUT
+  COMMISSION
+  REFUND
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// Đánh giá
+model Review {
+  id                String              @id @default(uuid())
+  customerId        String
+  customer          Customer            @relation(fields: [customerId], references: [id])
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id])
+  bookingId         String?
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+  rating            Int
+  comment           String              @db.Text
+  photos            String[]
+  status            ReviewStatus        @default(PENDING)
+  ownerReply        String?             @db.Text
+  ownerReplyDate    DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  moderations       ReviewModeration[]
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Kiểm duyệt đánh giá
+model ReviewModeration {
+  id                String              @id @default(uuid())
+  reviewId          String
+  review            Review              @relation(fields: [reviewId], references: [id])
+  adminId           String
+  admin             Admin               @relation(fields: [adminId], references: [id])
+  status            ReviewStatus
+  reason            String?
+  moderatedAt       DateTime            @default(now())
+}
+
+// Khiếu nại
+model Complaint {
+  id                String              @id @default(uuid())
+  customerId        String
+  customer          Customer            @relation(fields: [customerId], references: [id])
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  bookingId         String?
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+  type              ComplaintType
+  subject           String
+  description       String              @db.Text
+  status            ComplaintStatus     @default(OPEN)
+  priority          ComplaintPriority   @default(MEDIUM)
+  resolution        String?             @db.Text
+  resolvedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  attachments       ComplaintAttachment[]
+  responses         ComplaintResponse[]
+}
+
+enum ComplaintType {
+  SERVICE
+  CLEANLINESS
+  SAFETY
+  BOOKING
+  PAYMENT
+  CANCELLATION
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Tệp đính kèm khiếu nại
+model ComplaintAttachment {
+  id                String              @id @default(uuid())
+  complaintId       String
+  complaint         Complaint           @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  fileUrl           String
+  fileName          String
+  fileType          String
+  uploadedAt        DateTime            @default(now())
+}
+
+// Phản hồi khiếu nại
+model ComplaintResponse {
+  id                String              @id @default(uuid())
+  complaintId       String
+  complaint         Complaint           @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  responderType     ResponderType       // Người phản hồi là admin hay chủ homestay
+  responderName     String
+  message           String              @db.Text
+  createdAt         DateTime            @default(now())
+}
+
+enum ResponderType {
+  ADMIN
+  OWNER
+  CUSTOMER
+}
+
+// Phê duyệt homestay
+model HomestayApproval {
+  id                String              @id @default(uuid())
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id])
+  adminId           String?
+  admin             Admin?              @relation(fields: [adminId], references: [id])
+  status            ApprovalStatus      @default(PENDING)
+  notes             String?             @db.Text
+  checklist         Json?               // Danh sách kiểm tra các tiêu chí
+  submittedAt       DateTime            @default(now())
+  reviewedAt        DateTime?
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_CHANGES
+}
+
+// Danh sách yêu thích
+model WishlistItem {
+  id                String              @id @default(uuid())
+  customerId        String
+  customer          Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  homestayId        String
+  homestay          Homestay            @relation(fields: [homestayId], references: [id], onDelete: Cascade)
+  addedAt           DateTime            @default(now())
+  
+  @@unique([customerId, homestayId])
+}
+
+// Thông báo
+model Notification {
+  id                String              @id @default(uuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  message           String
+  type              NotificationType
+  isRead            Boolean             @default(false)
+  relatedId         String?             // ID của đối tượng liên quan (booking, review, etc.)
+  createdAt         DateTime            @default(now())
+}
+
+enum NotificationType {
+  BOOKING
+  PAYMENT
+  REVIEW
+  SYSTEM
+  PROMOTION
+  COMPLAINT
+  APPROVAL
+}
