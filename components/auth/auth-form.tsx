@@ -38,17 +38,28 @@ export function AuthForm({ type }: AuthFormProps) {
     setError("")
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
       if (type === "login") {
         // In a real app, you would call an API to authenticate
         console.log("Login data:", data)
         router.push("/")
       } else {
-        // In a real app, you would call an API to register
-        console.log("Register data:", data)
-        router.push("/login")
+        // Gọi API đăng ký thực tế
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+            name: data.email, // Nếu có field name riêng thì dùng data.name
+          }),
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          setError(result.message || "Đăng ký thất bại");
+          return;
+        }
+        // Đăng ký thành công, chuyển sang trang đăng nhập
+        router.push("/login");
       }
     } catch (err) {
       setError("Đã xảy ra lỗi. Vui lòng thử lại sau.")

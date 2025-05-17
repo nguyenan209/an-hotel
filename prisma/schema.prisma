@@ -17,13 +17,14 @@ datasource db {
 model User {
   id                String              @id @default(uuid())
   email             String              @unique
-  password          String
+  password          String?             // Optional for Google users
   name              String
   phone             String?
   address           String?
   avatar            String?
   role              UserRole            @default(CUSTOMER)
   status            UserStatus          @default(ACTIVE)
+  provider          String              @default("credentials") // Add provider field
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   
