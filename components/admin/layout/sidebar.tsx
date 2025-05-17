@@ -53,7 +53,7 @@ export function Sidebar({ className }: SidebarProps) {
     if (isCollapsed === null) return
 
     // Update the padding of the main content container based on sidebar state
-    const mainContent = document.querySelector(".lg\\:pl-16")
+    const mainContent = document.querySelector(".admin-main-content")
     if (mainContent) {
       if (isCollapsed) {
         mainContent.classList.remove("lg:pl-64")

@@ -22,7 +22,7 @@ export default function AdminLayout({
       <div className="hidden lg:block lg:fixed lg:inset-y-0 lg:z-50">
         <Sidebar />
       </div>
-      <div className="lg:pl-16 transition-all duration-300">
+      <div className="lg:pl-16 transition-all duration-300 admin-main-content">
         <Header />
         <main className="p-4 md:p-6">{children}</main>
       </div>
