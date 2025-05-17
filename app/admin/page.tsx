@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/utils"
 // Import chart components
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
-export default function AdminDashboard() {
+export default function Page() {
   const [dateRange, setDateRange] = useState("7d")
 
   // Mock data for the dashboard
@@ -230,5 +230,12 @@ export default function AdminDashboard() {
                   }
                 />
                 <Legend />
-                <Line
-                  type\
+                <Line type="monotone" dataKey="revenue" stroke="#8884d8" activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
