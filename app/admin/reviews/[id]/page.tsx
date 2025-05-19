@@ -1,30 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, CheckCircle, MessageSquare, Star, X } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft, CheckCircle, MessageSquare, Star, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { formatDate } from "@/lib/utils";
 
 interface ReviewDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
-  const [status, setStatus] = useState("published")
+  const [status, setStatus] = useState("published");
   const [ownerResponse, setOwnerResponse] = useState(
-    "Thank you for your feedback! We're glad you enjoyed your stay and hope to welcome you back soon.",
-  )
-  const [adminNote, setAdminNote] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    "Thank you for your feedback! We're glad you enjoyed your stay and hope to welcome you back soon."
+  );
+  const [adminNote, setAdminNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock data for the review
   const review = {
@@ -38,62 +44,70 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
     rating: 5,
     comment:
       "Tuyệt vời! Phòng sạch sẽ, view đẹp, chủ nhà thân thiện. Tôi đã có một kỳ nghỉ tuyệt vời tại đây. Đặc biệt ấn tượng với dịch vụ và sự tiện nghi của homestay. Chắc chắn sẽ quay lại vào lần sau.",
-    images: ["/images/sunset-beach-villa-1.png", "/images/sunset-beach-villa-2.png"],
+    images: [
+      "/images/sunset-beach-villa-1.png",
+      "/images/sunset-beach-villa-2.png",
+    ],
     status: "published",
     createdAt: "2023-06-15T10:30:00Z",
     bookingId: "book123",
     checkIn: "2023-06-01",
     checkOut: "2023-06-05",
-    ownerResponse: "Thank you for your feedback! We're glad you enjoyed your stay and hope to welcome you back soon.",
+    ownerResponse:
+      "Thank you for your feedback! We're glad you enjoyed your stay and hope to welcome you back soon.",
     ownerResponseDate: "2023-06-16T09:45:00Z",
-  }
+  };
 
   const handleApprove = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to approve the review
     setTimeout(() => {
-      setStatus("published")
-      setIsSubmitting(false)
-    }, 1000)
-  }
+      setStatus("published");
+      setIsSubmitting(false);
+    }, 1000);
+  };
 
   const handleFlag = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to flag the review
     setTimeout(() => {
-      setStatus("flagged")
-      setIsSubmitting(false)
-    }, 1000)
-  }
+      setStatus("flagged");
+      setIsSubmitting(false);
+    }, 1000);
+  };
 
   const handleRemove = () => {
-    if (confirm("Are you sure you want to remove this review? This action cannot be undone.")) {
-      setIsSubmitting(true)
+    if (
+      confirm(
+        "Are you sure you want to remove this review? This action cannot be undone."
+      )
+    ) {
+      setIsSubmitting(true);
       // In a real app, you would call an API to remove the review
       setTimeout(() => {
         // Redirect to reviews page
-        window.location.href = "/admin/reviews"
-      }, 1000)
+        window.location.href = "/admin/reviews";
+      }, 1000);
     }
-  }
+  };
 
   const handleSaveResponse = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to save the owner response
     setTimeout(() => {
-      setIsSubmitting(false)
-      alert("Response saved successfully")
-    }, 1000)
-  }
+      setIsSubmitting(false);
+      alert("Response saved successfully");
+    }, 1000);
+  };
 
   const handleSaveNote = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to save the admin note
     setTimeout(() => {
-      setIsSubmitting(false)
-      alert("Note saved successfully")
-    }, 1000)
-  }
+      setIsSubmitting(false);
+      alert("Note saved successfully");
+    }, 1000);
+  };
 
   return (
     <div className="space-y-6">
@@ -108,11 +122,17 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
           <h2 className="text-3xl font-bold tracking-tight">Review Details</h2>
           <p className="text-muted-foreground">
             Review for{" "}
-            <Link href={`/admin/homestays/${review.homestayId}`} className="text-blue-600 hover:underline">
+            <Link
+              href={`/admin/homestays/${review.homestayId}`}
+              className="text-blue-600 hover:underline"
+            >
               {review.homestayName}
             </Link>{" "}
             by{" "}
-            <Link href={`/admin/customers/${review.customerId}`} className="text-blue-600 hover:underline">
+            <Link
+              href={`/admin/customers/${review.customerId}`}
+              className="text-blue-600 hover:underline"
+            >
               {review.customerName}
             </Link>
           </p>
@@ -123,8 +143,8 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
               status === "published"
                 ? "bg-green-100 text-green-800"
                 : status === "pending"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-red-100 text-red-800"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800"
             }
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -137,7 +157,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Review Content</CardTitle>
-              <CardDescription>Review submitted on {formatDate(review.createdAt)}</CardDescription>
+              <CardDescription>
+                Review submitted on {formatDate(review.createdAt)}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
@@ -146,7 +168,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
                     <Star
                       key={star}
                       className={`h-5 w-5 ${
-                        star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        star <= review.rating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
                       }`}
                     />
                   ))}
@@ -155,16 +179,23 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Comment</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Comment
+                </h3>
                 <p className="text-base mt-1">{review.comment}</p>
               </div>
 
               {review.images && review.images.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Photos</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                    Photos
+                  </h3>
                   <div className="grid grid-cols-2 gap-2">
                     {review.images.map((image, index) => (
-                      <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
+                      <div
+                        key={index}
+                        className="relative aspect-square overflow-hidden rounded-md border"
+                      >
                         <Image
                           src={image || "/placeholder.svg"}
                           alt={`Review image ${index + 1}`}
@@ -180,7 +211,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
               <Separator />
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Stay Information</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Stay Information
+                </h3>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
                     <p className="text-xs text-muted-foreground">Booking ID</p>
@@ -200,7 +233,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Owner Response</CardTitle>
-              <CardDescription>Response from the homestay owner</CardDescription>
+              <CardDescription>
+                Response from the homestay owner
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {review.ownerResponse ? (
@@ -216,7 +251,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground">No response from the owner yet.</p>
+                <p className="text-muted-foreground">
+                  No response from the owner yet.
+                </p>
               )}
 
               <div className="space-y-2">
@@ -239,7 +276,9 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Admin Notes</CardTitle>
-              <CardDescription>Internal notes about this review (not visible to customers)</CardDescription>
+              <CardDescription>
+                Internal notes about this review (not visible to customers)
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
@@ -355,5 +394,5 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { Suspense } from "react"
-import { SearchForm } from "@/components/search/search-form"
-import { FilterForm } from "@/components/search/filter-form"
-import { HomestayList } from "@/components/homestay/homestay-list"
-import { searchHomestays } from "@/lib/data"
-import type { SearchParams } from "@/lib/types"
+import { Suspense } from "react";
+import { SearchForm } from "@/components/search/search-form";
+import { FilterForm } from "@/components/search/filter-form";
+import { HomestayList } from "@/components/homestay/homestay-list";
+import { searchHomestays } from "@/lib/data";
+import type { SearchParams } from "@/lib/types";
 
 interface SearchPageProps {
   searchParams: {
-    location?: string
-    checkIn?: string
-    checkOut?: string
-    guests?: string
-    minPrice?: string
-    maxPrice?: string
-    rating?: string
-    amenities?: string
-  }
+    location?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    rating?: string;
+    amenities?: string;
+  };
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
@@ -24,20 +24,30 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     location: searchParams.location,
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
-    guests: searchParams.guests ? Number.parseInt(searchParams.guests) : undefined,
-    minPrice: searchParams.minPrice ? Number.parseInt(searchParams.minPrice) : undefined,
-    maxPrice: searchParams.maxPrice ? Number.parseInt(searchParams.maxPrice) : undefined,
-    rating: searchParams.rating ? Number.parseFloat(searchParams.rating) : undefined,
-    amenities: searchParams.amenities ? searchParams.amenities.split(",") : undefined,
-  }
+    guests: searchParams.guests
+      ? Number.parseInt(searchParams.guests)
+      : undefined,
+    minPrice: searchParams.minPrice
+      ? Number.parseInt(searchParams.minPrice)
+      : undefined,
+    maxPrice: searchParams.maxPrice
+      ? Number.parseInt(searchParams.maxPrice)
+      : undefined,
+    rating: searchParams.rating
+      ? Number.parseFloat(searchParams.rating)
+      : undefined,
+    amenities: searchParams.amenities
+      ? searchParams.amenities.split(",")
+      : undefined,
+  };
 
   // Search homestays
-  const homestays = await searchHomestays(params)
+  const homestays = await searchHomestays(params);
 
   // Build search summary
-  let searchSummary = "Tất cả homestay"
+  let searchSummary = "Tất cả homestay";
   if (params.location) {
-    searchSummary = `Homestay tại ${params.location}`
+    searchSummary = `Homestay tại ${params.location}`;
   }
 
   return (
@@ -62,5 +72,5 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

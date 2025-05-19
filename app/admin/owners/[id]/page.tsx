@@ -1,22 +1,48 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Check, Hotel, User } from "lucide-react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Check, Hotel, User } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 const ownerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -24,22 +50,22 @@ const ownerSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   address: z.string().optional(),
   status: z.string(),
-})
+});
 
-type OwnerFormValues = z.infer<typeof ownerSchema>
+type OwnerFormValues = z.infer<typeof ownerSchema>;
 
 interface OwnerDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
-  const router = useRouter()
-  const isNewOwner = params.id === "new"
-  const [owner, setOwner] = useState<any | null>(null)
-  const [ownerHomestays, setOwnerHomestays] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(!isNewOwner)
+  const router = useRouter();
+  const isNewOwner = params.id === "new";
+  const [owner, setOwner] = useState<any | null>(null);
+  const [ownerHomestays, setOwnerHomestays] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(!isNewOwner);
 
   const form = useForm<OwnerFormValues>({
     resolver: zodResolver(ownerSchema),
@@ -52,12 +78,12 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
           status: "active",
         }
       : undefined,
-  })
+  });
 
   useEffect(() => {
     if (isNewOwner) {
-      setIsLoading(false)
-      return
+      setIsLoading(false);
+      return;
     }
 
     // Simulate API call to fetch owner details
@@ -85,19 +111,19 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
             joinDate: "2023-02-20T14:45:00Z",
             status: "active",
           },
-        ]
+        ];
 
-        const foundOwner = mockOwners.find((o) => o.id === params.id)
+        const foundOwner = mockOwners.find((o) => o.id === params.id);
 
         if (foundOwner) {
-          setOwner(foundOwner)
+          setOwner(foundOwner);
           form.reset({
             name: foundOwner.name,
             email: foundOwner.email,
             phone: foundOwner.phone,
             address: foundOwner.address,
             status: foundOwner.status,
-          })
+          });
 
           // Get owner homestays
           const mockHomestays = [
@@ -125,36 +151,36 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
               status: "pending",
               createdAt: "2023-05-10T09:15:00Z",
             },
-          ]
+          ];
 
-          setOwnerHomestays(mockHomestays)
+          setOwnerHomestays(mockHomestays);
         }
       } catch (error) {
-        console.error("Error fetching owner:", error)
+        console.error("Error fetching owner:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchOwner()
-  }, [params.id, isNewOwner, form])
+    fetchOwner();
+  }, [params.id, isNewOwner, form]);
 
   const onSubmit = (data: OwnerFormValues) => {
     // In a real app, you would submit to an API
-    console.log("Form submitted:", data)
+    console.log("Form submitted:", data);
 
     // Simulate successful submission
     setTimeout(() => {
-      router.push("/admin/owners")
-    }, 1000)
-  }
+      router.push("/admin/owners");
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -174,7 +200,9 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
-          {!isNewOwner && <TabsTrigger value="homestays">Homestays</TabsTrigger>}
+          {!isNewOwner && (
+            <TabsTrigger value="homestays">Homestays</TabsTrigger>
+          )}
         </TabsList>
 
         <Form {...form}>
@@ -183,7 +211,9 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
               <Card>
                 <CardHeader>
                   <CardTitle>Owner Information</CardTitle>
-                  <CardDescription>Enter the owner's personal information.</CardDescription>
+                  <CardDescription>
+                    Enter the owner's personal information.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-center mb-6">
@@ -235,7 +265,11 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter email address" type="email" {...field} />
+                          <Input
+                            placeholder="Enter email address"
+                            type="email"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -276,7 +310,10 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -285,7 +322,9 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                           <SelectContent>
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="suspended">Suspended</SelectItem>
-                            <SelectItem value="terminated">Terminated</SelectItem>
+                            <SelectItem value="terminated">
+                              Terminated
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -301,13 +340,17 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                 <Card>
                   <CardHeader>
                     <CardTitle>Homestay Listings</CardTitle>
-                    <CardDescription>View all homestays owned by this person.</CardDescription>
+                    <CardDescription>
+                      View all homestays owned by this person.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {ownerHomestays.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <Hotel className="h-12 w-12 text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium">No homestays found</h3>
+                        <h3 className="text-lg font-medium">
+                          No homestays found
+                        </h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           This owner hasn't listed any homestays yet.
                         </p>
@@ -322,27 +365,36 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                               <TableHead>Price</TableHead>
                               <TableHead>Created</TableHead>
                               <TableHead>Status</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
+                              <TableHead className="text-right">
+                                Actions
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {ownerHomestays.map((homestay) => (
                               <TableRow key={homestay.id}>
-                                <TableCell className="font-medium">{homestay.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  {homestay.name}
+                                </TableCell>
                                 <TableCell>{homestay.location}</TableCell>
-                                <TableCell>{homestay.price.toLocaleString()} VND</TableCell>
-                                <TableCell>{formatDate(homestay.createdAt)}</TableCell>
+                                <TableCell>
+                                  {homestay.price.toLocaleString()} VND
+                                </TableCell>
+                                <TableCell>
+                                  {formatDate(homestay.createdAt)}
+                                </TableCell>
                                 <TableCell>
                                   <Badge
                                     className={
                                       homestay.status === "active"
                                         ? "bg-green-100 text-green-800"
                                         : homestay.status === "pending"
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-red-100 text-red-800"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
                                     }
                                   >
-                                    {homestay.status.charAt(0).toUpperCase() + homestay.status.slice(1)}
+                                    {homestay.status.charAt(0).toUpperCase() +
+                                      homestay.status.slice(1)}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -382,5 +434,5 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
         </Form>
       </Tabs>
     </div>
-  )
+  );
 }

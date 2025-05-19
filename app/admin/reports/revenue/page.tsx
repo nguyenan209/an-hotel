@@ -1,36 +1,52 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Download } from "lucide-react"
+import { useState } from "react";
+import { Download } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { formatCurrency } from "@/lib/utils"
-import { mockRevenueData } from "@/lib/mock-data/admin"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatCurrency } from "@/lib/utils";
+import { mockRevenueData } from "@/lib/mock-data/admin";
 
 export default function RevenueReportPage() {
-  const [timeRange, setTimeRange] = useState("year")
-  const [year, setYear] = useState("2023")
+  const [timeRange, setTimeRange] = useState("year");
+  const [year, setYear] = useState("2023");
 
   // Calculate total revenue
-  const totalRevenue = mockRevenueData.reduce((sum, item) => sum + item.revenue, 0)
+  const totalRevenue = mockRevenueData.reduce(
+    (sum, item) => sum + item.revenue,
+    0
+  );
 
   // Calculate average monthly revenue
-  const averageMonthlyRevenue = totalRevenue / mockRevenueData.length
+  const averageMonthlyRevenue = totalRevenue / mockRevenueData.length;
 
   // Find highest revenue month
   const highestRevenueMonth = mockRevenueData.reduce(
-    (highest, current) => (current.revenue > highest.revenue ? current : highest),
-    mockRevenueData[0],
-  )
+    (highest, current) =>
+      current.revenue > highest.revenue ? current : highest,
+    mockRevenueData[0]
+  );
 
   // Find lowest revenue month
   const lowestRevenueMonth = mockRevenueData.reduce(
     (lowest, current) => (current.revenue < lowest.revenue ? current : lowest),
-    mockRevenueData[0],
-  )
+    mockRevenueData[0]
+  );
 
   return (
     <div className="space-y-6">
@@ -61,16 +77,22 @@ export default function RevenueReportPage() {
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground">For the year {year}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Monthly</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Average Monthly
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(averageMonthlyRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(averageMonthlyRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground">Per month in {year}</p>
           </CardContent>
         </Card>
@@ -79,7 +101,9 @@ export default function RevenueReportPage() {
             <CardTitle className="text-sm font-medium">Highest Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(highestRevenueMonth.revenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(highestRevenueMonth.revenue)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {highestRevenueMonth.month} {year}
             </p>
@@ -90,7 +114,9 @@ export default function RevenueReportPage() {
             <CardTitle className="text-sm font-medium">Lowest Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(lowestRevenueMonth.revenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(lowestRevenueMonth.revenue)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {lowestRevenueMonth.month} {year}
             </p>
@@ -109,7 +135,9 @@ export default function RevenueReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>Revenue Overview</CardTitle>
-              <CardDescription>Monthly revenue for the year {year}</CardDescription>
+              <CardDescription>
+                Monthly revenue for the year {year}
+              </CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
               <div className="h-full w-full">
@@ -121,7 +149,9 @@ export default function RevenueReportPage() {
                         <div
                           className="absolute bottom-0 w-full rounded-md bg-primary"
                           style={{
-                            height: `${(item.revenue / highestRevenueMonth.revenue) * 100}%`,
+                            height: `${
+                              (item.revenue / highestRevenueMonth.revenue) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -143,26 +173,38 @@ export default function RevenueReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>Monthly Breakdown</CardTitle>
-              <CardDescription>Detailed monthly revenue analysis for {year}</CardDescription>
+              <CardDescription>
+                Detailed monthly revenue analysis for {year}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {mockRevenueData.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex items-center gap-2">
-                      <div className="w-10 text-muted-foreground">{item.month}</div>
+                      <div className="w-10 text-muted-foreground">
+                        {item.month}
+                      </div>
                       <div className="w-full max-w-md">
                         <div className="h-2 w-full rounded-full bg-secondary">
                           <div
                             className="h-2 rounded-full bg-primary"
                             style={{
-                              width: `${(item.revenue / highestRevenueMonth.revenue) * 100}%`,
+                              width: `${
+                                (item.revenue / highestRevenueMonth.revenue) *
+                                100
+                              }%`,
                             }}
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="font-medium">{formatCurrency(item.revenue)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(item.revenue)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -173,10 +215,14 @@ export default function RevenueReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>Revenue by Homestay</CardTitle>
-              <CardDescription>Top performing homestays by revenue</CardDescription>
+              <CardDescription>
+                Top performing homestays by revenue
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">This section would show revenue breakdown by homestay.</p>
+              <p className="text-sm text-muted-foreground">
+                This section would show revenue breakdown by homestay.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -187,11 +233,13 @@ export default function RevenueReportPage() {
               <CardDescription>Top customers by revenue</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">This section would show revenue breakdown by customer.</p>
+              <p className="text-sm text-muted-foreground">
+                This section would show revenue breakdown by customer.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

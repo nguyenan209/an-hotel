@@ -1,24 +1,38 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, CheckCircle, MessageSquare, User } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, CheckCircle, MessageSquare, User } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatDate } from "@/lib/utils";
 
 interface ComplaintDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps) {
+export default function ComplaintDetailPage({
+  params,
+}: ComplaintDetailPageProps) {
   // Mock data for the complaint
   const complaint = {
     id: params.id,
@@ -46,7 +60,8 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
         senderId: "cust1",
         senderName: "Lê Minh",
         senderType: "customer",
-        message: "Tôi rất thất vọng về tình trạng phòng khi chúng tôi đến. Mong được giải quyết sớm.",
+        message:
+          "Tôi rất thất vọng về tình trạng phòng khi chúng tôi đến. Mong được giải quyết sớm.",
         createdAt: "2023-06-15T10:30:00Z",
       },
       {
@@ -77,103 +92,103 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
         createdAt: "2023-06-17T11:30:00Z",
       },
     ],
-  }
+  };
 
-  const [status, setStatus] = useState(complaint.status)
-  const [priority, setPriority] = useState(complaint.priority)
-  const [assignedTo, setAssignedTo] = useState(complaint.assignedTo)
-  const [newMessage, setNewMessage] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [status, setStatus] = useState(complaint.status);
+  const [priority, setPriority] = useState(complaint.priority);
+  const [assignedTo, setAssignedTo] = useState(complaint.assignedTo);
+  const [newMessage, setNewMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "open":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "in_progress":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "resolved":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "closed":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "low":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const formatStatus = (status: string) => {
     switch (status) {
       case "in_progress":
-        return "In Progress"
+        return "In Progress";
       default:
-        return status.charAt(0).toUpperCase() + status.slice(1)
+        return status.charAt(0).toUpperCase() + status.slice(1);
     }
-  }
+  };
 
   const handleStatusChange = (newStatus: string) => {
-    setStatus(newStatus)
+    setStatus(newStatus);
     // In a real app, you would call an API to update the complaint status
-  }
+  };
 
   const handlePriorityChange = (newPriority: string) => {
-    setPriority(newPriority)
+    setPriority(newPriority);
     // In a real app, you would call an API to update the complaint priority
-  }
+  };
 
   const handleAssignedToChange = (newAssignedTo: string) => {
-    setAssignedTo(newAssignedTo)
+    setAssignedTo(newAssignedTo);
     // In a real app, you would call an API to update the assigned admin
-  }
+  };
 
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return
+    if (!newMessage.trim()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to send the message
     setTimeout(() => {
-      setNewMessage("")
-      setIsSubmitting(false)
+      setNewMessage("");
+      setIsSubmitting(false);
       // Here you would typically update the messages list with the new message
       // For this demo, we're just clearing the input
-    }, 1000)
-  }
+    }, 1000);
+  };
 
   const handleResolve = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to resolve the complaint
     setTimeout(() => {
-      setStatus("resolved")
-      setIsSubmitting(false)
-    }, 1000)
-  }
+      setStatus("resolved");
+      setIsSubmitting(false);
+    }, 1000);
+  };
 
   const handleClose = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // In a real app, you would call an API to close the complaint
     setTimeout(() => {
-      setStatus("closed")
-      setIsSubmitting(false)
-    }, 1000)
-  }
+      setStatus("closed");
+      setIsSubmitting(false);
+    }, 1000);
+  };
 
   // Mock admin list for assignment
   const adminList = [
     { id: "admin1", name: "Nguyễn Admin" },
     { id: "admin2", name: "Trần Quản Lý" },
     { id: "admin3", name: "Lê Support" },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -185,18 +200,27 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
           </Link>
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Complaint #{params.id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Complaint #{params.id}
+          </h2>
           <p className="text-muted-foreground">
             Submitted by{" "}
-            <Link href={`/admin/customers/${complaint.customerId}`} className="text-blue-600 hover:underline">
+            <Link
+              href={`/admin/customers/${complaint.customerId}`}
+              className="text-blue-600 hover:underline"
+            >
               {complaint.customerName}
             </Link>{" "}
             on {formatDate(complaint.createdAt)}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Badge className={getStatusColor(status)}>{formatStatus(status)}</Badge>
-          <Badge className={getPriorityColor(priority)}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</Badge>
+          <Badge className={getStatusColor(status)}>
+            {formatStatus(status)}
+          </Badge>
+          <Badge className={getPriorityColor(priority)}>
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+          </Badge>
         </div>
       </div>
 
@@ -205,18 +229,24 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
           <Card>
             <CardHeader>
               <CardTitle>{complaint.subject}</CardTitle>
-              <CardDescription>Complaint details and description</CardDescription>
+              <CardDescription>
+                Complaint details and description
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Description
+                </h3>
                 <p className="text-base mt-1">{complaint.description}</p>
               </div>
 
               <Separator />
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Booking Information</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Booking Information
+                </h3>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
                     <p className="text-xs text-muted-foreground">Booking ID</p>
@@ -252,28 +282,38 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
           <Card>
             <CardHeader>
               <CardTitle>Conversation</CardTitle>
-              <CardDescription>Communication history regarding this complaint</CardDescription>
+              <CardDescription>
+                Communication history regarding this complaint
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 {complaint.messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.senderType === "admin" ? "justify-end" : "justify-start"}`}
+                    className={`flex ${
+                      message.senderType === "admin"
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
                   >
                     <div
                       className={`rounded-lg p-4 max-w-[80%] ${
                         message.senderType === "admin"
                           ? "bg-blue-100 text-blue-800"
                           : message.senderType === "owner"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <User className="h-4 w-4" />
-                        <p className="text-sm font-medium">{message.senderName}</p>
-                        <span className="text-xs text-muted-foreground">{formatDate(message.createdAt)}</span>
+                        <p className="text-sm font-medium">
+                          {message.senderName}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(message.createdAt)}
+                        </span>
                       </div>
                       <p className="text-sm">{message.message}</p>
                     </div>
@@ -292,7 +332,10 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
                   rows={4}
                 />
                 <div className="flex justify-end">
-                  <Button onClick={handleSendMessage} disabled={isSubmitting || !newMessage.trim()}>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isSubmitting || !newMessage.trim()}
+                  >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Send Message
                   </Button>
@@ -311,7 +354,9 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
               <div className="space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
-                  <p className="text-base font-medium">{complaint.customerName}</p>
+                  <p className="text-base font-medium">
+                    {complaint.customerName}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
@@ -366,7 +411,10 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Assigned To</label>
-                <Select value={assignedTo} onValueChange={handleAssignedToChange}>
+                <Select
+                  value={assignedTo}
+                  onValueChange={handleAssignedToChange}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select admin" />
                   </SelectTrigger>
@@ -394,7 +442,12 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
                   </Button>
                 )}
                 {status !== "closed" && (
-                  <Button variant="outline" className="w-full" onClick={handleClose} disabled={isSubmitting}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                  >
                     Close Complaint
                   </Button>
                 )}
@@ -404,5 +457,5 @@ export default function ComplaintDetailPage({ params }: ComplaintDetailPageProps
         </div>
       </div>
     </div>
-  )
+  );
 }

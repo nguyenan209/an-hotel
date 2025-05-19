@@ -1,21 +1,40 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Check, ShoppingCart, User } from "lucide-react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Check, ShoppingCart, User } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { mockBookings, mockCustomers } from "@/lib/mock-data/admin"
-import { getStatusColor } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { mockBookings, mockCustomers } from "@/lib/mock-data/admin";
+import { getStatusColor } from "@/lib/utils";
 
 const customerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -23,22 +42,24 @@ const customerSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   address: z.string().optional(),
   status: z.string(),
-})
+});
 
-type CustomerFormValues = z.infer<typeof customerSchema>
+type CustomerFormValues = z.infer<typeof customerSchema>;
 
 interface CustomerDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default function CustomerDetailPage({ params }: CustomerDetailPageProps) {
-  const router = useRouter()
-  const isNewCustomer = params.id === "new"
-  const [customer, setCustomer] = useState<any | null>(null)
-  const [customerBookings, setCustomerBookings] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(!isNewCustomer)
+export default function CustomerDetailPage({
+  params,
+}: CustomerDetailPageProps) {
+  const router = useRouter();
+  const isNewCustomer = params.id === "new";
+  const [customer, setCustomer] = useState<any | null>(null);
+  const [customerBookings, setCustomerBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(!isNewCustomer);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
@@ -51,60 +72,62 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
           status: "active",
         }
       : undefined,
-  })
+  });
 
   useEffect(() => {
     if (isNewCustomer) {
-      setIsLoading(false)
-      return
+      setIsLoading(false);
+      return;
     }
 
     // Simulate API call to fetch customer details
     const fetchCustomer = async () => {
       try {
         // In a real app, you would fetch from an API
-        const foundCustomer = mockCustomers.find((c) => c.id === params.id)
+        const foundCustomer = mockCustomers.find((c) => c.id === params.id);
 
         if (foundCustomer) {
-          setCustomer(foundCustomer)
+          setCustomer(foundCustomer);
           form.reset({
             name: foundCustomer.name,
             email: foundCustomer.email,
             phone: foundCustomer.phone,
             address: foundCustomer.address,
             status: foundCustomer.status,
-          })
+          });
 
           // Get customer bookings
-          const bookings = mockBookings.filter((b) => b.customerId === params.id)
-          setCustomerBookings(bookings)
+          const bookings = mockBookings.filter(
+            (b) => b.customerId === params.id
+          );
+          setCustomerBookings(bookings);
         }
       } catch (error) {
-        console.error("Error fetching customer:", error)
+        console.error("Error fetching customer:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchCustomer()
-  }, [params.id, isNewCustomer, form])
+    fetchCustomer();
+  }, [params.id, isNewCustomer, form]);
 
   const onSubmit = (data: CustomerFormValues) => {
     // In a real app, you would submit to an API
-    console.log("Form submitted:", data)
+    console.log("Form submitted:", data);
 
     // Simulate successful submission
     setTimeout(() => {
-      router.push("/admin/customers")
-    }, 1000)
-  }
+      router.push("/admin/customers");
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -117,14 +140,18 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isNewCustomer ? "Add New Customer" : `Edit Customer: ${customer?.name}`}
+          {isNewCustomer
+            ? "Add New Customer"
+            : `Edit Customer: ${customer?.name}`}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
-          {!isNewCustomer && <TabsTrigger value="bookings">Bookings</TabsTrigger>}
+          {!isNewCustomer && (
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          )}
         </TabsList>
 
         <Form {...form}>
@@ -133,7 +160,9 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
               <Card>
                 <CardHeader>
                   <CardTitle>Customer Information</CardTitle>
-                  <CardDescription>Enter the customer's personal information.</CardDescription>
+                  <CardDescription>
+                    Enter the customer's personal information.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-center mb-6">
@@ -185,7 +214,11 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter email address" type="email" {...field} />
+                          <Input
+                            placeholder="Enter email address"
+                            type="email"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -226,7 +259,10 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -250,13 +286,17 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                 <Card>
                   <CardHeader>
                     <CardTitle>Booking History</CardTitle>
-                    <CardDescription>View all bookings made by this customer.</CardDescription>
+                    <CardDescription>
+                      View all bookings made by this customer.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {customerBookings.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium">No bookings found</h3>
+                        <h3 className="text-lg font-medium">
+                          No bookings found
+                        </h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           This customer hasn't made any bookings yet.
                         </p>
@@ -269,7 +309,9 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                             className="flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
                           >
                             <div>
-                              <h4 className="font-medium">{booking.homestayName}</h4>
+                              <h4 className="font-medium">
+                                {booking.homestayName}
+                              </h4>
                               <p className="text-sm text-muted-foreground">
                                 {booking.checkIn} to {booking.checkOut}
                               </p>
@@ -277,7 +319,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                             <div className="flex items-center gap-4">
                               <span
                                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                                  booking.status,
+                                  booking.status
                                 )}`}
                               >
                                 {booking.status}
@@ -310,5 +352,5 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
         </Form>
       </Tabs>
     </div>
-  )
+  );
 }

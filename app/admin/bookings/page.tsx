@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Calendar, Edit, Home, Hotel, Plus } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Calendar, Edit, Home, Hotel, Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatCurrency, getStatusColor } from "@/lib/utils"
-import { mockBookings } from "@/lib/mock-data/admin"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatCurrency, getStatusColor } from "@/lib/utils";
+import { mockBookings } from "@/lib/mock-data/admin";
 
 // Update mock bookings to include booking type
 const updatedMockBookings = mockBookings.map((booking, index) => ({
@@ -23,25 +42,27 @@ const updatedMockBookings = mockBookings.map((booking, index) => ({
           { roomId: "1-2", roomName: "Deluxe Room", price: 400000 },
         ]
       : undefined,
-}))
+}));
 
 export default function BookingsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [bookingTypeFilter, setBookingTypeFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [bookingTypeFilter, setBookingTypeFilter] = useState("all");
 
   // Filter bookings based on search query, status filter, and booking type filter
   const filteredBookings = updatedMockBookings.filter((booking) => {
     const matchesSearch =
       booking.homestayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.id.includes(searchQuery)
+      booking.id.includes(searchQuery);
 
-    const matchesStatus = statusFilter === "all" || booking.status === statusFilter
-    const matchesBookingType = bookingTypeFilter === "all" || booking.bookingType === bookingTypeFilter
+    const matchesStatus =
+      statusFilter === "all" || booking.status === statusFilter;
+    const matchesBookingType =
+      bookingTypeFilter === "all" || booking.bookingType === bookingTypeFilter;
 
-    return matchesSearch && matchesStatus && matchesBookingType
-  })
+    return matchesSearch && matchesStatus && matchesBookingType;
+  });
 
   return (
     <div className="space-y-6">
@@ -58,7 +79,10 @@ export default function BookingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Manage Bookings</CardTitle>
-          <CardDescription>You have a total of {updatedMockBookings.length} bookings in the system.</CardDescription>
+          <CardDescription>
+            You have a total of {updatedMockBookings.length} bookings in the
+            system.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -83,7 +107,10 @@ export default function BookingsPage() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={bookingTypeFilter} onValueChange={setBookingTypeFilter}>
+              <Select
+                value={bookingTypeFilter}
+                onValueChange={setBookingTypeFilter}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by booking type" />
                 </SelectTrigger>
@@ -120,7 +147,9 @@ export default function BookingsPage() {
                 ) : (
                   filteredBookings.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">#{booking.id}</TableCell>
+                      <TableCell className="font-medium">
+                        #{booking.id}
+                      </TableCell>
                       <TableCell>{booking.homestayName}</TableCell>
                       <TableCell>{booking.customerName}</TableCell>
                       <TableCell>
@@ -141,16 +170,19 @@ export default function BookingsPage() {
                           <div className="flex items-center">
                             <Hotel className="mr-1 h-4 w-4" />
                             <span>
-                              {booking.rooms?.length || 0} {booking.rooms?.length === 1 ? "Room" : "Rooms"}
+                              {booking.rooms?.length || 0}{" "}
+                              {booking.rooms?.length === 1 ? "Room" : "Rooms"}
                             </span>
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>{formatCurrency(booking.totalPrice)}</TableCell>
+                      <TableCell>
+                        {formatCurrency(booking.totalPrice)}
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                            booking.status,
+                            booking.status
                           )}`}
                         >
                           {booking.status}
@@ -173,5 +205,5 @@ export default function BookingsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

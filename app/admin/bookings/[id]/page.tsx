@@ -1,24 +1,55 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Calendar, Check, CreditCard, Home, Hotel, User } from "lucide-react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  Calendar,
+  Check,
+  CreditCard,
+  Home,
+  Hotel,
+  User,
+} from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { mockBookings, mockCustomers, mockHomestays } from "@/lib/mock-data/admin"
-import { formatCurrency } from "@/lib/utils"
-import { getRoomsByHomestayId } from "@/lib/data"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  mockBookings,
+  mockCustomers,
+  mockHomestays,
+} from "@/lib/mock-data/admin";
+import { formatCurrency } from "@/lib/utils";
+import { getRoomsByHomestayId } from "@/lib/data";
 
 // Update the booking schema to include booking type
 const bookingSchema = z.object({
@@ -32,9 +63,9 @@ const bookingSchema = z.object({
   paymentMethod: z.string(),
   bookingType: z.enum(["whole", "rooms"]),
   selectedRooms: z.array(z.string()).optional(),
-})
+});
 
-type BookingFormValues = z.infer<typeof bookingSchema>
+type BookingFormValues = z.infer<typeof bookingSchema>;
 
 // Update mock bookings to include booking type
 const updatedMockBookings = mockBookings.map((booking, index) => ({
@@ -47,20 +78,20 @@ const updatedMockBookings = mockBookings.map((booking, index) => ({
           { roomId: "1-2", roomName: "Deluxe Room", price: 400000 },
         ]
       : undefined,
-}))
+}));
 
 interface BookingDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default function BookingDetailPage({ params }: BookingDetailPageProps) {
-  const router = useRouter()
-  const isNewBooking = params.id === "new"
-  const [booking, setBooking] = useState<any | null>(null)
-  const [isLoading, setIsLoading] = useState(!isNewBooking)
-  const [availableRooms, setAvailableRooms] = useState<any[]>([])
+  const router = useRouter();
+  const isNewBooking = params.id === "new";
+  const [booking, setBooking] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(!isNewBooking);
+  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -78,41 +109,43 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           selectedRooms: [],
         }
       : undefined,
-  })
+  });
 
-  const watchHomestayId = form.watch("homestayId")
-  const watchBookingType = form.watch("bookingType")
+  const watchHomestayId = form.watch("homestayId");
+  const watchBookingType = form.watch("bookingType");
 
   // Fetch available rooms when homestay changes
   useEffect(() => {
     if (watchHomestayId) {
       const fetchRooms = async () => {
         try {
-          const rooms = await getRoomsByHomestayId(watchHomestayId)
-          setAvailableRooms(rooms)
+          const rooms = await getRoomsByHomestayId(watchHomestayId);
+          setAvailableRooms(rooms);
         } catch (error) {
-          console.error("Error fetching rooms:", error)
+          console.error("Error fetching rooms:", error);
         }
-      }
+      };
 
-      fetchRooms()
+      fetchRooms();
     }
-  }, [watchHomestayId])
+  }, [watchHomestayId]);
 
   useEffect(() => {
     if (isNewBooking) {
-      setIsLoading(false)
-      return
+      setIsLoading(false);
+      return;
     }
 
     // Simulate API call to fetch booking details
     const fetchBooking = async () => {
       try {
         // In a real app, you would fetch from an API
-        const foundBooking = updatedMockBookings.find((b) => b.id === params.id)
+        const foundBooking = updatedMockBookings.find(
+          (b) => b.id === params.id
+        );
 
         if (foundBooking) {
-          setBooking(foundBooking)
+          setBooking(foundBooking);
           form.reset({
             homestayId: foundBooking.homestayId,
             customerId: foundBooking.customerId,
@@ -124,40 +157,40 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             paymentMethod: foundBooking.paymentMethod,
             bookingType: foundBooking.bookingType,
             selectedRooms: foundBooking.rooms?.map((r: any) => r.roomId) || [],
-          })
+          });
 
           // Fetch rooms for this homestay
           if (foundBooking.homestayId) {
-            const rooms = await getRoomsByHomestayId(foundBooking.homestayId)
-            setAvailableRooms(rooms)
+            const rooms = await getRoomsByHomestayId(foundBooking.homestayId);
+            setAvailableRooms(rooms);
           }
         }
       } catch (error) {
-        console.error("Error fetching booking:", error)
+        console.error("Error fetching booking:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchBooking()
-  }, [params.id, isNewBooking, form])
+    fetchBooking();
+  }, [params.id, isNewBooking, form]);
 
   const onSubmit = (data: BookingFormValues) => {
     // In a real app, you would submit to an API
-    console.log("Form submitted:", data)
+    console.log("Form submitted:", data);
 
     // Simulate successful submission
     setTimeout(() => {
-      router.push("/admin/bookings")
-    }, 1000)
-  }
+      router.push("/admin/bookings");
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -193,7 +226,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Homestay</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select homestay" />
@@ -218,7 +254,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Customer</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select customer" />
@@ -295,14 +334,20 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="whole" id="whole" />
-                            <Label htmlFor="whole" className="flex items-center">
+                            <Label
+                              htmlFor="whole"
+                              className="flex items-center"
+                            >
                               <Home className="mr-2 h-4 w-4" />
                               Whole Homestay
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="rooms" id="rooms" />
-                            <Label htmlFor="rooms" className="flex items-center">
+                            <Label
+                              htmlFor="rooms"
+                              className="flex items-center"
+                            >
                               <Hotel className="mr-2 h-4 w-4" />
                               Individual Rooms
                             </Label>
@@ -323,20 +368,27 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                         <FormLabel>Select Rooms</FormLabel>
                         <div className="space-y-2">
                           {availableRooms.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No rooms available for this homestay</p>
+                            <p className="text-sm text-muted-foreground">
+                              No rooms available for this homestay
+                            </p>
                           ) : (
                             availableRooms.map((room) => (
-                              <div key={room.id} className="flex items-center space-x-2">
+                              <div
+                                key={room.id}
+                                className="flex items-center space-x-2"
+                              >
                                 <input
                                   type="checkbox"
                                   id={`room-${room.id}`}
                                   checked={field.value?.includes(room.id)}
                                   onChange={(e) => {
-                                    const checked = e.target.checked
+                                    const checked = e.target.checked;
                                     const updatedRooms = checked
                                       ? [...(field.value || []), room.id]
-                                      : (field.value || []).filter((id) => id !== room.id)
-                                    field.onChange(updatedRooms)
+                                      : (field.value || []).filter(
+                                          (id) => id !== room.id
+                                        );
+                                    field.onChange(updatedRooms);
                                   }}
                                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
@@ -344,7 +396,8 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                                   htmlFor={`room-${room.id}`}
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                  {room.name} - {formatCurrency(room.price)} / night (Max {room.capacity} guests)
+                                  {room.name} - {formatCurrency(room.price)} /
+                                  night (Max {room.capacity} guests)
                                 </label>
                               </div>
                             ))
@@ -362,7 +415,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Booking Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
@@ -391,7 +447,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Payment Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select payment status" />
@@ -415,7 +474,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Payment Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select payment method" />
@@ -423,8 +485,12 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="credit_card">Credit Card</SelectItem>
-                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                            <SelectItem value="credit_card">
+                              Credit Card
+                            </SelectItem>
+                            <SelectItem value="bank_transfer">
+                              Bank Transfer
+                            </SelectItem>
                             <SelectItem value="cash">Cash</SelectItem>
                           </SelectContent>
                         </Select>
@@ -453,14 +519,18 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Booking Summary</CardTitle>
-                <CardDescription>Overview of the booking details and status.</CardDescription>
+                <CardDescription>
+                  Overview of the booking details and status.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4 rounded-lg border p-4">
                   <Home className="h-8 w-8 text-muted-foreground" />
                   <div>
                     <h3 className="font-medium">{booking.homestayName}</h3>
-                    <p className="text-sm text-muted-foreground">Homestay ID: {booking.homestayId}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Homestay ID: {booking.homestayId}
+                    </p>
                   </div>
                 </div>
 
@@ -468,7 +538,9 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <User className="h-8 w-8 text-muted-foreground" />
                   <div>
                     <h3 className="font-medium">{booking.customerName}</h3>
-                    <p className="text-sm text-muted-foreground">Customer ID: {booking.customerId}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Customer ID: {booking.customerId}
+                    </p>
                   </div>
                 </div>
 
@@ -479,7 +551,9 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                     <p className="text-sm text-muted-foreground">
                       {booking.checkIn} to {booking.checkOut}
                     </p>
-                    <p className="text-sm text-muted-foreground">{booking.guests} guests</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.guests} guests
+                    </p>
                   </div>
                 </div>
 
@@ -492,11 +566,15 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <div>
                     <h3 className="font-medium">Booking Type</h3>
                     <p className="text-sm text-muted-foreground">
-                      {booking.bookingType === "whole" ? "Whole Homestay" : "Individual Rooms"}
+                      {booking.bookingType === "whole"
+                        ? "Whole Homestay"
+                        : "Individual Rooms"}
                     </p>
                     {booking.bookingType === "rooms" && booking.rooms && (
                       <div className="mt-1">
-                        <p className="text-sm text-muted-foreground">Selected Rooms:</p>
+                        <p className="text-sm text-muted-foreground">
+                          Selected Rooms:
+                        </p>
                         <ul className="text-sm text-muted-foreground list-disc list-inside">
                           {booking.rooms.map((room: any) => (
                             <li key={room.roomId}>
@@ -513,8 +591,12 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <CreditCard className="h-8 w-8 text-muted-foreground" />
                   <div>
                     <h3 className="font-medium">Payment</h3>
-                    <p className="text-sm text-muted-foreground">Status: {booking.paymentStatus}</p>
-                    <p className="text-sm text-muted-foreground">Method: {booking.paymentMethod}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Status: {booking.paymentStatus}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Method: {booking.paymentMethod}
+                    </p>
                   </div>
                 </div>
 
@@ -523,19 +605,25 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <div className="space-y-1 text-sm">
                     {booking.bookingType === "whole" ? (
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Homestay price</span>
+                        <span className="text-muted-foreground">
+                          Homestay price
+                        </span>
                         <span>{formatCurrency(booking.totalPrice * 0.9)}</span>
                       </div>
                     ) : (
                       booking.rooms?.map((room: any) => (
                         <div key={room.roomId} className="flex justify-between">
-                          <span className="text-muted-foreground">{room.roomName}</span>
+                          <span className="text-muted-foreground">
+                            {room.roomName}
+                          </span>
                           <span>{formatCurrency(room.price)}</span>
                         </div>
                       ))
                     )}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Taxes & fees</span>
+                      <span className="text-muted-foreground">
+                        Taxes & fees
+                      </span>
                       <span>{formatCurrency(booking.totalPrice * 0.1)}</span>
                     </div>
                     <Separator className="my-2" />
@@ -551,5 +639,5 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

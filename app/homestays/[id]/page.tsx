@@ -1,136 +1,154 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { MapPin, Star, Check, Hotel, Home } from "lucide-react"
-import { z } from "zod"
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { MapPin, Star, Check, Hotel, Home } from "lucide-react";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
-import { DatePicker } from "@/components/ui/date-picker"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { formatCurrency } from "@/lib/utils"
-import { useCartStore } from "@/lib/store/cartStore"
-import { bookingSchema } from "@/lib/validation"
-import { RoomCard } from "@/components/homestay/room-card"
-import type { Homestay, Room } from "@/lib/types"
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { formatCurrency } from "@/lib/utils";
+import { useCartStore } from "@/lib/store/cartStore";
+import { bookingSchema } from "@/lib/validation";
+import { RoomCard } from "@/components/homestay/room-card";
+import type { Homestay, Room } from "@/lib/types";
 
 interface HomestayDetailPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default function HomestayDetailPage({ params }: HomestayDetailPageProps) {
-  const router = useRouter()
-  const addWholeHomestayToCart = useCartStore((state) => state.addWholeHomestayToCart)
-  const addRoomsToCart = useCartStore((state) => state.addRoomsToCart)
+export default function HomestayDetailPage({
+  params,
+}: HomestayDetailPageProps) {
+  const router = useRouter();
+  const addWholeHomestayToCart = useCartStore(
+    (state) => state.addWholeHomestayToCart
+  );
+  const addRoomsToCart = useCartStore((state) => state.addRoomsToCart);
 
-  const [homestay, setHomestay] = useState<Homestay | null>(null)
-  const [rooms, setRooms] = useState<Room[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [homestay, setHomestay] = useState<Homestay | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [checkIn, setCheckIn] = useState<Date>()
-  const [checkOut, setCheckOut] = useState<Date>()
-  const [guests, setGuests] = useState("1")
-  const [bookingType, setBookingType] = useState<"whole" | "rooms">("whole")
-  const [selectedRooms, setSelectedRooms] = useState<string[]>([])
-  const [bookingError, setBookingError] = useState("")
+  const [checkIn, setCheckIn] = useState<Date>();
+  const [checkOut, setCheckOut] = useState<Date>();
+  const [guests, setGuests] = useState("1");
+  const [bookingType, setBookingType] = useState<"whole" | "rooms">("whole");
+  const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
+  const [bookingError, setBookingError] = useState("");
 
   useEffect(() => {
     const fetchHomestay = async () => {
       try {
-        const response = await fetch(`/api/homestays/${params.id}`)
+        const response = await fetch(`/api/homestays/${params.id}`);
         if (!response.ok) {
-          throw new Error("Không thể tải thông tin homestay")
+          throw new Error("Không thể tải thông tin homestay");
         }
 
-        const data = await response.json()
-        setHomestay(data)
+        const data = await response.json();
+        setHomestay(data);
       } catch (err) {
-        setError("Đã xảy ra lỗi khi tải thông tin homestay")
-        console.error(err)
+        setError("Đã xảy ra lỗi khi tải thông tin homestay");
+        console.error(err);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     const fetchRooms = async () => {
       try {
-        const response = await fetch(`/api/rooms?homestayId=${params.id}`)
+        const response = await fetch(`/api/rooms?homestayId=${params.id}`);
         if (!response.ok) {
-          throw new Error("Không thể tải thông tin phòng")
+          throw new Error("Không thể tải thông tin phòng");
         }
 
-        const data = await response.json()
-        setRooms(data)
+        const data = await response.json();
+        setRooms(data);
       } catch (err) {
-        console.error("Error fetching rooms:", err)
+        console.error("Error fetching rooms:", err);
       }
-    }
+    };
 
     // For demo purposes, we'll use mock data instead of fetching
     const fetchMockHomestay = async () => {
       try {
         // Import the mock data
-        const { getHomestayById, getRoomsByHomestayId } = await import("@/lib/data")
-        const data = await getHomestayById(params.id)
+        const { getHomestayById, getRoomsByHomestayId } = await import(
+          "@/lib/data"
+        );
+        const data = await getHomestayById(params.id);
 
         if (!data) {
-          throw new Error("Homestay không tồn tại")
+          throw new Error("Homestay không tồn tại");
         }
 
-        setHomestay(data)
+        setHomestay(data);
 
         // Get rooms for this homestay
-        const roomsData = await getRoomsByHomestayId(params.id)
-        setRooms(roomsData)
+        const roomsData = await getRoomsByHomestayId(params.id);
+        setRooms(roomsData);
       } catch (err) {
-        setError("Đã xảy ra lỗi khi tải thông tin homestay")
-        console.error(err)
+        setError("Đã xảy ra lỗi khi tải thông tin homestay");
+        console.error(err);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchMockHomestay()
-  }, [params.id])
+    fetchMockHomestay();
+  }, [params.id]);
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {
     if (isSelected) {
-      setSelectedRooms([...selectedRooms, roomId])
+      setSelectedRooms([...selectedRooms, roomId]);
     } else {
-      setSelectedRooms(selectedRooms.filter((id) => id !== roomId))
+      setSelectedRooms(selectedRooms.filter((id) => id !== roomId));
     }
-  }
+  };
 
   const calculateTotalCapacity = () => {
     return selectedRooms.reduce((total, roomId) => {
-      const room = rooms.find((r) => r.id === roomId)
-      return total + (room?.capacity || 0)
-    }, 0)
-  }
+      const room = rooms.find((r) => r.id === roomId);
+      return total + (room?.capacity || 0);
+    }, 0);
+  };
 
   const calculateTotalPrice = () => {
     if (bookingType === "whole") {
-      return homestay?.price || 0
+      return homestay?.price || 0;
     } else {
       return selectedRooms.reduce((total, roomId) => {
-        const room = rooms.find((r) => r.id === roomId)
-        return total + (room?.price || 0)
-      }, 0)
+        const room = rooms.find((r) => r.id === roomId);
+        return total + (room?.price || 0);
+      }, 0);
     }
-  }
+  };
 
   const handleAddToCart = () => {
-    if (!homestay) return
+    if (!homestay) return;
 
-    setBookingError("")
+    setBookingError("");
 
     try {
       // Validate booking data
@@ -140,42 +158,57 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
         guests: Number(guests),
         bookingType,
         selectedRooms,
-      })
+      });
 
       if (bookingType === "rooms" && selectedRooms.length === 0) {
-        setBookingError("Vui lòng chọn ít nhất một phòng")
-        return
+        setBookingError("Vui lòng chọn ít nhất một phòng");
+        return;
       }
 
       if (bookingType === "rooms") {
-        const totalCapacity = calculateTotalCapacity()
+        const totalCapacity = calculateTotalCapacity();
         if (Number(guests) > totalCapacity) {
-          setBookingError(`Số lượng khách vượt quá sức chứa của các phòng đã chọn (tối đa ${totalCapacity} khách)`)
-          return
+          setBookingError(
+            `Số lượng khách vượt quá sức chứa của các phòng đã chọn (tối đa ${totalCapacity} khách)`
+          );
+          return;
         }
 
         // Add selected rooms to cart
-        const selectedRoomsData = rooms.filter((room) => selectedRooms.includes(room.id))
-        addRoomsToCart(homestay, selectedRoomsData, checkIn!.toISOString(), checkOut!.toISOString(), Number(guests))
+        const selectedRoomsData = rooms.filter((room) =>
+          selectedRooms.includes(room.id)
+        );
+        addRoomsToCart(
+          homestay,
+          selectedRoomsData,
+          checkIn!.toISOString(),
+          checkOut!.toISOString(),
+          Number(guests)
+        );
       } else {
         // Add whole homestay to cart
-        addWholeHomestayToCart(homestay, checkIn!.toISOString(), checkOut!.toISOString(), Number(guests))
+        addWholeHomestayToCart(
+          homestay,
+          checkIn!.toISOString(),
+          checkOut!.toISOString(),
+          Number(guests)
+        );
       }
 
       // Show success message or redirect
-      router.push("/cart")
+      router.push("/cart");
     } catch (err) {
       if (err instanceof z.ZodError) {
-        setBookingError(err.errors[0].message)
+        setBookingError(err.errors[0].message);
       } else {
-        setBookingError("Đã xảy ra lỗi khi thêm vào giỏ hàng")
+        setBookingError("Đã xảy ra lỗi khi thêm vào giỏ hàng");
       }
     }
-  }
+  };
 
   const handleBookNow = () => {
-    handleAddToCart()
-  }
+    handleAddToCart();
+  };
 
   if (isLoading) {
     return (
@@ -184,7 +217,7 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
           <p>Đang tải...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !homestay) {
@@ -194,7 +227,7 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
           <p className="text-red-500">{error || "Không tìm thấy homestay"}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -246,12 +279,13 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
               <div className="prose max-w-none">
                 <p>{homestay.description}</p>
                 <p>
-                  Homestay này có thể phục vụ tối đa {homestay.maxGuests} khách, là lựa chọn lý tưởng cho{" "}
+                  Homestay này có thể phục vụ tối đa {homestay.maxGuests} khách,
+                  là lựa chọn lý tưởng cho{" "}
                   {homestay.maxGuests <= 2
                     ? "cặp đôi"
                     : homestay.maxGuests <= 4
-                      ? "gia đình nhỏ"
-                      : "nhóm bạn bè hoặc gia đình lớn"}
+                    ? "gia đình nhỏ"
+                    : "nhóm bạn bè hoặc gia đình lớn"}
                   .
                 </p>
                 <p>
@@ -267,7 +301,9 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
                 {rooms.length > 0 ? (
                   rooms.map((room) => <RoomCard key={room.id} room={room} />)
                 ) : (
-                  <p className="col-span-full text-muted-foreground">Không có thông tin phòng</p>
+                  <p className="col-span-full text-muted-foreground">
+                    Không có thông tin phòng
+                  </p>
                 )}
               </div>
             </TabsContent>
@@ -285,7 +321,9 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
               <div className="flex items-center mb-4">
                 <Star className="h-6 w-6 mr-2 fill-yellow-400 text-yellow-400" />
                 <span className="text-2xl font-bold">{homestay.rating}</span>
-                <span className="text-muted-foreground ml-2">(12 đánh giá)</span>
+                <span className="text-muted-foreground ml-2">
+                  (12 đánh giá)
+                </span>
               </div>
               <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
             </TabsContent>
@@ -297,19 +335,30 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl font-bold">
                 {formatCurrency(homestay.price)}
-                <span className="text-sm font-normal text-muted-foreground"> / đêm</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  {" "}
+                  / đêm
+                </span>
               </div>
             </div>
 
             <div className="space-y-4 mb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày nhận phòng</label>
-                <DatePicker date={checkIn} setDate={setCheckIn} placeholder="Chọn ngày nhận phòng" />
+                <DatePicker
+                  date={checkIn}
+                  setDate={setCheckIn}
+                  placeholder="Chọn ngày nhận phòng"
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày trả phòng</label>
-                <DatePicker date={checkOut} setDate={setCheckOut} placeholder="Chọn ngày trả phòng" />
+                <DatePicker
+                  date={checkOut}
+                  setDate={setCheckOut}
+                  placeholder="Chọn ngày trả phòng"
+                />
               </div>
 
               <div className="space-y-2">
@@ -321,7 +370,10 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
                     <SelectValue placeholder="Số khách" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: homestay.maxGuests }, (_, i) => i + 1).map((num) => (
+                    {Array.from(
+                      { length: homestay.maxGuests },
+                      (_, i) => i + 1
+                    ).map((num) => (
                       <SelectItem key={num} value={num.toString()}>
                         {num} khách
                       </SelectItem>
@@ -335,7 +387,9 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
                   <label className="text-sm font-medium">Loại đặt phòng</label>
                   <RadioGroup
                     value={bookingType}
-                    onValueChange={(value) => setBookingType(value as "whole" | "rooms")}
+                    onValueChange={(value) =>
+                      setBookingType(value as "whole" | "rooms")
+                    }
                     className="flex flex-col space-y-2"
                   >
                     <div className="flex items-center space-x-2">
@@ -364,16 +418,27 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
                       <div
                         key={room.id}
                         className={`border rounded-md p-3 cursor-pointer transition-colors ${
-                          selectedRooms.includes(room.id) ? "border-primary bg-primary/5" : ""
+                          selectedRooms.includes(room.id)
+                            ? "border-primary bg-primary/5"
+                            : ""
                         }`}
-                        onClick={() => handleRoomSelection(room.id, !selectedRooms.includes(room.id))}
+                        onClick={() =>
+                          handleRoomSelection(
+                            room.id,
+                            !selectedRooms.includes(room.id)
+                          )
+                        }
                       >
                         <div className="flex justify-between items-start">
                           <div>
                             <h4 className="font-medium">{room.name}</h4>
-                            <p className="text-xs text-muted-foreground">Tối đa {room.capacity} khách</p>
+                            <p className="text-xs text-muted-foreground">
+                              Tối đa {room.capacity} khách
+                            </p>
                           </div>
-                          <p className="font-semibold">{formatCurrency(room.price)}</p>
+                          <p className="font-semibold">
+                            {formatCurrency(room.price)}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -381,28 +446,38 @@ export default function HomestayDetailPage({ params }: HomestayDetailPageProps) 
                   {bookingType === "rooms" && selectedRooms.length > 0 && (
                     <div className="flex justify-between items-center pt-2 border-t">
                       <span className="text-sm">Tổng giá phòng:</span>
-                      <span className="font-semibold">{formatCurrency(calculateTotalPrice())}</span>
+                      <span className="font-semibold">
+                        {formatCurrency(calculateTotalPrice())}
+                      </span>
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            {bookingError && <p className="text-sm text-red-500 mb-4">{bookingError}</p>}
+            {bookingError && (
+              <p className="text-sm text-red-500 mb-4">{bookingError}</p>
+            )}
 
             <div className="space-y-2">
               <Button className="w-full" onClick={handleBookNow}>
                 Đặt ngay
               </Button>
-              <Button variant="outline" className="w-full" onClick={handleAddToCart}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleAddToCart}
+              >
                 Thêm vào giỏ hàng
               </Button>
             </div>
 
-            <div className="mt-4 text-center text-sm text-muted-foreground">Bạn chưa bị trừ tiền</div>
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              Bạn chưa bị trừ tiền
+            </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-import { Sidebar } from "@/components/admin/layout/sidebar"
-import { Header } from "@/components/admin/layout/header"
+import { Sidebar } from "@/components/admin/layout/sidebar";
+import { Header } from "@/components/admin/layout/header";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "HomeStay Admin",
   description: "Admin panel for HomeStay booking system",
-}
+};
 
 export default function AdminLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <div className={`${inter.className} min-h-screen admin-layout`}>
@@ -27,5 +27,5 @@ export default function AdminLayout({
         <main className="p-4 md:p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

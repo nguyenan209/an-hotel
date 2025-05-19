@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, Clock } from "lucide-react"
+import { Mail, MapPin, Phone, Clock } from "lucide-react";
 
 export function ContactInfo() {
   return (
@@ -22,7 +22,10 @@ export function ContactInfo() {
             <div>
               <h3 className="font-medium">Email</h3>
               <p className="text-muted-foreground">
-                <a href="mailto:info@homestay.vn" className="hover:text-primary">
+                <a
+                  href="mailto:info@homestay.vn"
+                  className="hover:text-primary"
+                >
                   info@homestay.vn
                 </a>
               </p>
@@ -32,14 +35,18 @@ export function ContactInfo() {
             <MapPin className="h-5 w-5 text-primary mr-3 mt-0.5" />
             <div>
               <h3 className="font-medium">Địa chỉ</h3>
-              <p className="text-muted-foreground">123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</p>
+              <p className="text-muted-foreground">
+                123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+              </p>
             </div>
           </div>
           <div className="flex items-start">
             <Clock className="h-5 w-5 text-primary mr-3 mt-0.5" />
             <div>
               <h3 className="font-medium">Giờ làm việc</h3>
-              <p className="text-muted-foreground">Thứ 2 - Thứ 6: 8:00 - 18:00</p>
+              <p className="text-muted-foreground">
+                Thứ 2 - Thứ 6: 8:00 - 18:00
+              </p>
               <p className="text-muted-foreground">Thứ 7: 8:00 - 12:00</p>
               <p className="text-muted-foreground">Chủ nhật: Nghỉ</p>
             </div>
@@ -62,5 +69,5 @@ export function ContactInfo() {
         </div>
       </div>
     </div>
-  )
+  );
 }

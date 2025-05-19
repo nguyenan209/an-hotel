@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { ShoppingCart } from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { CartItem } from "@/components/cart/cart-item"
-import { Separator } from "@/components/ui/separator"
-import { useCartStore } from "@/lib/store/cartStore"
-import { formatCurrency } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { CartItem } from "@/components/cart/cart-item";
+import { Separator } from "@/components/ui/separator";
+import { useCartStore } from "@/lib/store/cartStore";
+import { formatCurrency } from "@/lib/utils";
 
 export default function CartPage() {
-  const [mounted, setMounted] = useState(false)
-  const { items, getTotalPrice, clearCart } = useCartStore()
+  const [mounted, setMounted] = useState(false);
+  const { items, getTotalPrice, clearCart } = useCartStore();
 
   // Fix hydration issues
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   if (items.length === 0) {
@@ -29,17 +29,21 @@ export default function CartPage() {
         <h1 className="text-3xl font-bold mb-8">Giỏ hàng</h1>
         <div className="flex flex-col items-center justify-center py-12">
           <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Giỏ hàng của bạn đang trống</h2>
-          <p className="text-muted-foreground mb-6">Hãy thêm homestay vào giỏ hàng để tiến hành đặt phòng</p>
+          <h2 className="text-xl font-semibold mb-2">
+            Giỏ hàng của bạn đang trống
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            Hãy thêm homestay vào giỏ hàng để tiến hành đặt phòng
+          </p>
           <Link href="/search">
             <Button>Tìm homestay</Button>
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const totalPrice = getTotalPrice()
+  const totalPrice = getTotalPrice();
 
   return (
     <div className="container py-8">
@@ -65,12 +69,16 @@ export default function CartPage() {
 
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Số lượng homestay:</span>
+                <span className="text-muted-foreground">
+                  Số lượng homestay:
+                </span>
                 <span>{items.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tổng số đêm:</span>
-                <span>{items.reduce((total, item) => total + item.nights, 0)}</span>
+                <span>
+                  {items.reduce((total, item) => total + item.nights, 0)}
+                </span>
               </div>
             </div>
 
@@ -85,10 +93,12 @@ export default function CartPage() {
               <Button className="w-full">Tiến hành thanh toán</Button>
             </Link>
 
-            <div className="mt-4 text-center text-sm text-muted-foreground">Giá đã bao gồm thuế và phí</div>
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              Giá đã bao gồm thuế và phí
+            </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

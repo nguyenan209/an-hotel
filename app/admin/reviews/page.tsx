@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 // Mock data for reviews
 const mockReviews = [
@@ -74,46 +93,55 @@ const mockReviews = [
     createdAt: "2023-06-19T16:30:00Z",
     hasResponse: true,
   },
-]
+];
 
 export default function ReviewsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [ratingFilter, setRatingFilter] = useState("all")
-  const [reviews, setReviews] = useState(mockReviews)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [ratingFilter, setRatingFilter] = useState("all");
+  const [reviews, setReviews] = useState(mockReviews);
 
   // Filter reviews based on search query, status filter, and rating filter
   const filteredReviews = reviews.filter((review) => {
     const matchesSearch =
       review.homestayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       review.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.comment.toLowerCase().includes(searchQuery.toLowerCase())
+      review.comment.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || review.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || review.status === statusFilter;
     const matchesRating =
       ratingFilter === "all" ||
       (ratingFilter === "positive" && review.rating >= 4) ||
-      (ratingFilter === "negative" && review.rating <= 2)
+      (ratingFilter === "negative" && review.rating <= 2);
 
-    return matchesSearch && matchesStatus && matchesRating
-  })
+    return matchesSearch && matchesStatus && matchesRating;
+  });
 
   const handleApprove = (id: string) => {
     // In a real app, you would call an API to approve the review
-    setReviews(reviews.map((review) => (review.id === id ? { ...review, status: "published" } : review)))
-  }
+    setReviews(
+      reviews.map((review) =>
+        review.id === id ? { ...review, status: "published" } : review
+      )
+    );
+  };
 
   const handleFlag = (id: string) => {
     // In a real app, you would call an API to flag the review
-    setReviews(reviews.map((review) => (review.id === id ? { ...review, status: "flagged" } : review)))
-  }
+    setReviews(
+      reviews.map((review) =>
+        review.id === id ? { ...review, status: "flagged" } : review
+      )
+    );
+  };
 
   const handleRemove = (id: string) => {
     // In a real app, you would call an API to remove the review
     if (confirm("Are you sure you want to remove this review?")) {
-      setReviews(reviews.filter((review) => review.id !== id))
+      setReviews(reviews.filter((review) => review.id !== id));
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -152,7 +180,9 @@ export default function ReviewsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Customer Reviews</CardTitle>
-          <CardDescription>Manage and moderate customer reviews for all homestays.</CardDescription>
+          <CardDescription>
+            Manage and moderate customer reviews for all homestays.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -167,13 +197,22 @@ export default function ReviewsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm font-normal">
-                {filteredReviews.filter((r) => r.status === "pending").length} Pending
+                {filteredReviews.filter((r) => r.status === "pending").length}{" "}
+                Pending
               </Badge>
-              <Badge variant="outline" className="bg-green-50 text-green-700 text-sm font-normal">
-                {filteredReviews.filter((r) => r.status === "published").length} Published
+              <Badge
+                variant="outline"
+                className="bg-green-50 text-green-700 text-sm font-normal"
+              >
+                {filteredReviews.filter((r) => r.status === "published").length}{" "}
+                Published
               </Badge>
-              <Badge variant="outline" className="bg-red-50 text-red-700 text-sm font-normal">
-                {filteredReviews.filter((r) => r.status === "flagged").length} Flagged
+              <Badge
+                variant="outline"
+                className="bg-red-50 text-red-700 text-sm font-normal"
+              >
+                {filteredReviews.filter((r) => r.status === "flagged").length}{" "}
+                Flagged
               </Badge>
             </div>
           </div>
@@ -202,12 +241,18 @@ export default function ReviewsPage() {
                   filteredReviews.map((review) => (
                     <TableRow key={review.id}>
                       <TableCell>
-                        <Link href={`/admin/homestays/${review.homestayId}`} className="text-blue-600 hover:underline">
+                        <Link
+                          href={`/admin/homestays/${review.homestayId}`}
+                          className="text-blue-600 hover:underline"
+                        >
                           {review.homestayName}
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Link href={`/admin/customers/${review.customerId}`} className="text-blue-600 hover:underline">
+                        <Link
+                          href={`/admin/customers/${review.customerId}`}
+                          className="text-blue-600 hover:underline"
+                        >
                           {review.customerName}
                         </Link>
                       </TableCell>
@@ -217,7 +262,9 @@ export default function ReviewsPage() {
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">{review.comment}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {review.comment}
+                      </TableCell>
                       <TableCell>{formatDate(review.createdAt)}</TableCell>
                       <TableCell>
                         <Badge
@@ -225,11 +272,12 @@ export default function ReviewsPage() {
                             review.status === "published"
                               ? "bg-green-100 text-green-800"
                               : review.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                           }
                         >
-                          {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+                          {review.status.charAt(0).toUpperCase() +
+                            review.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -294,5 +342,5 @@ export default function ReviewsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

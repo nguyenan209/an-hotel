@@ -1,17 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Download } from "lucide-react"
+import { useState } from "react";
+import { Download } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { mockBookingStats } from "@/lib/mock-data/admin"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { mockBookingStats } from "@/lib/mock-data/admin";
 
 export default function BookingReportPage() {
-  const [timeRange, setTimeRange] = useState("year")
-  const [year, setYear] = useState("2023")
+  const [timeRange, setTimeRange] = useState("year");
+  const [year, setYear] = useState("2023");
 
   return (
     <div className="space-y-6">
@@ -39,7 +51,9 @@ export default function BookingReportPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockBookingStats.total}</div>
@@ -51,9 +65,14 @@ export default function BookingReportPage() {
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBookingStats.completed}</div>
+            <div className="text-2xl font-bold">
+              {mockBookingStats.completed}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((mockBookingStats.completed / mockBookingStats.total) * 100)}% of total
+              {Math.round(
+                (mockBookingStats.completed / mockBookingStats.total) * 100
+              )}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -62,9 +81,14 @@ export default function BookingReportPage() {
             <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBookingStats.cancelled}</div>
+            <div className="text-2xl font-bold">
+              {mockBookingStats.cancelled}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((mockBookingStats.cancelled / mockBookingStats.total) * 100)}% of total
+              {Math.round(
+                (mockBookingStats.cancelled / mockBookingStats.total) * 100
+              )}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -74,7 +98,9 @@ export default function BookingReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockBookingStats.pending}</div>
-            <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+            <p className="text-xs text-muted-foreground">
+              Awaiting confirmation
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -90,7 +116,9 @@ export default function BookingReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>Booking Overview</CardTitle>
-              <CardDescription>Monthly booking statistics for the year {year}</CardDescription>
+              <CardDescription>
+                Monthly booking statistics for the year {year}
+              </CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
               <div className="h-full w-full">
@@ -102,7 +130,15 @@ export default function BookingReportPage() {
                         <div
                           className="absolute bottom-0 w-full rounded-md bg-primary"
                           style={{
-                            height: `${(item.bookings / Math.max(...mockBookingStats.monthlyStats.map((s) => s.bookings))) * 100}%`,
+                            height: `${
+                              (item.bookings /
+                                Math.max(
+                                  ...mockBookingStats.monthlyStats.map(
+                                    (s) => s.bookings
+                                  )
+                                )) *
+                              100
+                            }%`,
                           }}
                         />
                       </div>
@@ -124,20 +160,35 @@ export default function BookingReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>Monthly Breakdown</CardTitle>
-              <CardDescription>Detailed monthly booking analysis for {year}</CardDescription>
+              <CardDescription>
+                Detailed monthly booking analysis for {year}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {mockBookingStats.monthlyStats.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex items-center gap-2">
-                      <div className="w-10 text-muted-foreground">{item.month}</div>
+                      <div className="w-10 text-muted-foreground">
+                        {item.month}
+                      </div>
                       <div className="w-full max-w-md">
                         <div className="h-2 w-full rounded-full bg-secondary">
                           <div
                             className="h-2 rounded-full bg-primary"
                             style={{
-                              width: `${(item.bookings / Math.max(...mockBookingStats.monthlyStats.map((s) => s.bookings))) * 100}%`,
+                              width: `${
+                                (item.bookings /
+                                  Math.max(
+                                    ...mockBookingStats.monthlyStats.map(
+                                      (s) => s.bookings
+                                    )
+                                  )) *
+                                100
+                              }%`,
                             }}
                           />
                         </div>
@@ -154,7 +205,9 @@ export default function BookingReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>By Status</CardTitle>
-              <CardDescription>Booking distribution by status for {year}</CardDescription>
+              <CardDescription>
+                Booking distribution by status for {year}
+              </CardDescription>
             </CardHeader>
             <CardContent>{/* Add status-based statistics here */}</CardContent>
           </Card>
@@ -163,12 +216,14 @@ export default function BookingReportPage() {
           <Card>
             <CardHeader>
               <CardTitle>By Source</CardTitle>
-              <CardDescription>Booking distribution by source for {year}</CardDescription>
+              <CardDescription>
+                Booking distribution by source for {year}
+              </CardDescription>
             </CardHeader>
             <CardContent>{/* Add source-based statistics here */}</CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

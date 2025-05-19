@@ -1,32 +1,52 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Edit, Plus, Trash } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Edit, Plus, Trash } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatDate, getStatusColor } from "@/lib/utils"
-import { mockCustomers } from "@/lib/mock-data/admin"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDate, getStatusColor } from "@/lib/utils";
+import { mockCustomers } from "@/lib/mock-data/admin";
 
 export default function CustomersPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Filter customers based on search query and status filter
   const filteredCustomers = mockCustomers.filter((customer) => {
     const matchesSearch =
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery)
+      customer.phone.includes(searchQuery);
 
-    const matchesStatus = statusFilter === "all" || customer.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || customer.status === statusFilter;
 
-    return matchesSearch && matchesStatus
-  })
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
@@ -43,7 +63,9 @@ export default function CustomersPage() {
       <Card>
         <CardHeader>
           <CardTitle>Manage Customers</CardTitle>
-          <CardDescription>You have a total of {mockCustomers.length} customers in the system.</CardDescription>
+          <CardDescription>
+            You have a total of {mockCustomers.length} customers in the system.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -92,7 +114,9 @@ export default function CustomersPage() {
                 ) : (
                   filteredCustomers.map((customer) => (
                     <TableRow key={customer.id}>
-                      <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {customer.name}
+                      </TableCell>
                       <TableCell>{customer.email}</TableCell>
                       <TableCell>{customer.phone}</TableCell>
                       <TableCell>{customer.totalBookings}</TableCell>
@@ -100,7 +124,7 @@ export default function CustomersPage() {
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                            customer.status,
+                            customer.status
                           )}`}
                         >
                           {customer.status}
@@ -129,5 +153,5 @@ export default function CustomersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

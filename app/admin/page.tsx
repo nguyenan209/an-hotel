@@ -1,17 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { BarChart3, Hotel, ShoppingCart, Users } from "lucide-react"
+import { useState } from "react";
+import { BarChart3, Hotel, ShoppingCart, Users } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { formatCurrency } from "@/lib/utils"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatCurrency } from "@/lib/utils";
 
 // Import chart components
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import {
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Page() {
-  const [dateRange, setDateRange] = useState("7d")
+  const [dateRange, setDateRange] = useState("7d");
 
   // Mock data for the dashboard
   const stats = {
@@ -22,7 +37,7 @@ export default function Page() {
     pendingApprovals: 5,
     openComplaints: 3,
     pendingReviews: 8,
-  }
+  };
 
   // Mock data for the revenue chart
   const revenueData = [
@@ -33,7 +48,7 @@ export default function Page() {
     { name: "Fri", revenue: 12000000 },
     { name: "Sat", revenue: 15000000 },
     { name: "Sun", revenue: 10000000 },
-  ]
+  ];
 
   // Mock data for the bookings chart
   const bookingsData = [
@@ -44,7 +59,7 @@ export default function Page() {
     { name: "Fri", bookings: 12 },
     { name: "Sat", bookings: 15 },
     { name: "Sun", bookings: 10 },
-  ]
+  ];
 
   // Mock data for the homestay types chart
   const homestayTypesData = [
@@ -53,7 +68,7 @@ export default function Page() {
     { name: "City", value: 8 },
     { name: "Countryside", value: 5 },
     { name: "Lakeside", value: 4 },
-  ]
+  ];
 
   // Mock data for recent bookings
   const recentBookings = [
@@ -93,7 +108,7 @@ export default function Page() {
       total: 3000000,
       status: "completed",
     },
-  ]
+  ];
 
   // Mock data for pending approvals
   const pendingApprovals = [
@@ -118,7 +133,7 @@ export default function Page() {
       location: "Hội An",
       submittedDate: "2023-06-14",
     },
-  ]
+  ];
 
   // Mock data for open complaints
   const openComplaints = [
@@ -138,17 +153,21 @@ export default function Page() {
       priority: "high",
       createdAt: "2023-06-17",
     },
-  ]
+  ];
 
   // Colors for the pie chart
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center gap-2">
-          <Tabs defaultValue="7d" className="w-[400px]" onValueChange={setDateRange}>
+          <Tabs
+            defaultValue="7d"
+            className="w-[400px]"
+            onValueChange={setDateRange}
+          >
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="24h">24h</TabsTrigger>
               <TabsTrigger value="7d">7d</TabsTrigger>
@@ -166,38 +185,54 @@ export default function Page() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.totalRevenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              +20.1% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">+12.5% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +12.5% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Customers
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">+8.2% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +8.2% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Homestays</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Homestays
+            </CardTitle>
             <Hotel className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalHomestays}</div>
-            <p className="text-xs text-muted-foreground">+4.5% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +4.5% from last month
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -206,7 +241,9 @@ export default function Page() {
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle>Revenue Overview</CardTitle>
-            <CardDescription>Revenue trend for the last {dateRange}</CardDescription>
+            <CardDescription>
+              Revenue trend for the last {dateRange}
+            </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -230,12 +267,17 @@ export default function Page() {
                   }
                 />
                 <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#8884d8" activeDot={{ r: 8 }} />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#8884d8"
+                  activeDot={{ r: 8 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

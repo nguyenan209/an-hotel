@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { CheckCircle, Eye, Filter, Search, X } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { CheckCircle, Eye, Filter, Search, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 // Mock data for pending homestay approvals
 const mockPendingHomestays = [
@@ -69,43 +88,51 @@ const mockPendingHomestays = [
     rooms: 5,
     images: 10,
   },
-]
+];
 
 export default function HomestayApprovalsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [pendingHomestays, setPendingHomestays] = useState(mockPendingHomestays)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [pendingHomestays, setPendingHomestays] =
+    useState(mockPendingHomestays);
 
   // Filter homestays based on search query and status filter
   const filteredHomestays = pendingHomestays.filter((homestay) => {
     const matchesSearch =
       homestay.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       homestay.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      homestay.ownerName.toLowerCase().includes(searchQuery.toLowerCase())
+      homestay.ownerName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || homestay.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || homestay.status === statusFilter;
 
-    return matchesSearch && matchesStatus
-  })
+    return matchesSearch && matchesStatus;
+  });
 
   const handleApprove = (id: string) => {
     // In a real app, you would call an API to approve the homestay
     setPendingHomestays(
-      pendingHomestays.map((homestay) => (homestay.id === id ? { ...homestay, status: "approved" } : homestay)),
-    )
-  }
+      pendingHomestays.map((homestay) =>
+        homestay.id === id ? { ...homestay, status: "approved" } : homestay
+      )
+    );
+  };
 
   const handleReject = (id: string) => {
     // In a real app, you would call an API to reject the homestay
     setPendingHomestays(
-      pendingHomestays.map((homestay) => (homestay.id === id ? { ...homestay, status: "rejected" } : homestay)),
-    )
-  }
+      pendingHomestays.map((homestay) =>
+        homestay.id === id ? { ...homestay, status: "rejected" } : homestay
+      )
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Homestay Approvals</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Homestay Approvals
+        </h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
@@ -128,7 +155,9 @@ export default function HomestayApprovalsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Pending Homestay Approvals</CardTitle>
-          <CardDescription>Review and approve new homestay listings submitted by owners.</CardDescription>
+          <CardDescription>
+            Review and approve new homestay listings submitted by owners.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -143,13 +172,28 @@ export default function HomestayApprovalsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm font-normal">
-                {filteredHomestays.filter((h) => h.status === "pending").length} Pending
+                {filteredHomestays.filter((h) => h.status === "pending").length}{" "}
+                Pending
               </Badge>
-              <Badge variant="outline" className="bg-green-50 text-green-700 text-sm font-normal">
-                {filteredHomestays.filter((h) => h.status === "approved").length} Approved
+              <Badge
+                variant="outline"
+                className="bg-green-50 text-green-700 text-sm font-normal"
+              >
+                {
+                  filteredHomestays.filter((h) => h.status === "approved")
+                    .length
+                }{" "}
+                Approved
               </Badge>
-              <Badge variant="outline" className="bg-red-50 text-red-700 text-sm font-normal">
-                {filteredHomestays.filter((h) => h.status === "rejected").length} Rejected
+              <Badge
+                variant="outline"
+                className="bg-red-50 text-red-700 text-sm font-normal"
+              >
+                {
+                  filteredHomestays.filter((h) => h.status === "rejected")
+                    .length
+                }{" "}
+                Rejected
               </Badge>
             </div>
           </div>
@@ -177,26 +221,34 @@ export default function HomestayApprovalsPage() {
                 ) : (
                   filteredHomestays.map((homestay) => (
                     <TableRow key={homestay.id}>
-                      <TableCell className="font-medium">{homestay.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {homestay.name}
+                      </TableCell>
                       <TableCell>
-                        <Link href={`/admin/owners/${homestay.ownerId}`} className="text-blue-600 hover:underline">
+                        <Link
+                          href={`/admin/owners/${homestay.ownerId}`}
+                          className="text-blue-600 hover:underline"
+                        >
                           {homestay.ownerName}
                         </Link>
                       </TableCell>
                       <TableCell>{homestay.location}</TableCell>
                       <TableCell>{homestay.rooms} rooms</TableCell>
-                      <TableCell>{formatDate(homestay.submittedDate)}</TableCell>
+                      <TableCell>
+                        {formatDate(homestay.submittedDate)}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           className={
                             homestay.status === "approved"
                               ? "bg-green-100 text-green-800"
                               : homestay.status === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
                           }
                         >
-                          {homestay.status.charAt(0).toUpperCase() + homestay.status.slice(1)}
+                          {homestay.status.charAt(0).toUpperCase() +
+                            homestay.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -240,5 +292,5 @@ export default function HomestayApprovalsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

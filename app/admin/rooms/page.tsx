@@ -1,64 +1,87 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Edit, Plus, Trash } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Edit, Plus, Trash } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatCurrency, getStatusColor } from "@/lib/utils"
-import { getRooms, getHomestays } from "@/lib/data"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatCurrency, getStatusColor } from "@/lib/utils";
+import { getRooms, getHomestays } from "@/lib/data";
 
 export default function RoomsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [homestayFilter, setHomestayFilter] = useState("all")
-  const [rooms, setRooms] = useState<any[]>([])
-  const [homestays, setHomestays] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [homestayFilter, setHomestayFilter] = useState("all");
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [homestays, setHomestays] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch rooms and homestays on component mount
   useState(() => {
     const fetchData = async () => {
       try {
-        const roomsData = await getRooms()
-        const homestaysData = await getHomestays()
-        setRooms(roomsData)
-        setHomestays(homestaysData)
+        const roomsData = await getRooms();
+        const homestaysData = await getHomestays();
+        setRooms(roomsData);
+        setHomestays(homestaysData);
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   // Filter rooms based on search query, status filter, and homestay filter
   const filteredRooms = rooms.filter((room) => {
-    const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || room.status === statusFilter
-    const matchesHomestay = homestayFilter === "all" || room.homestayId === homestayFilter
+    const matchesSearch = room.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || room.status === statusFilter;
+    const matchesHomestay =
+      homestayFilter === "all" || room.homestayId === homestayFilter;
 
-    return matchesSearch && matchesStatus && matchesHomestay
-  })
+    return matchesSearch && matchesStatus && matchesHomestay;
+  });
 
   // Get homestay name by ID
   const getHomestayName = (homestayId: string) => {
-    const homestay = homestays.find((h) => h.id === homestayId)
-    return homestay ? homestay.name : "Unknown"
-  }
+    const homestay = homestays.find((h) => h.id === homestayId);
+    return homestay ? homestay.name : "Unknown";
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
         <p>Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -76,7 +99,9 @@ export default function RoomsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Manage Rooms</CardTitle>
-          <CardDescription>You have a total of {rooms.length} rooms in the system.</CardDescription>
+          <CardDescription>
+            You have a total of {rooms.length} rooms in the system.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -145,7 +170,7 @@ export default function RoomsPage() {
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                            room.status,
+                            room.status
                           )}`}
                         >
                           {room.status}
@@ -174,5 +199,5 @@ export default function RoomsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

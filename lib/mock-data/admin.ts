@@ -7,7 +7,7 @@ export const adminUsers = [
     email: "admin@homestay.com",
     role: "admin",
   },
-]
+];
 
 export const mockHomestays = [
   {
@@ -24,7 +24,15 @@ export const mockHomestays = [
       "/images/sunset-beach-villa-2.png",
       "/images/sunset-beach-villa-3.png",
     ],
-    amenities: ["Wifi", "Bể bơi", "Bếp", "Máy lạnh", "Bãi đỗ xe", "TV", "Máy giặt"],
+    amenities: [
+      "Wifi",
+      "Bể bơi",
+      "Bếp",
+      "Máy lạnh",
+      "Bãi đỗ xe",
+      "TV",
+      "Máy giặt",
+    ],
     status: "active",
     createdAt: "2023-01-15T08:30:00Z",
     updatedAt: "2023-06-20T14:45:00Z",
@@ -34,11 +42,16 @@ export const mockHomestays = [
     id: "2",
     name: "Mountain Retreat",
     location: "Đà Lạt",
-    description: "Căn nhà gỗ ấm cúng nằm giữa rừng thông Đà Lạt. Với thiết kế mộc mạc nhưng tiện nghi đầy đủ.",
+    description:
+      "Căn nhà gỗ ấm cúng nằm giữa rừng thông Đà Lạt. Với thiết kế mộc mạc nhưng tiện nghi đầy đủ.",
     price: 850000,
     rating: 4.6,
     maxGuests: 4,
-    images: ["/images/mountain-retreat-1.png", "/images/mountain-retreat-2.png", "/images/mountain-retreat-3.png"],
+    images: [
+      "/images/mountain-retreat-1.png",
+      "/images/mountain-retreat-2.png",
+      "/images/mountain-retreat-3.png",
+    ],
     amenities: ["Wifi", "Lò sưởi", "Bếp", "Máy lạnh", "TV", "Máy giặt"],
     status: "active",
     createdAt: "2023-02-10T10:15:00Z",
@@ -54,7 +67,11 @@ export const mockHomestays = [
     price: 950000,
     rating: 4.7,
     maxGuests: 3,
-    images: ["/images/riverside-cottage-1.png", "/images/riverside-cottage-2.png", "/images/riverside-cottage-3.png"],
+    images: [
+      "/images/riverside-cottage-1.png",
+      "/images/riverside-cottage-2.png",
+      "/images/riverside-cottage-3.png",
+    ],
     amenities: ["Wifi", "Bếp", "Máy lạnh", "TV", "Máy giặt", "Ban công"],
     status: "maintenance",
     createdAt: "2023-03-05T11:45:00Z",
@@ -90,14 +107,27 @@ export const mockHomestays = [
     price: 1500000,
     rating: 4.9,
     maxGuests: 8,
-    images: ["/images/lakeside-villa-1.png", "/images/lakeside-villa-2.png", "/images/lakeside-villa-3.png"],
-    amenities: ["Wifi", "Bể bơi", "Bếp", "Máy lạnh", "Bãi đỗ xe", "TV", "Máy giặt", "Sân vườn"],
+    images: [
+      "/images/lakeside-villa-1.png",
+      "/images/lakeside-villa-2.png",
+      "/images/lakeside-villa-3.png",
+    ],
+    amenities: [
+      "Wifi",
+      "Bể bơi",
+      "Bếp",
+      "Máy lạnh",
+      "Bãi đỗ xe",
+      "TV",
+      "Máy giặt",
+      "Sân vườn",
+    ],
     status: "inactive",
     createdAt: "2023-05-15T14:30:00Z",
     updatedAt: "2023-10-10T11:25:00Z",
     hostId: "host2",
   },
-]
+];
 
 export const mockCustomers = [
   {
@@ -150,7 +180,7 @@ export const mockCustomers = [
     totalBookings: 4,
     status: "active",
   },
-]
+];
 
 export const mockBookings = [
   {
@@ -258,7 +288,7 @@ export const mockBookings = [
     paymentStatus: "pending",
     paymentMethod: "pending",
   },
-]
+];
 
 export const mockReviews = [
   {
@@ -279,7 +309,8 @@ export const mockReviews = [
     customerId: "2",
     customerName: "Trần Thị B",
     rating: 4,
-    comment: "Không gian yên tĩnh, thích hợp để nghỉ ngơi. Tuy nhiên, đường đi hơi khó tìm.",
+    comment:
+      "Không gian yên tĩnh, thích hợp để nghỉ ngơi. Tuy nhiên, đường đi hơi khó tìm.",
     createdAt: "2023-07-11T15:45:00Z",
     status: "approved",
   },
@@ -301,7 +332,8 @@ export const mockReviews = [
     customerId: "4",
     customerName: "Phạm Thị D",
     rating: 5,
-    comment: "Vị trí trung tâm, thuận tiện đi lại. Phòng rộng rãi và đầy đủ tiện nghi.",
+    comment:
+      "Vị trí trung tâm, thuận tiện đi lại. Phòng rộng rãi và đầy đủ tiện nghi.",
     createdAt: "2023-09-16T14:20:00Z",
     status: "approved",
   },
@@ -312,11 +344,12 @@ export const mockReviews = [
     customerId: "5",
     customerName: "Hoàng Văn E",
     rating: 4,
-    comment: "Cảnh quan tuyệt đẹp, không gian rộng rãi. Giá hơi cao nhưng xứng đáng.",
+    comment:
+      "Cảnh quan tuyệt đẹp, không gian rộng rãi. Giá hơi cao nhưng xứng đáng.",
     createdAt: "2023-11-02T11:30:00Z",
     status: "rejected",
   },
-]
+];
 
 export const mockRevenueData = [
   { month: "Jan", revenue: 25000000 },
@@ -331,7 +364,7 @@ export const mockRevenueData = [
   { month: "Oct", revenue: 55000000 },
   { month: "Nov", revenue: 58000000 },
   { month: "Dec", revenue: 65000000 },
-]
+];
 
 export const mockBookingStats = {
   total: 120,
@@ -353,7 +386,7 @@ export const mockBookingStats = {
     { month: "Nov", bookings: 7 },
     { month: "Dec", bookings: 8 },
   ],
-}
+};
 
 export const mockRoomUsageStats = {
   totalHomestays: 15,
@@ -376,7 +409,7 @@ export const mockRoomUsageStats = {
     { month: "Nov", rate: 70 },
     { month: "Dec", rate: 78 },
   ],
-}
+};
 
 export const mockReviewStats = {
   totalReviews: 95,
@@ -391,4 +424,4 @@ export const mockReviewStats = {
   approvedReviews: 85,
   pendingReviews: 8,
   rejectedReviews: 2,
-}
+};

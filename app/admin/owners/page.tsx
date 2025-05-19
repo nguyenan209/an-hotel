@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Edit, Filter, Plus, Search, UserCog } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Edit, Filter, Plus, Search, UserCog } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 // Mock data for homestay owners
 const mockOwners = [
@@ -59,23 +78,24 @@ const mockOwners = [
     joinDate: "2023-04-12T16:20:00Z",
     status: "terminated",
   },
-]
+];
 
 export default function OwnersPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Filter owners based on search query and status filter
   const filteredOwners = mockOwners.filter((owner) => {
     const matchesSearch =
       owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       owner.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      owner.phone.includes(searchQuery)
+      owner.phone.includes(searchQuery);
 
-    const matchesStatus = statusFilter === "all" || owner.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || owner.status === statusFilter;
 
-    return matchesSearch && matchesStatus
-  })
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
@@ -92,7 +112,9 @@ export default function OwnersPage() {
       <Card>
         <CardHeader>
           <CardTitle>Manage Homestay Owners</CardTitle>
-          <CardDescription>View and manage all homestay owners registered on the platform.</CardDescription>
+          <CardDescription>
+            View and manage all homestay owners registered on the platform.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -147,7 +169,9 @@ export default function OwnersPage() {
                 ) : (
                   filteredOwners.map((owner) => (
                     <TableRow key={owner.id}>
-                      <TableCell className="font-medium">{owner.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {owner.name}
+                      </TableCell>
                       <TableCell>{owner.email}</TableCell>
                       <TableCell>{owner.phone}</TableCell>
                       <TableCell>{owner.totalHomestays}</TableCell>
@@ -158,11 +182,12 @@ export default function OwnersPage() {
                             owner.status === "active"
                               ? "bg-green-100 text-green-800"
                               : owner.status === "suspended"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                           }
                         >
-                          {owner.status.charAt(0).toUpperCase() + owner.status.slice(1)}
+                          {owner.status.charAt(0).toUpperCase() +
+                            owner.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -190,5 +215,5 @@ export default function OwnersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

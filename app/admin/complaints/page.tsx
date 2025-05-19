@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { CheckCircle, Eye, Filter, Search } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { CheckCircle, Eye, Filter, Search } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 // Mock data for complaints
 const mockComplaints = [
@@ -79,68 +98,74 @@ const mockComplaints = [
     createdAt: "2023-06-13T11:30:00Z",
     lastUpdated: "2023-06-19T14:20:00Z",
   },
-]
+];
 
 export default function ComplaintsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [priorityFilter, setPriorityFilter] = useState("all")
-  const [complaints, setComplaints] = useState(mockComplaints)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [complaints, setComplaints] = useState(mockComplaints);
 
   // Filter complaints based on search query, status filter, and priority filter
   const filteredComplaints = complaints.filter((complaint) => {
     const matchesSearch =
       complaint.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      complaint.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      complaint.homestayName.toLowerCase().includes(searchQuery.toLowerCase())
+      complaint.customerName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      complaint.homestayName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || complaint.status === statusFilter
-    const matchesPriority = priorityFilter === "all" || complaint.priority === priorityFilter
+    const matchesStatus =
+      statusFilter === "all" || complaint.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || complaint.priority === priorityFilter;
 
-    return matchesSearch && matchesStatus && matchesPriority
-  })
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "open":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "in_progress":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "resolved":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "closed":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "low":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const formatStatus = (status: string) => {
     switch (status) {
       case "in_progress":
-        return "In Progress"
+        return "In Progress";
       default:
-        return status.charAt(0).toUpperCase() + status.slice(1)
+        return status.charAt(0).toUpperCase() + status.slice(1);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Complaint Management</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Complaint Management
+        </h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
@@ -175,7 +200,9 @@ export default function ComplaintsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Customer Complaints</CardTitle>
-          <CardDescription>Manage and resolve customer complaints and issues.</CardDescription>
+          <CardDescription>
+            Manage and resolve customer complaints and issues.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
@@ -189,14 +216,32 @@ export default function ComplaintsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-red-50 text-red-700 text-sm font-normal">
-                {filteredComplaints.filter((c) => c.status === "open").length} Open
+              <Badge
+                variant="outline"
+                className="bg-red-50 text-red-700 text-sm font-normal"
+              >
+                {filteredComplaints.filter((c) => c.status === "open").length}{" "}
+                Open
               </Badge>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 text-sm font-normal">
-                {filteredComplaints.filter((c) => c.status === "in_progress").length} In Progress
+              <Badge
+                variant="outline"
+                className="bg-blue-50 text-blue-700 text-sm font-normal"
+              >
+                {
+                  filteredComplaints.filter((c) => c.status === "in_progress")
+                    .length
+                }{" "}
+                In Progress
               </Badge>
-              <Badge variant="outline" className="bg-green-50 text-green-700 text-sm font-normal">
-                {filteredComplaints.filter((c) => c.status === "resolved").length} Resolved
+              <Badge
+                variant="outline"
+                className="bg-green-50 text-green-700 text-sm font-normal"
+              >
+                {
+                  filteredComplaints.filter((c) => c.status === "resolved")
+                    .length
+                }{" "}
+                Resolved
               </Badge>
             </div>
           </div>
@@ -225,7 +270,9 @@ export default function ComplaintsPage() {
                 ) : (
                   filteredComplaints.map((complaint) => (
                     <TableRow key={complaint.id}>
-                      <TableCell className="font-medium">{complaint.subject}</TableCell>
+                      <TableCell className="font-medium">
+                        {complaint.subject}
+                      </TableCell>
                       <TableCell>
                         <Link
                           href={`/admin/customers/${complaint.customerId}`}
@@ -244,11 +291,14 @@ export default function ComplaintsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={getPriorityColor(complaint.priority)}>
-                          {complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1)}
+                          {complaint.priority.charAt(0).toUpperCase() +
+                            complaint.priority.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(complaint.status)}>{formatStatus(complaint.status)}</Badge>
+                        <Badge className={getStatusColor(complaint.status)}>
+                          {formatStatus(complaint.status)}
+                        </Badge>
                       </TableCell>
                       <TableCell>{formatDate(complaint.createdAt)}</TableCell>
                       <TableCell>{formatDate(complaint.lastUpdated)}</TableCell>
@@ -270,10 +320,14 @@ export default function ComplaintsPage() {
                                 setComplaints(
                                   complaints.map((c) =>
                                     c.id === complaint.id
-                                      ? { ...c, status: "in_progress", lastUpdated: new Date().toISOString() }
-                                      : c,
-                                  ),
-                                )
+                                      ? {
+                                          ...c,
+                                          status: "in_progress",
+                                          lastUpdated: new Date().toISOString(),
+                                        }
+                                      : c
+                                  )
+                                );
                               }}
                             >
                               <svg
@@ -302,10 +356,14 @@ export default function ComplaintsPage() {
                                 setComplaints(
                                   complaints.map((c) =>
                                     c.id === complaint.id
-                                      ? { ...c, status: "resolved", lastUpdated: new Date().toISOString() }
-                                      : c,
-                                  ),
-                                )
+                                      ? {
+                                          ...c,
+                                          status: "resolved",
+                                          lastUpdated: new Date().toISOString(),
+                                        }
+                                      : c
+                                  )
+                                );
                               }}
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -323,5 +381,5 @@ export default function ComplaintsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
