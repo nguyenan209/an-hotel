@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, Plus, Trash, Upload, Edit } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Plus,
+  Trash,
+  Upload,
+  Edit,
+  Search,
+} from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,11 +68,21 @@ import {
 import { mockHomestays } from "@/lib/mock-data/admin";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { homestaySchema, roomSchema } from "@/lib/schema";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
-
-// Room form schema
-
 type RoomFormValues = z.infer<typeof roomSchema>;
 
 interface HomestayDetailPageProps {
@@ -73,10 +91,9 @@ interface HomestayDetailPageProps {
   };
 }
 
-export default function HomestayDetailPage({
-  params,
-}: HomestayDetailPageProps) {
+export default function HomestayDetailPage() {
   const router = useRouter();
+  const params = useParams();
   const isNewHomestay = params.id === "new";
   const [homestay, setHomestay] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewHomestay);
@@ -85,6 +102,10 @@ export default function HomestayDetailPage({
   const [editingRoom, setEditingRoom] = useState<any | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
+  const [addressSearchOpen, setAddressSearchOpen] = useState(false);
+  const [addressResults, setAddressResults] = useState<
+    { id: string; address: string }[]
+  >([]);
 
   // Homestay form
   const form = useForm<HomestayFormValues>({
@@ -212,6 +233,25 @@ export default function HomestayDetailPage({
 
     fetchHomestay();
   }, [params.id, isNewHomestay, form]);
+
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setAddressResults([]);
+      return;
+    }
+
+    // In a real app, you would call a geocoding API like Google Maps, Mapbox, etc.
+    // This is a mock implementation
+    setTimeout(() => {
+      const mockResults = [
+        { id: "1", address: `${query}, Hanoi, Vietnam` },
+        { id: "2", address: `${query}, Ho Chi Minh City, Vietnam` },
+        { id: "3", address: `${query}, Da Nang, Vietnam` },
+        { id: "4", address: `${query}, Nha Trang, Vietnam` },
+      ];
+      setAddressResults(mockResults);
+    }, 300);
+  };
 
   const onSubmit = (data: HomestayFormValues) => {
     // In a real app, you would submit to an API
@@ -415,11 +455,60 @@ export default function HomestayDetailPage({
                     control={form.control}
                     name="location"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter location" {...field} />
-                        </FormControl>
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Address</FormLabel>
+                        <Popover
+                          open={addressSearchOpen}
+                          onOpenChange={setAddressSearchOpen}
+                        >
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <div className="flex items-center relative">
+                                <Input
+                                  placeholder="Search for address"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    searchAddress(e.target.value);
+                                  }}
+                                  className="pr-10"
+                                />
+                                <Search className="absolute right-3 h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="p-0 w-[400px]"
+                            align="start"
+                            side="bottom"
+                          >
+                            <Command>
+                              <CommandInput
+                                placeholder="Search address..."
+                                onValueChange={searchAddress}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No results found.</CommandEmpty>
+                                <CommandGroup>
+                                  {addressResults.map((result) => (
+                                    <CommandItem
+                                      key={result.id}
+                                      onSelect={() => {
+                                        field.onChange(result.address);
+                                        setAddressSearchOpen(false);
+                                      }}
+                                    >
+                                      {result.address}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormDescription>
+                          Search for an address or enter it manually
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
