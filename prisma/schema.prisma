@@ -148,22 +148,16 @@ model Admin {
 model Homestay {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
   ownerId           String              @db.ObjectId
-  owner             Owner               @relation(fields: [ownerId], references: [id])
   name              String
   slug              String              @unique
   description       String
-  location          String
+  location          Float[]
   address           String
-  latitude          Float?
-  longitude         Float?
-  price             Float               // Giá cho cả homestay
+  price             Float
   rating            Float               @default(0)
   maxGuests         Int
   totalRooms        Int
   amenities         String[]
-  rules             String[]
-  checkInTime       String              @default("14:00")
-  checkOutTime      String              @default("12:00")
   featured          Boolean             @default(false)
   allowsPartialBooking Boolean          @default(true) // Cho phép đặt từng phòng
   status            HomestayStatus      @default(PENDING)
@@ -172,7 +166,7 @@ model Homestay {
   
   // Relationships
   rooms             Room[]
-  images            HomestayImage[]
+  images            String[]
   bookings          Booking[]
   reviews           Review[]
   approvals         HomestayApproval[]
@@ -186,18 +180,6 @@ enum HomestayStatus {
   INACTIVE
   MAINTENANCE
   REJECTED
-}
-
-// Hình ảnh homestay
-model HomestayImage {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  url               String
-  caption           String?
-  isPrimary         Boolean             @default(false)
-  order             Int                 @default(0)
-  createdAt         DateTime            @default(now())
 }
 
 // Phòng trong homestay
@@ -217,7 +199,7 @@ model Room {
   
   // Relationships
   beds              Bed[]
-  images            RoomImage[]
+  images            String[]
   bookingItems      BookingItem[]
   unavailableDates  UnavailableDate[]
 }
@@ -245,18 +227,6 @@ enum BedType {
   KING
   SOFA_BED
   BUNK_BED
-}
-
-// Hình ảnh phòng
-model RoomImage {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  roomId            String              @db.ObjectId
-  room              Room                @relation(fields: [roomId], references: [id])
-  url               String
-  caption           String?
-  isPrimary         Boolean             @default(false)
-  order             Int                 @default(0)
-  createdAt         DateTime            @default(now())
 }
 
 // Ngày không khả dụng (đã đặt hoặc bảo trì)
