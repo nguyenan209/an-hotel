@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { registerSchema, loginSchema } from "@/lib/validation"
+import { useAuth } from "@/context/AuthContext"
 
 interface AuthFormProps {
   type: "login" | "register"
@@ -21,6 +22,7 @@ export function AuthForm({ type }: AuthFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const { login  } = useAuth();
 
   const schema = type === "login" ? loginSchema : registerSchema
   type FormValues = z.infer<typeof schema>
@@ -57,6 +59,8 @@ export function AuthForm({ type }: AuthFormProps) {
         // Lưu token và user vào cookies
         Cookies.set("token", result.token, { expires: 7, path: "/" });
         Cookies.set("user", JSON.stringify(result.user), { expires: 7, path: "/" });
+        console.log("User in AuthForm:", result.user);
+        login(result.user);
         router.push("/");
       } else {
         // Gọi API đăng ký thực tế

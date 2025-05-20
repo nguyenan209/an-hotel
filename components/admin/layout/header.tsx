@@ -16,6 +16,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/admin/layout/sidebar"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
+
+
 
 interface HeaderProps {
   title?: string

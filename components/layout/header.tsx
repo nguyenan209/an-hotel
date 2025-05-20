@@ -1,23 +1,40 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ShoppingCart, User } from "lucide-react"
-import { useCartStore } from "@/lib/store/cartStore"
-import { useEffect, useState } from "react"
-import Cookies from "js-cookie"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, User } from "lucide-react";
+import { useCartStore } from "@/lib/store/cartStore";
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import { useAuth } from "@/context/AuthContext";
 
 export function Header() {
-  const pathname = usePathname()
-  const cartItems = useCartStore((state) => state.items)
-  const totalItems = cartItems.reduce((acc: any, item: any) => acc + (item.quantity || 0), 0)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const pathname = usePathname();
+  const cartItems = useCartStore((state) => state.items);
+  const totalItems = cartItems.reduce(
+    (acc: any, item: any) => acc + (item.quantity || 0),
+    0
+  );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
+  console.log("User in Header:", user);
+  const router = useRouter();
+
+
 
   useEffect(() => {
-    const token = Cookies.get("token")
-    setIsLoggedIn(!!token)
-  }, [])
+    const token = Cookies.get("token");
+    setIsLoggedIn(!!token);
+    
+    if (!token) {
+      router.push("/login");
+    }
+  }, []);
+  
+  if (!user && !isLoggedIn) {
+    return "Loading...";
+  }
 
   return (
     <header className="border-b bg-white">
@@ -29,14 +46,20 @@ export function Header() {
           <nav className="hidden md:flex gap-4">
             <Link
               href="/"
-              className={`text-sm font-medium ${pathname === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`text-sm font-medium ${
+                pathname === "/"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               Trang chủ
             </Link>
             <Link
               href="/search"
               className={`text-sm font-medium ${
-                pathname === "/search" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                pathname === "/search"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Tìm kiếm
@@ -44,7 +67,9 @@ export function Header() {
             <Link
               href="/contact"
               className={`text-sm font-medium ${
-                pathname === "/contact" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                pathname === "/contact"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Liên hệ
@@ -81,5 +106,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

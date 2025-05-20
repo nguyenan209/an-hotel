@@ -1,3 +1,4 @@
+import { HomestayStatus } from "@prisma/client";
 import { z } from "zod";
 
 export const homestaySchema = z.object({
@@ -7,12 +8,14 @@ export const homestaySchema = z.object({
   price: z.number().min(0, "Price must be non-negative"),
   maxGuests: z.number().int().min(1, "Max guests must be at least 1"),
   totalRooms: z.number().int().min(0, "Total rooms cannot be negative"),
-  status: z.enum(["ACTIVE", "INACTIVE", "MAINTENANCE", "PENDING", "REJECTED"]).default("ACTIVE"),
-  amenities: z.array(z.string()).default([]),
-  featured: z.boolean().default(false),
-  allowsPartialBooking: z.boolean().default(true),
-  images: z.array(z.string()).default([]),
-  location: z.array(z.number()).default([]),
+  status: z.nativeEnum(HomestayStatus, {
+    errorMap: () => ({ message: "Status is required" }),
+  }),
+  amenities: z.array(z.string()),
+  featured: z.boolean(),
+  allowsPartialBooking: z.boolean(),
+  images: z.array(z.string()),
+  location: z.array(z.number()),
 });
 
 export const roomSchema = z.object({

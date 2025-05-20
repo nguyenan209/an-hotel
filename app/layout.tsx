@@ -6,6 +6,7 @@ import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import { ConditionalFooter } from "@/components/layout/conditional-footer";
 import CustomQueryClientProvider from "@/components/providers/CustomQueryClientProvider";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,11 +25,13 @@ export default function RootLayout({
     <html lang="vi">
       <body className={inter.className}>
         <div className="flex min-h-screen flex-col">
-          <ConditionalHeader />
-          <CustomQueryClientProvider>
-            <main className="flex-1 bg-gray-50">{children}</main>
-          </CustomQueryClientProvider>
-          <ConditionalFooter />
+          <AuthProvider>
+            <ConditionalHeader />
+            <CustomQueryClientProvider>
+              <main className="flex-1 bg-gray-50">{children}</main>
+            </CustomQueryClientProvider>
+            <ConditionalFooter />
+          </AuthProvider>
         </div>
       </body>
     </html>
