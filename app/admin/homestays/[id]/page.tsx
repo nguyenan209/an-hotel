@@ -108,6 +108,9 @@ export default function HomestayDetailPage() {
   const [addressResults, setAddressResults] = useState<
     { id: string; address: string }[]
   >([]);
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
 
   // Homestay form
   const form = useForm<HomestayFormValues>({
@@ -443,6 +446,95 @@ export default function HomestayDetailPage() {
     "Mountain View",
     "Garden View",
   ];
+  
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      // Create FormData to send files
+      const formData = new FormData()
+      Array.from(files).forEach((file) => {
+        formData.append("files", file)
+      })
+
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          const newProgress = prev + 10
+          if (newProgress >= 90) {
+            clearInterval(progressInterval)
+            return 90
+          }
+          return newProgress
+        })
+      }, 300)
+
+      // Make API call to upload to S3
+      // In a real app, replace with your actual API endpoint
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      clearInterval(progressInterval)
+
+      if (!response.ok) {
+        throw new Error("Failed to upload images")
+      }
+
+      const data = await response.json()
+      setUploadProgress(100)
+
+      // Add the new image URLs to the uploadedImages state
+      const newImages = data.urls
+      console.log('uploadedImages', newImages)
+      setUploadedImages((prev) => [...prev, ...newImages])
+
+      if (homestay) {
+        const updatedHomestay = {
+          ...homestay,
+          images: [...homestay.images, ...newImages],
+        }
+        setHomestay(updatedHomestay)
+      }
+
+      // Reset the file input
+      event.target.value = ""
+
+      setTimeout(() => {
+        setIsUploading(false)
+        setUploadProgress(0)
+      }, 1000)
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      setIsUploading(false)
+      setUploadProgress(0)
+      // In a real app, show an error message to the user
+      alert("Failed to upload images. Please try again.")
+    }
+  }
+  
+  const handleDeleteUploadedImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index))
+
+    // Also remove from homestay if it exists
+    if (homestay) {
+      const updatedImages = [...homestay.images]
+      // Calculate the actual index in the homestay images array
+      const homestayIndex = homestay.images.length - uploadedImages.length + index
+      if (homestayIndex >= 0) {
+        updatedImages.splice(homestayIndex, 1)
+        setHomestay({
+          ...homestay,
+          images: updatedImages,
+        })
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -687,56 +779,81 @@ export default function HomestayDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Images</CardTitle>
-                  <CardDescription>
-                    Upload images of the homestay. You can upload multiple
-                    images.
-                  </CardDescription>
+                  <CardDescription>Upload images of the homestay. You can upload multiple images.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       {!isNewHomestay &&
                         homestay?.images.map((image: string, index: number) => (
-                          <div
-                            key={index}
-                            className="relative aspect-square overflow-hidden rounded-md border"
-                          >
+                          <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
                             <Image
                               src={image || "/placeholder.svg"}
                               alt={`${homestay.name} - Image ${index + 1}`}
                               fill
                               className="object-cover"
                             />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute right-2 top-2"
-                            >
+                            <Button variant="destructive" size="icon" className="absolute right-2 top-2">
                               <Trash className="h-4 w-4" />
                               <span className="sr-only">Delete image</span>
                             </Button>
                           </div>
                         ))}
-                      <div className="flex aspect-square items-center justify-center rounded-md border border-dashed">
-                        <div className="flex flex-col items-center gap-1 text-center">
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                          <p className="text-sm font-medium">Upload Image</p>
-                          <p className="text-xs text-muted-foreground">
-                            Drag and drop or click to upload
-                          </p>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            id="image-upload"
+                        {/* Display newly uploaded images */}
+                      {uploadedImages.map((imageUrl, index) => (
+                        <div
+                          key={`uploaded-${index}`}
+                          className="relative aspect-square overflow-hidden rounded-md border"
+                        >
+                          <Image
+                            src={imageUrl || "/placeholder.svg"}
+                            alt={`Uploaded image ${index + 1}`}
+                            fill
+                            className="object-cover"
                           />
-                          <label
-                            htmlFor="image-upload"
-                            className="mt-2 cursor-pointer rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-2 top-2"
+                            onClick={() => handleDeleteUploadedImage(index)}
                           >
-                            Select File
-                          </label>
+                            <Trash className="h-4 w-4" />
+                            <span className="sr-only">Delete image</span>
+                          </Button>
                         </div>
+                      ))}
+                      <div className="flex aspect-square items-center justify-center rounded-md border border-dashed relative">
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-2 p-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div 
+                                className="bg-primary h-2.5 rounded-full transition-all duration-300" 
+                                style={{ width: `${uploadProgress}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Uploading... {uploadProgress}%</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-center p-4">
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                            <p className="text-sm font-medium">Upload Image</p>
+                            <p className="text-xs text-muted-foreground">Drag and drop or click to upload</p>
+                            <Input 
+                              type="file" 
+                              accept="image/*" 
+                              multiple
+                              className="hidden" 
+                              id="image-upload" 
+                              onChange={handleImageUpload}
+                            />
+                            <label
+                              htmlFor="image-upload"
+                              className="mt-2 cursor-pointer rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
+                            >
+                              Select Files
+                            </label>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

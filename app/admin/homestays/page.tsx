@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,9 +44,15 @@ import { useQuery } from "@tanstack/react-query";
 export default function HomestaysPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
 
   // Filter homestays based on search query and status filter
-  const { data: homestays, isFetching, refetch } = useQuery({
+  const {
+    data: homestays,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["homestays", searchQuery, statusFilter],
     queryFn: async () => {
       const response = await fetch("/api/admin/homestays");
@@ -49,9 +63,23 @@ export default function HomestaysPage() {
       return data.homestays;
     },
     initialData: () => [],
-    
-  })
+  });
 
+  const handleDelete = (homestayId: string) => {
+    // In a real application, you would call an API to delete the homestay
+    // For this mock implementation, we'll just filter it out from the local state
+    console.log(`Deleting homestay with ID: ${homestayId}`);
+
+    // Here you would typically make an API call like:
+    // await fetch(`/api/homestays/${homestayId}`, { method: 'DELETE' })
+
+    // Close the dialog
+    setDeleteDialogOpen(false);
+    setHomestayToDelete(null);
+
+    // Show a success message (in a real app, you might use a toast notification)
+    alert("Homestay deleted successfully!");
+  };
 
   return (
     <div className="space-y-6">
@@ -102,7 +130,7 @@ export default function HomestaysPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
@@ -110,7 +138,7 @@ export default function HomestaysPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {((homestays.length === 0 && !isFetching)) ? (
+                {homestays.length === 0 && !isFetching ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-4">
                       No homestays found
@@ -122,7 +150,7 @@ export default function HomestaysPage() {
                       <TableCell className="font-medium">
                         {homestay.name}
                       </TableCell>
-                      <TableCell>{homestay.location}</TableCell>
+                      <TableCell>{homestay.address}</TableCell>
                       <TableCell>{formatCurrency(homestay.price)}</TableCell>
                       <TableCell>{homestay.rating}</TableCell>
                       <TableCell>
@@ -142,7 +170,14 @@ export default function HomestaysPage() {
                               <span className="sr-only">Edit</span>
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setHomestayToDelete(homestay.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
                             <Trash className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
                           </Button>
@@ -156,6 +191,33 @@ export default function HomestaysPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this homestay? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => homestayToDelete && handleDelete(homestayToDelete)}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
