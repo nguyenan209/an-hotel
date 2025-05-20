@@ -1,3 +1,6 @@
+import Home from "@/app/page";
+import { HomestayStatus } from "@prisma/client";
+
 export const adminUsers = [
   {
     id: "admin1",
@@ -13,7 +16,8 @@ export const mockHomestays = [
   {
     id: "1",
     name: "Sunset Beach Villa",
-    location: "Đà Nẵng",
+    location:[16.0672, 108.2210],
+    address: "Đà Nẵng",
     description:
       "Biệt thự hướng biển tuyệt đẹp với tầm nhìn panorama ra biển Đà Nẵng. Nằm cách bãi biển Mỹ Khê chỉ 5 phút đi bộ.",
     price: 1200000,
@@ -33,15 +37,19 @@ export const mockHomestays = [
       "TV",
       "Máy giặt",
     ],
-    status: "active",
+    status: HomestayStatus.ACTIVE,
     createdAt: "2023-01-15T08:30:00Z",
     updatedAt: "2023-06-20T14:45:00Z",
     hostId: "host1",
+    totalRooms: 3,
+    allowsPartialBooking: true,
+    featured: true,
   },
   {
     id: "2",
     name: "Mountain Retreat",
-    location: "Đà Lạt",
+    location: [11.9429, 108.4551],
+    address: "Đà Lạt",
     description:
       "Căn nhà gỗ ấm cúng nằm giữa rừng thông Đà Lạt. Với thiết kế mộc mạc nhưng tiện nghi đầy đủ.",
     price: 850000,
@@ -53,15 +61,19 @@ export const mockHomestays = [
       "/images/mountain-retreat-3.png",
     ],
     amenities: ["Wifi", "Lò sưởi", "Bếp", "Máy lạnh", "TV", "Máy giặt"],
-    status: "active",
+    status: HomestayStatus.PENDING,
     createdAt: "2023-02-10T10:15:00Z",
     updatedAt: "2023-07-05T09:30:00Z",
     hostId: "host2",
+    totalRooms: 2,
+    allowsPartialBooking: false,
+    featured: false,
   },
   {
     id: "3",
     name: "Riverside Cottage",
-    location: "Hội An",
+    location: [15.8801, 108.338],
+    address: "Hội An",
     description:
       "Ngôi nhà nhỏ xinh nằm bên dòng sông Thu Bồn thơ mộng. Từ đây, bạn có thể dễ dàng đi bộ đến phố cổ Hội An trong vòng 10 phút.",
     price: 950000,
@@ -73,15 +85,19 @@ export const mockHomestays = [
       "/images/riverside-cottage-3.png",
     ],
     amenities: ["Wifi", "Bếp", "Máy lạnh", "TV", "Máy giặt", "Ban công"],
-    status: "maintenance",
+    status: HomestayStatus.MAINTENANCE,
     createdAt: "2023-03-05T11:45:00Z",
     updatedAt: "2023-08-12T16:20:00Z",
     hostId: "host1",
+    totalRooms: 1,
+    allowsPartialBooking: true,
+    featured: false,
   },
   {
     id: "4",
     name: "City Center Apartment",
-    location: "Hồ Chí Minh",
+    location: [10.7769, 106.6958],
+    address: "Hồ Chí Minh",
     description:
       "Căn hộ hiện đại nằm ở trung tâm Quận 1, TP.HCM. Với vị trí đắc địa, bạn có thể dễ dàng khám phá các điểm du lịch nổi tiếng.",
     price: 1100000,
@@ -93,15 +109,19 @@ export const mockHomestays = [
       "/images/city-center-apartment-3.png",
     ],
     amenities: ["Wifi", "Bếp", "Máy lạnh", "TV", "Máy giặt", "Bể bơi chung"],
-    status: "active",
+    status: HomestayStatus.ACTIVE,
     createdAt: "2023-04-20T09:00:00Z",
     updatedAt: "2023-09-01T13:10:00Z",
     hostId: "host3",
+    totalRooms: 2,
+    allowsPartialBooking: false,
+    featured: true,
   },
   {
     id: "5",
     name: "Lakeside Villa",
-    location: "Hà Nội",
+    location: [21.0285, 105.8542],
+    address: "Hà Nội",
     description:
       "Biệt thự sang trọng bên Hồ Tây, Hà Nội. Không gian rộng rãi với kiến trúc hiện đại kết hợp nét truyền thống.",
     price: 1500000,
@@ -122,10 +142,13 @@ export const mockHomestays = [
       "Máy giặt",
       "Sân vườn",
     ],
-    status: "inactive",
+    status: HomestayStatus.ACTIVE,
     createdAt: "2023-05-15T14:30:00Z",
     updatedAt: "2023-10-10T11:25:00Z",
     hostId: "host2",
+    totalRooms: 4,
+    allowsPartialBooking: true,
+    featured: false,
   },
 ];
 

@@ -28,21 +28,25 @@ export async function POST(req: Request) {
       countrycode: "VN", // Giới hạn ở Việt Nam
     });
 
-    const result = response.results[0];
-    if (!result) {
+    const results = response.results;
+    if (!results.length) {
       return NextResponse.json(
         { error: "No coordinates found for the provided address" },
         { status: 404 }
       );
     }
 
-    const { lat, lng } = result.geometry;
-    const formattedAddress = result.formatted;
+    const formattedResult = results.map((result: any, index: number) => {
+      return {
+        id: index,
+        address: result.formatted,
+        location: [result.geometry.lat, result.geometry.lng],
+      };
+    });
 
     return NextResponse.json(
       {
-        address: formattedAddress,
-        location: [lat, lng],
+        formattedResult,
       },
       { status: 200 }
     );
@@ -59,7 +63,7 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const address = searchParams.get("address");
+    const address = searchParams.get("query");
 
     if (!address) {
       return NextResponse.json(
@@ -76,21 +80,26 @@ export async function GET(req: Request) {
       countrycode: "VN", // Giới hạn ở Việt Nam
     });
 
-    const result = response.results[0];
-    if (!result) {
+    const results = response.results;
+    console.log("Geocoding result:", results);
+    if (!results) {
       return NextResponse.json(
         { error: "No coordinates found for the provided address" },
         { status: 404 }
       );
     }
 
-    const { lat, lng } = result.geometry;
-    const formattedAddress = result.formatted;
+    const formattedResult = results.map((result: any, index: number) => {
+      return {
+        id: index,
+        address: result.formatted,
+        location: [result.geometry.lat, result.geometry.lng],
+      };
+    });
 
     return NextResponse.json(
       {
-        address: formattedAddress,
-        location: [lat, lng],
+        formattedResult,
       },
       { status: 200 }
     );

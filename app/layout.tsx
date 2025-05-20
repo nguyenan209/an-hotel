@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import { ConditionalFooter } from "@/components/layout/conditional-footer";
+import CustomQueryClientProvider from "@/components/providers/CustomQueryClientProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +25,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="flex min-h-screen flex-col">
           <ConditionalHeader />
-          <main className="flex-1 bg-gray-50">{children}</main>
+          <CustomQueryClientProvider>
+            <main className="flex-1 bg-gray-50">{children}</main>
+          </CustomQueryClientProvider>
           <ConditionalFooter />
         </div>
       </body>

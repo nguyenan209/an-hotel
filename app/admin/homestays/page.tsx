@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
 
@@ -30,22 +30,28 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { mockHomestays } from "@/lib/mock-data/admin";
+import { Homestay } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function HomestaysPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Filter homestays based on search query and status filter
-  const filteredHomestays = mockHomestays.filter((homestay) => {
-    const matchesSearch =
-      homestay.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      homestay.location.toLowerCase().includes(searchQuery.toLowerCase());
+  const { data: homestays, isFetching, refetch } = useQuery({
+    queryKey: ["homestays", searchQuery, statusFilter],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/homestays");
+      if (!response.ok) {
+        throw new Error("Failed to fetch homestays");
+      }
+      const data = await response.json();
+      return data.homestays;
+    },
+    initialData: () => [],
+    
+  })
 
-    const matchesStatus =
-      statusFilter === "all" || homestay.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <div className="space-y-6">
@@ -104,14 +110,14 @@ export default function HomestaysPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredHomestays.length === 0 ? (
+                {((homestays.length === 0 && !isFetching)) ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-4">
                       No homestays found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredHomestays.map((homestay) => (
+                  homestays.map((homestay: Homestay) => (
                     <TableRow key={homestay.id}>
                       <TableCell className="font-medium">
                         {homestay.name}

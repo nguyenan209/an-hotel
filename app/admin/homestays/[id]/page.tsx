@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -81,6 +81,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import Cookies from "js-cookie"
+import { debounce } from "lodash";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
 type RoomFormValues = z.infer<typeof roomSchema>;
@@ -113,12 +115,13 @@ export default function HomestayDetailPage() {
     defaultValues: isNewHomestay
       ? {
           name: "",
-          location: "",
+          location: [],
+          address: "",
           description: "",
           price: 0,
           maxGuests: 1,
           totalRooms: 0,
-          status: "active",
+          status: "ACTIVE",
           amenities: [],
           featured: false,
           allowsPartialBooking: true,
@@ -157,11 +160,12 @@ export default function HomestayDetailPage() {
           form.reset({
             name: foundHomestay.name,
             location: foundHomestay.location,
+            address: foundHomestay.address,
             description: foundHomestay.description,
             price: foundHomestay.price,
             maxGuests: foundHomestay.maxGuests,
             totalRooms: foundHomestay.totalRooms || 0,
-            status: foundHomestay.status || "active",
+            status: foundHomestay.status || "ACTIVE",
             amenities: foundHomestay.amenities,
             featured: foundHomestay.featured,
             allowsPartialBooking: foundHomestay.allowsPartialBooking !== false,
@@ -234,28 +238,67 @@ export default function HomestayDetailPage() {
     fetchHomestay();
   }, [params.id, isNewHomestay, form]);
 
-  const searchAddress = async (query: string) => {
-    if (query.length < 3) {
-      setAddressResults([]);
-      return;
-    }
+  const debouncedSearchAddress = useCallback(
+    debounce((query: string) => {
+      if (query.length < 3) {
+        setAddressResults([]);
+        return;
+      }
 
-    // In a real app, you would call a geocoding API like Google Maps, Mapbox, etc.
-    // This is a mock implementation
-    setTimeout(() => {
-      const mockResults = [
-        { id: "1", address: `${query}, Hanoi, Vietnam` },
-        { id: "2", address: `${query}, Ho Chi Minh City, Vietnam` },
-        { id: "3", address: `${query}, Da Nang, Vietnam` },
-        { id: "4", address: `${query}, Nha Trang, Vietnam` },
-      ];
-      setAddressResults(mockResults);
-    }, 300);
+      try {
+        // Giả lập gọi API (thay bằng API thật của bạn)
+        fetch(`/api/opencage?query=${encodeURIComponent(query)}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to fetch address results");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            setAddressResults(data.formattedResult || []);
+          })
+          .catch((error) => {
+            console.error("Error fetching address results:", error);
+            setAddressResults([]);
+          });
+      } catch (error) {
+        console.error("Error fetching address results:", error);
+        setAddressResults([]);
+      }
+    }, 500), // Thời gian debounce: 500ms
+    []
+  );
+
+  // Cập nhật hàm searchAddress để sử dụng debouncedSearchAddress
+  const searchAddress = (query: string) => {
+    debouncedSearchAddress(query);
   };
 
   const onSubmit = (data: HomestayFormValues) => {
     // In a real app, you would submit to an API
     console.log("Form submitted:", data);
+    const token = Cookies.get("token");
+
+    fetch("/api/homestays", {
+      method: "POST",
+      headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to create homestay");
+      }
+      return response.json();
+      })
+      .then((result) => {
+      console.log("Homestay created successfully:", result);
+      })
+      .catch((error) => {
+      console.error("Error creating homestay:", error);
+      });
 
     // Simulate successful submission
     setTimeout(() => {
@@ -453,7 +496,7 @@ export default function HomestayDetailPage() {
 
                   <FormField
                     control={form.control}
-                    name="location"
+                    name="address"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Address</FormLabel>

@@ -24,6 +24,14 @@ export function formatDate(dateString: string | Date): string {
   }).format(date);
 }
 
+export const debounceSearch = (fn: (query: string) => void, delay: number) => {
+  let timeoutId: NodeJS.Timeout;
+  return (query: string) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(query), delay);
+  };
+};
+
 export function getStatusColor(status: string): string {
   switch (status?.toLowerCase()) {
     case "active":
