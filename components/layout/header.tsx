@@ -8,6 +8,13 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const pathname = usePathname();
@@ -88,11 +95,32 @@ export function Header() {
             </Button>
           </Link>
           {isLoggedIn ? (
-            <Link href="/profile">
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
                 <User className="h-5 w-5" />
+                <span className="sr-only">User menu</span>
               </Button>
-            </Link>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/bookings" className="w-full cursor-pointer">
+                  My Bookings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="w-full cursor-pointer">
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/login" className="w-full cursor-pointer">
+                  Login
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           ) : (
             <>
               <Link href="/login" className="hidden md:block">
