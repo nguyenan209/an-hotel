@@ -33,15 +33,7 @@ export function Header() {
   useEffect(() => {
     const token = Cookies.get("token");
     setIsLoggedIn(!!token);
-    
-    if (!token) {
-      router.push("/login");
-    }
   }, []);
-  
-  if (!user && !isLoggedIn) {
-    return "Loading...";
-  }
 
   return (
     <header className="border-b bg-white">
