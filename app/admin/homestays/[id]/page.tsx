@@ -81,8 +81,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import Cookies from "js-cookie"
+
 import { debounce } from "lodash";
+import {
+  createHomestay,
+  fetchAddressResults,
+  fetchHomestayById,
+  fetchHomestayData,
+} from "@/lib/homestay";
+import Cookies from "js-cookie";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
 type RoomFormValues = z.infer<typeof roomSchema>;
@@ -108,9 +115,9 @@ export default function HomestayDetailPage() {
   const [addressResults, setAddressResults] = useState<
     { id: string; address: string }[]
   >([]);
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   // Homestay form
   const form = useForm<HomestayFormValues>({
@@ -152,84 +159,11 @@ export default function HomestayDetailPage() {
       return;
     }
 
-    // Simulate API call to fetch homestay details
     const fetchHomestay = async () => {
       try {
-        // In a real app, you would fetch from an API
-        const foundHomestay = mockHomestays.find((h) => h.id === params.id);
-
-        if (foundHomestay) {
+        if (params?.id) {
+          const foundHomestay = await fetchHomestayData(params.id, form.reset);
           setHomestay(foundHomestay);
-          form.reset({
-            name: foundHomestay.name,
-            location: foundHomestay.location,
-            address: foundHomestay.address,
-            description: foundHomestay.description,
-            price: foundHomestay.price,
-            maxGuests: foundHomestay.maxGuests,
-            totalRooms: foundHomestay.totalRooms || 0,
-            status: foundHomestay.status || "ACTIVE",
-            amenities: foundHomestay.amenities,
-            featured: foundHomestay.featured,
-            allowsPartialBooking: foundHomestay.allowsPartialBooking !== false,
-          });
-
-          // Simulate fetching rooms for this homestay
-          // In a real app, you would fetch from an API
-          setRooms([
-            {
-              id: "room1",
-              name: "Deluxe King Room",
-              description: "Spacious room with king-sized bed and ocean view",
-              price: 120,
-              capacity: 2,
-              status: "available",
-              amenities: ["Wi-Fi", "Air Conditioning", "Mini Bar", "Safe"],
-              bedTypes: [{ type: "King", count: 1 }],
-              images: [
-                "/images/sunset-beach-villa-room-1.png",
-                "/images/sunset-beach-villa-room-2.png",
-              ],
-            },
-            {
-              id: "room2",
-              name: "Twin Room with Balcony",
-              description: "Comfortable room with two twin beds and balcony",
-              price: 95,
-              capacity: 2,
-              status: "available",
-              amenities: ["Wi-Fi", "Air Conditioning", "Tea/Coffee Maker"],
-              bedTypes: [{ type: "Twin", count: 2 }],
-              images: [
-                "/images/sunset-beach-villa-room-3.png",
-                "/images/sunset-beach-villa-room-4.png",
-              ],
-            },
-            {
-              id: "room3",
-              name: "Family Suite",
-              description:
-                "Large suite perfect for families with separate living area",
-              price: 180,
-              capacity: 4,
-              status: "maintenance",
-              amenities: [
-                "Wi-Fi",
-                "Air Conditioning",
-                "Kitchen",
-                "TV",
-                "Balcony",
-              ],
-              bedTypes: [
-                { type: "King", count: 1 },
-                { type: "Sofa Bed", count: 1 },
-              ],
-              images: [
-                "/images/sunset-beach-villa-room-5.png",
-                "/images/sunset-beach-villa-room-6.png",
-              ],
-            },
-          ]);
         }
       } catch (error) {
         console.error("Error fetching homestay:", error);
@@ -242,71 +176,58 @@ export default function HomestayDetailPage() {
   }, [params.id, isNewHomestay, form]);
 
   const debouncedSearchAddress = useCallback(
-    debounce((query: string) => {
+    debounce(async (query: string) => {
       if (query.length < 3) {
         setAddressResults([]);
         return;
       }
 
-      try {
-        // Giả lập gọi API (thay bằng API thật của bạn)
-        fetch(`/api/opencage?query=${encodeURIComponent(query)}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch address results");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            setAddressResults(data.formattedResult || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching address results:", error);
-            setAddressResults([]);
-          });
-      } catch (error) {
-        console.error("Error fetching address results:", error);
-        setAddressResults([]);
-      }
-    }, 500), // Thời gian debounce: 500ms
+      const results = await fetchAddressResults(query);
+      setAddressResults(results);
+    }, 500),
     []
   );
 
-  // Cập nhật hàm searchAddress để sử dụng debouncedSearchAddress
   const searchAddress = (query: string) => {
     debouncedSearchAddress(query);
   };
 
-  const onSubmit = (data: HomestayFormValues) => {
-    // In a real app, you would submit to an API
+  const onSubmit = async (data: HomestayFormValues) => {
     console.log("Form submitted:", data);
-    const token = Cookies.get("token");
+    try {
+      if (isNewHomestay) {
+        const result = await createHomestay(data);
+        console.log("Homestay created successfully:", result);
+  
+        router.push("/admin/homestays");
+      } else {
+        const token = Cookies.get("token");
+        if (!token) {
+          throw new Error("User is not authenticated");
+        }
 
-    fetch("/api/homestays", {
-      method: "POST",
-      headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to create homestay");
+        const response = await fetch(`/api/homestays/${params.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update homestay");
+        }
+
+        const updatedHomestay = await response.json();
+        console.log("Homestay updated successfully:", updatedHomestay);
+
+        router.push("/admin/homestays");
       }
-      return response.json();
-      })
-      .then((result) => {
-      console.log("Homestay created successfully:", result);
-      })
-      .catch((error) => {
-      console.error("Error creating homestay:", error);
-      });
 
-    // Simulate successful submission
-    setTimeout(() => {
-      router.push("/admin/homestays");
-    }, 1000);
+    } catch (error) {
+      console.error("Error creating homestay:", error);
+    }
   };
 
   const handleAddRoom = () => {
@@ -446,95 +367,98 @@ export default function HomestayDetailPage() {
     "Mountain View",
     "Garden View",
   ];
-  
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0) return
 
-    setIsUploading(true)
-    setUploadProgress(0)
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
       // Create FormData to send files
-      const formData = new FormData()
+      const formData = new FormData();
       Array.from(files).forEach((file) => {
-        formData.append("files", file)
-      })
+        formData.append("files", file);
+      });
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
-          const newProgress = prev + 10
+          const newProgress = prev + 10;
           if (newProgress >= 90) {
-            clearInterval(progressInterval)
-            return 90
+            clearInterval(progressInterval);
+            return 90;
           }
-          return newProgress
-        })
-      }, 300)
+          return newProgress;
+        });
+      }, 300);
 
       // Make API call to upload to S3
       // In a real app, replace with your actual API endpoint
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
-      })
+      });
 
-      clearInterval(progressInterval)
+      clearInterval(progressInterval);
 
       if (!response.ok) {
-        throw new Error("Failed to upload images")
+        throw new Error("Failed to upload images");
       }
 
-      const data = await response.json()
-      setUploadProgress(100)
+      const data = await response.json();
+      setUploadProgress(100);
 
       // Add the new image URLs to the uploadedImages state
-      const newImages = data.urls
-      console.log('uploadedImages', newImages)
-      setUploadedImages((prev) => [...prev, ...newImages])
+      const newImages = data.urls;
+      setUploadedImages((prev) => [...prev, ...newImages]);
 
       if (homestay) {
         const updatedHomestay = {
           ...homestay,
           images: [...homestay.images, ...newImages],
-        }
-        setHomestay(updatedHomestay)
+        };
+        
+        setHomestay(updatedHomestay);
       }
 
       // Reset the file input
-      event.target.value = ""
+      event.target.value = "";
 
       setTimeout(() => {
-        setIsUploading(false)
-        setUploadProgress(0)
-      }, 1000)
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 1000);
     } catch (error) {
-      console.error("Error uploading images:", error)
-      setIsUploading(false)
-      setUploadProgress(0)
+      console.error("Error uploading images:", error);
+      setIsUploading(false);
+      setUploadProgress(0);
       // In a real app, show an error message to the user
-      alert("Failed to upload images. Please try again.")
+      alert("Failed to upload images. Please try again.");
     }
-  }
-  
+  };
+
   const handleDeleteUploadedImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index))
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
 
     // Also remove from homestay if it exists
     if (homestay) {
-      const updatedImages = [...homestay.images]
+      const updatedImages = [...homestay.images];
       // Calculate the actual index in the homestay images array
-      const homestayIndex = homestay.images.length - uploadedImages.length + index
+      const homestayIndex =
+        homestay.images.length - uploadedImages.length + index;
       if (homestayIndex >= 0) {
-        updatedImages.splice(homestayIndex, 1)
+        updatedImages.splice(homestayIndex, 1);
         setHomestay({
           ...homestay,
           images: updatedImages,
-        })
+        });
       }
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -562,7 +486,7 @@ export default function HomestayDetailPage() {
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={() => form.handleSubmit(onSubmit)} className="space-y-6">
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -779,28 +703,38 @@ export default function HomestayDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Images</CardTitle>
-                  <CardDescription>Upload images of the homestay. You can upload multiple images.</CardDescription>
+                  <CardDescription>
+                    Upload images of the homestay. You can upload multiple
+                    images.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       {!isNewHomestay &&
                         homestay?.images.map((image: string, index: number) => (
-                          <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
+                          <div
+                            key={index}
+                            className="relative aspect-square overflow-hidden rounded-md border"
+                          >
                             <Image
                               src={image || "/placeholder.svg"}
                               alt={`${homestay.name} - Image ${index + 1}`}
                               fill
                               className="object-cover"
                             />
-                            <Button variant="destructive" size="icon" className="absolute right-2 top-2">
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute right-2 top-2"
+                            >
                               <Trash className="h-4 w-4" />
                               <span className="sr-only">Delete image</span>
                             </Button>
                           </div>
                         ))}
-                        {/* Display newly uploaded images */}
-                      {uploadedImages.map((imageUrl, index) => (
+                      {/* Display newly uploaded images */}
+                      {isNewHomestay && uploadedImages.map((imageUrl, index) => (
                         <div
                           key={`uploaded-${index}`}
                           className="relative aspect-square overflow-hidden rounded-md border"
@@ -826,24 +760,28 @@ export default function HomestayDetailPage() {
                         {isUploading ? (
                           <div className="flex flex-col items-center gap-2 p-4">
                             <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-primary h-2.5 rounded-full transition-all duration-300" 
+                              <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-300"
                                 style={{ width: `${uploadProgress}%` }}
                               ></div>
                             </div>
-                            <p className="text-sm text-muted-foreground">Uploading... {uploadProgress}%</p>
+                            <p className="text-sm text-muted-foreground">
+                              Uploading... {uploadProgress}%
+                            </p>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-1 text-center p-4">
                             <Upload className="h-8 w-8 text-muted-foreground" />
                             <p className="text-sm font-medium">Upload Image</p>
-                            <p className="text-xs text-muted-foreground">Drag and drop or click to upload</p>
-                            <Input 
-                              type="file" 
-                              accept="image/*" 
+                            <p className="text-xs text-muted-foreground">
+                              Drag and drop or click to upload
+                            </p>
+                            <Input
+                              type="file"
+                              accept="image/*"
                               multiple
-                              className="hidden" 
-                              id="image-upload" 
+                              className="hidden"
+                              id="image-upload"
                               onChange={handleImageUpload}
                             />
                             <label

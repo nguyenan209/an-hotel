@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { getHomestayById } from "@/lib/data";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const homestay = await getHomestayById(params.id);
+    // Truy vấn cơ sở dữ liệu để lấy thông tin homestay
+    const homestay = await prisma.homestay.findUnique({
+      where: { id: params.id },
+    });
 
+    // Nếu không tìm thấy homestay, trả về lỗi 404
     if (!homestay) {
       return new NextResponse(JSON.stringify({ error: "Homestay not found" }), {
         status: 404,
@@ -17,8 +23,12 @@ export async function GET(
       });
     }
 
+    // Trả về dữ liệu homestay
     return NextResponse.json(homestay);
   } catch (error) {
+    console.error("Error fetching homestay:", error);
+
+    // Trả về lỗi 500 nếu có lỗi xảy ra
     return new NextResponse(
       JSON.stringify({ error: "Internal Server Error" }),
       {
@@ -28,5 +38,42 @@ export async function GET(
         },
       }
     );
+  } finally {
+    // Đảm bảo Prisma Client được ngắt kết nối sau khi xử lý xong
+    await prisma.$disconnect();
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json();
+
+    // Cập nhật thông tin homestay trong cơ sở dữ liệu
+    const updatedHomestay = await prisma.homestay.update({
+      where: { id: params.id },
+      data: body,
+    });
+
+    // Trả về dữ liệu homestay đã được cập nhật
+    return NextResponse.json(updatedHomestay);
+  } catch (error) {
+    console.error("Error updating homestay:", error);
+
+    // Trả về lỗi 500 nếu có lỗi xảy ra
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } finally {
+    // Đảm bảo Prisma Client được ngắt kết nối sau khi xử lý xong
+    await prisma.$disconnect();
   }
 }
