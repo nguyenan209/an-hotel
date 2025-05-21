@@ -135,6 +135,7 @@ export default function HomestayDetailPage() {
           amenities: [],
           featured: false,
           allowsPartialBooking: true,
+          images: [],
         }
       : undefined,
   });
@@ -198,7 +199,7 @@ export default function HomestayDetailPage() {
       if (isNewHomestay) {
         const result = await createHomestay(data);
         console.log("Homestay created successfully:", result);
-  
+
         router.push("/admin/homestays");
       } else {
         const token = Cookies.get("token");
@@ -224,7 +225,6 @@ export default function HomestayDetailPage() {
 
         router.push("/admin/homestays");
       }
-
     } catch (error) {
       console.error("Error creating homestay:", error);
     }
@@ -373,17 +373,17 @@ export default function HomestayDetailPage() {
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-
+  
     setIsUploading(true);
     setUploadProgress(0);
-
+  
     try {
       // Create FormData to send files
       const formData = new FormData();
       Array.from(files).forEach((file) => {
         formData.append("files", file);
       });
-
+  
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
@@ -395,39 +395,49 @@ export default function HomestayDetailPage() {
           return newProgress;
         });
       }, 300);
-
+  
       // Make API call to upload to S3
-      // In a real app, replace with your actual API endpoint
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-
+  
       clearInterval(progressInterval);
-
+  
       if (!response.ok) {
         throw new Error("Failed to upload images");
       }
-
+  
       const data = await response.json();
       setUploadProgress(100);
-
+  
       // Add the new image URLs to the uploadedImages state
       const newImages = data.urls;
       setUploadedImages((prev) => [...prev, ...newImages]);
-
+  
+      // Update the form value for "images" by combining old and new values
+      
+      let currentImages: string[] = [];
+      if (!isNewHomestay) {
+        currentImages = homestay?.images || [];
+      } else {
+        currentImages = form.getValues("images") || [];
+      }
+      const updatedImages = [...currentImages, ...newImages];
+      form.setValue("images", updatedImages);
+  
       if (homestay) {
         const updatedHomestay = {
           ...homestay,
-          images: [...homestay.images, ...newImages],
+          images: updatedImages,
         };
-        
+  
         setHomestay(updatedHomestay);
       }
-
+  
       // Reset the file input
       event.target.value = "";
-
+  
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
@@ -436,7 +446,6 @@ export default function HomestayDetailPage() {
       console.error("Error uploading images:", error);
       setIsUploading(false);
       setUploadProgress(0);
-      // In a real app, show an error message to the user
       alert("Failed to upload images. Please try again.");
     }
   };
@@ -486,7 +495,7 @@ export default function HomestayDetailPage() {
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={() => form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -637,10 +646,10 @@ export default function HomestayDetailPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                            <SelectItem value="maintenance">
-                              Maintenance
+                            <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                            <SelectItem value="INACTIVE">INACTIVE</SelectItem>
+                            <SelectItem value="MAINTENANCE">
+                              MAINTENANCE
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -734,28 +743,29 @@ export default function HomestayDetailPage() {
                           </div>
                         ))}
                       {/* Display newly uploaded images */}
-                      {isNewHomestay && uploadedImages.map((imageUrl, index) => (
-                        <div
-                          key={`uploaded-${index}`}
-                          className="relative aspect-square overflow-hidden rounded-md border"
-                        >
-                          <Image
-                            src={imageUrl || "/placeholder.svg"}
-                            alt={`Uploaded image ${index + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute right-2 top-2"
-                            onClick={() => handleDeleteUploadedImage(index)}
+                      {isNewHomestay &&
+                        uploadedImages.map((imageUrl, index) => (
+                          <div
+                            key={`uploaded-${index}`}
+                            className="relative aspect-square overflow-hidden rounded-md border"
                           >
-                            <Trash className="h-4 w-4" />
-                            <span className="sr-only">Delete image</span>
-                          </Button>
-                        </div>
-                      ))}
+                            <Image
+                              src={imageUrl || "/placeholder.svg"}
+                              alt={`Uploaded image ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute right-2 top-2"
+                              onClick={() => handleDeleteUploadedImage(index)}
+                            >
+                              <Trash className="h-4 w-4" />
+                              <span className="sr-only">Delete image</span>
+                            </Button>
+                          </div>
+                        ))}
                       <div className="flex aspect-square items-center justify-center rounded-md border border-dashed relative">
                         {isUploading ? (
                           <div className="flex flex-col items-center gap-2 p-4">
@@ -1085,7 +1095,7 @@ export default function HomestayDetailPage() {
                                                 onCheckedChange={(checked) => {
                                                   return checked
                                                     ? field.onChange([
-                                                        ...field.value,
+                                                        ...(field.value || []),
                                                         amenity,
                                                       ])
                                                     : field.onChange(
@@ -1163,7 +1173,7 @@ export default function HomestayDetailPage() {
                                         onCheckedChange={(checked) => {
                                           return checked
                                             ? field.onChange([
-                                                ...field.value,
+                                                ...(field.value || []),
                                                 amenity,
                                               ])
                                             : field.onChange(
@@ -1209,7 +1219,7 @@ export default function HomestayDetailPage() {
                           Base Price (per night for entire homestay)
                         </FormLabel>
                         <FormControl>
-                          <Input type="number" min="0" {...field} />
+                          <Input type="number" min={0} {...field} />
                         </FormControl>
                         <FormDescription>
                           This is the rate for booking the entire homestay.
