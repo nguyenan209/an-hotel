@@ -152,7 +152,7 @@ model Homestay {
   location          Float[]
   address           String
   price             Float
-  rating            Float               @default(0)
+  rating            Float               @default(5)
   maxGuests         Int
   totalRooms        Int
   amenities         String[]
