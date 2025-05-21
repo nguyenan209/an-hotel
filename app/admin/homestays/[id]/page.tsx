@@ -26,10 +26,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -39,24 +37,6 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -65,9 +45,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { mockHomestays } from "@/lib/mock-data/admin";
-import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { homestaySchema, roomSchema } from "@/lib/schema";
+import { homestaySchema } from "@/lib/schema";
 import {
   Command,
   CommandEmpty,
@@ -86,19 +64,11 @@ import { debounce } from "lodash";
 import {
   createHomestay,
   fetchAddressResults,
-  fetchHomestayById,
   fetchHomestayData,
 } from "@/lib/homestay";
 import Cookies from "js-cookie";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
-type RoomFormValues = z.infer<typeof roomSchema>;
-
-interface HomestayDetailPageProps {
-  params: {
-    id: string;
-  };
-}
 
 export default function HomestayDetailPage() {
   const router = useRouter();
@@ -106,11 +76,6 @@ export default function HomestayDetailPage() {
   const isNewHomestay = params.id === "new";
   const [homestay, setHomestay] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewHomestay);
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [isAddingRoom, setIsAddingRoom] = useState(false);
-  const [editingRoom, setEditingRoom] = useState<any | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [addressSearchOpen, setAddressSearchOpen] = useState(false);
   const [addressResults, setAddressResults] = useState<
     { id: string; address: string }[]
@@ -138,20 +103,6 @@ export default function HomestayDetailPage() {
           images: [],
         }
       : undefined,
-  });
-
-  // Room form
-  const roomForm = useForm<RoomFormValues>({
-    resolver: zodResolver(roomSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      price: 0,
-      capacity: 1,
-      status: "available",
-      amenities: [],
-      bedTypes: [{ type: "Double", count: 1 }],
-    },
   });
 
   useEffect(() => {
@@ -229,103 +180,7 @@ export default function HomestayDetailPage() {
       console.error("Error creating homestay:", error);
     }
   };
-
-  const handleAddRoom = () => {
-    roomForm.reset({
-      name: "",
-      description: "",
-      price: 0,
-      capacity: 1,
-      status: "available",
-      amenities: [],
-      bedTypes: [{ type: "Double", count: 1 }],
-    });
-    setEditingRoom(null);
-    setIsAddingRoom(true);
-  };
-
-  const handleEditRoom = (room: any) => {
-    roomForm.reset({
-      name: room.name,
-      description: room.description,
-      price: room.price,
-      capacity: room.capacity,
-      status: room.status,
-      amenities: room.amenities || [],
-      bedTypes: room.bedTypes || [{ type: "Double", count: 1 }],
-    });
-    setEditingRoom(room);
-    setIsAddingRoom(true);
-  };
-
-  const handleDeleteRoomClick = (roomId: string) => {
-    setRoomToDelete(roomId);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteRoom = () => {
-    if (roomToDelete) {
-      // In a real app, you would call an API to delete the room
-      setRooms(rooms.filter((room) => room.id !== roomToDelete));
-      setIsDeleteDialogOpen(false);
-      setRoomToDelete(null);
-    }
-  };
-
-  const handleRoomSubmit = (data: RoomFormValues) => {
-    if (editingRoom) {
-      // Update existing room
-      setRooms(
-        rooms.map((room) =>
-          room.id === editingRoom.id ? { ...room, ...data } : room
-        )
-      );
-    } else {
-      // Add new room
-      const newRoom = {
-        id: `room${Date.now()}`,
-        ...data,
-        images: ["/images/sunset-beach-villa-room-1.png"],
-      };
-      setRooms([...rooms, newRoom]);
-    }
-    setIsAddingRoom(false);
-  };
-
-  const handleAddBedType = () => {
-    const currentBedTypes = roomForm.getValues().bedTypes || [];
-    roomForm.setValue("bedTypes", [
-      ...currentBedTypes,
-      { type: "Single", count: 1 },
-    ]);
-  };
-
-  const handleRemoveBedType = (index: number) => {
-    const currentBedTypes = roomForm.getValues().bedTypes || [];
-    if (currentBedTypes.length > 1) {
-      roomForm.setValue(
-        "bedTypes",
-        currentBedTypes.filter((_, i) => i !== index)
-      );
-    }
-  };
-
-  const bedOptions = [
-    "Single",
-    "Twin",
-    "Double",
-    "Queen",
-    "King",
-    "Sofa Bed",
-    "Bunk Bed",
-  ];
-
-  const roomStatusOptions = [
-    { value: "available", label: "Available" },
-    { value: "booked", label: "Booked" },
-    { value: "maintenance", label: "Maintenance" },
-  ];
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
@@ -348,24 +203,6 @@ export default function HomestayDetailPage() {
     "Sân vườn",
     "Jacuzzi",
     "Phòng gym",
-  ];
-
-  const roomAmenitiesList = [
-    "Wifi",
-    "Air Conditioning",
-    "TV",
-    "Mini Bar",
-    "Safe",
-    "Desk",
-    "Hairdryer",
-    "Iron",
-    "Tea/Coffee Maker",
-    "Bathtub",
-    "Shower",
-    "Balcony",
-    "Sea View",
-    "Mountain View",
-    "Garden View",
   ];
 
   const handleImageUpload = async (
@@ -489,7 +326,6 @@ export default function HomestayDetailPage() {
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="amenities">Amenities</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
@@ -809,338 +645,6 @@ export default function HomestayDetailPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="rooms" className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Rooms</CardTitle>
-                    <CardDescription>
-                      Manage individual rooms within this homestay.
-                    </CardDescription>
-                  </div>
-                  <Button variant="outline" onClick={handleAddRoom}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Room
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {rooms.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-8">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        No rooms added yet
-                      </p>
-                      <Button variant="outline" onClick={handleAddRoom}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Your First Room
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Capacity</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {rooms.map((room) => (
-                            <TableRow key={room.id}>
-                              <TableCell className="font-medium">
-                                {room.name}
-                              </TableCell>
-                              <TableCell>{room.capacity} guests</TableCell>
-                              <TableCell>
-                                {formatCurrency(room.price)}
-                              </TableCell>
-                              <TableCell>
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                                    room.status
-                                  )}`}
-                                >
-                                  {room.status}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditRoom(room)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      handleDeleteRoomClick(room.id)
-                                    }
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-
-                  {isAddingRoom && (
-                    <div className="mt-6 border rounded-md p-4">
-                      <h3 className="text-lg font-medium mb-4">
-                        {editingRoom ? "Edit Room" : "Add New Room"}
-                      </h3>
-                      <Form {...roomForm}>
-                        <form
-                          onSubmit={roomForm.handleSubmit(handleRoomSubmit)}
-                          className="space-y-4"
-                        >
-                          <FormField
-                            control={roomForm.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Room Name</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter room name"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={roomForm.control}
-                            name="description"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Enter room description"
-                                    className="min-h-20"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <FormField
-                              control={roomForm.control}
-                              name="price"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Price (per night)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" min="0" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={roomForm.control}
-                              name="capacity"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Capacity (guests)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" min="1" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <FormField
-                            control={roomForm.control}
-                            name="status"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {roomStatusOptions.map((option) => (
-                                      <SelectItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="space-y-2">
-                            <Label>Bed Configuration</Label>
-                            <div className="space-y-2">
-                              {roomForm.watch("bedTypes")?.map((_, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-4"
-                                >
-                                  <Select
-                                    value={roomForm.watch(
-                                      `bedTypes.${index}.type`
-                                    )}
-                                    onValueChange={(value) =>
-                                      roomForm.setValue(
-                                        `bedTypes.${index}.type`,
-                                        value
-                                      )
-                                    }
-                                  >
-                                    <SelectTrigger className="w-[180px]">
-                                      <SelectValue placeholder="Bed type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {bedOptions.map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                          {type}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={roomForm.watch(
-                                      `bedTypes.${index}.count`
-                                    )}
-                                    onChange={(e) =>
-                                      roomForm.setValue(
-                                        `bedTypes.${index}.count`,
-                                        Number.parseInt(e.target.value) || 1
-                                      )
-                                    }
-                                    className="w-24"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRemoveBedType(index)}
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                    <span className="sr-only">Remove</span>
-                                  </Button>
-                                </div>
-                              ))}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleAddBedType}
-                              >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Bed Type
-                              </Button>
-                            </div>
-                          </div>
-
-                          <FormField
-                            control={roomForm.control}
-                            name="amenities"
-                            render={() => (
-                              <FormItem>
-                                <FormLabel>Room Amenities</FormLabel>
-                                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 border rounded-md p-2">
-                                  {roomAmenitiesList.map((amenity) => (
-                                    <FormField
-                                      key={amenity}
-                                      control={roomForm.control}
-                                      name="amenities"
-                                      render={({ field }) => {
-                                        return (
-                                          <FormItem
-                                            key={amenity}
-                                            className="flex flex-row items-start space-x-2 space-y-0"
-                                          >
-                                            <FormControl>
-                                              <Checkbox
-                                                checked={field.value?.includes(
-                                                  amenity
-                                                )}
-                                                onCheckedChange={(checked) => {
-                                                  return checked
-                                                    ? field.onChange([
-                                                        ...(field.value || []),
-                                                        amenity,
-                                                      ])
-                                                    : field.onChange(
-                                                        field.value?.filter(
-                                                          (value) =>
-                                                            value !== amenity
-                                                        )
-                                                      );
-                                                }}
-                                              />
-                                            </FormControl>
-                                            <FormLabel className="font-normal text-sm">
-                                              {amenity}
-                                            </FormLabel>
-                                          </FormItem>
-                                        );
-                                      }}
-                                    />
-                                  ))}
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="pt-4 flex justify-end gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setIsAddingRoom(false)}
-                            >
-                              Cancel
-                            </Button>
-                            <Button type="submit">
-                              {editingRoom ? "Update Room" : "Add Room"}
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             <TabsContent value="amenities" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -1245,31 +749,6 @@ export default function HomestayDetailPage() {
           </form>
         </Form>
       </Tabs>
-
-      {/* Delete Room Confirmation Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              room and remove it from the system.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteRoom}
-              className="bg-destructive text-destructive-foreground"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
