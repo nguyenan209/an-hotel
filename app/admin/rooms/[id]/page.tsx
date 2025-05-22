@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Check, Plus, Trash, Upload } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, Plus, Trash, Upload } from "lucide-react";
-import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
+import { HomestayCombobox } from "@/components/homestay/homestay-compobox";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,17 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -38,23 +28,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { getHomestays } from "@/lib/data";
-
-const roomSchema = z.object({
-  name: z.string().min(1, "Room name is required"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  homestayId: z.string().min(1, "Homestay is required"),
-  price: z.coerce.number().min(1, "Price must be greater than 0"),
-  capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  status: z.string(),
-  amenities: z.array(z.string()),
-  bedTypes: z.array(
-    z.object({
-      type: z.string(),
-      count: z.coerce.number().min(1),
-    })
-  ),
-});
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { roomSchema } from "@/lib/schema";
+import ImageUploader from "@/components/upload/ImageUploader";
 
 type RoomFormValues = z.infer<typeof roomSchema>;
 
@@ -70,6 +56,10 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   const [room, setRoom] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewRoom);
   const [homestays, setHomestays] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema),
@@ -83,21 +73,27 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
           status: "available",
           amenities: [],
           bedTypes: [{ type: "Double", count: 1 }],
+          images: [],
         }
       : undefined,
   });
 
-  useEffect(() => {
-    // Fetch homestays for the select dropdown
-    const fetchHomestays = async () => {
-      try {
-        const homestaysData = await getHomestays();
-        setHomestays(homestaysData);
-      } catch (error) {
-        console.error("Error fetching homestays:", error);
+  const fetchHomestays = async (searchQuery = "") => {
+    try {
+      const response = await fetch(
+        `/api/admin/homestays?search=${searchQuery}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch homestays");
       }
-    };
+      const homestaysData = await response.json();
+      setHomestays(homestaysData.homestays);
+    } catch (error) {
+      console.error("Error fetching homestays:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchHomestays();
 
     if (isNewRoom) {
@@ -147,8 +143,31 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   }, [params.id, isNewRoom, form]);
 
   const onSubmit = (data: RoomFormValues) => {
-    // In a real app, you would submit to an API
-    console.log("Form submitted:", data);
+    const createOrUpdateRoom = async () => {
+      try {
+        const url = isNewRoom ? "/api/rooms" : `/api/rooms/${params.id}`;
+        const method = isNewRoom ? "POST" : "PUT";
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save room");
+        }
+
+        const result = await response.json();
+        console.log("Room saved successfully:", result);
+      } catch (error) {
+        console.error("Error saving room:", error);
+      }
+    };
+
+    createOrUpdateRoom();
 
     // Simulate successful submission
     setTimeout(() => {
@@ -173,6 +192,14 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
       );
     }
   };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchHomestays(searchQuery); // Gọi API sau khi người dùng ngừng nhập
+    }, 500); // Debounce 500ms
+
+    return () => clearTimeout(delayDebounceFn); // Xóa timeout nếu người dùng tiếp tục nhập
+  }, [searchQuery]);
 
   if (isLoading) {
     return (
@@ -253,25 +280,16 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                     control={form.control}
                     name="homestayId"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Homestay</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select homestay" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {homestays.map((homestay) => (
-                              <SelectItem key={homestay.id} value={homestay.id}>
-                                {homestay.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <HomestayCombobox
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Select homestay"
+                            showAllOption={false}
+                          />
+                        </FormControl>
                         <FormDescription>
                           The homestay this room belongs to.
                         </FormDescription>
@@ -428,53 +446,10 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                      {!isNewRoom &&
-                        room?.images.map((image: string, index: number) => (
-                          <div
-                            key={index}
-                            className="relative aspect-square overflow-hidden rounded-md border"
-                          >
-                            <Image
-                              src={image || "/placeholder.svg"}
-                              alt={`${room.name} - Image ${index + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute right-2 top-2"
-                            >
-                              <Trash className="h-4 w-4" />
-                              <span className="sr-only">Delete image</span>
-                            </Button>
-                          </div>
-                        ))}
-                      <div className="flex aspect-square items-center justify-center rounded-md border border-dashed">
-                        <div className="flex flex-col items-center gap-1 text-center">
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                          <p className="text-sm font-medium">Upload Image</p>
-                          <p className="text-xs text-muted-foreground">
-                            Drag and drop or click to upload
-                          </p>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            id="image-upload"
-                          />
-                          <label
-                            htmlFor="image-upload"
-                            className="mt-2 cursor-pointer rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
-                          >
-                            Select File
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ImageUploader
+                    uploadedImages={uploadedImages}
+                    setUploadedImages={setUploadedImages}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -564,48 +539,6 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                       </FormItem>
                     )}
                   />
-
-                  <div className="space-y-2">
-                    <Label>Special Pricing</Label>
-                    <div className="rounded-md border">
-                      <div className="flex items-center justify-between p-4">
-                        <div>
-                          <p className="font-medium">Weekend Pricing</p>
-                          <p className="text-sm text-muted-foreground">
-                            Set different rates for weekends
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between border-t p-4">
-                        <div>
-                          <p className="font-medium">Seasonal Pricing</p>
-                          <p className="text-sm text-muted-foreground">
-                            Set different rates for specific seasons
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between border-t p-4">
-                        <div>
-                          <p className="font-medium">Promotional Pricing</p>
-                          <p className="text-sm text-muted-foreground">
-                            Set promotional rates for specific dates
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

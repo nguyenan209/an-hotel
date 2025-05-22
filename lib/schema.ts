@@ -21,7 +21,7 @@ export const homestaySchema = z.object({
 export const roomSchema = z.object({
   name: z.string().min(1, "Room name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.coerce.number().min(1, "Price must be greater than 0"),
+  price: z.coerce.number().min(0, "Price must be greater than 0"),
   capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
   status: z.string(),
   amenities: z.array(z.string()),
@@ -31,4 +31,6 @@ export const roomSchema = z.object({
       count: z.coerce.number().min(1),
     })
   ),
+  homestayId: z.string(),
+  images: z.array(z.string()).optional(),
 });
