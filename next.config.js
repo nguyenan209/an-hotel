@@ -21,8 +21,15 @@ module.exports = {
   },
   reactStrictMode: true,
   images: {
-    domains: [
-      'elasticbeanstalk-ap-southeast-1-897729137768.s3.ap-southeast-1.amazonaws.com',
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", 
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
     ],
   },
-}; 
+};
