@@ -112,6 +112,7 @@ export default function HomestayDetailPage() {
         if (params?.id) {
           const foundHomestay = await fetchHomestayData(params.id, form.reset);
           setHomestay(foundHomestay);
+          setUploadedImages(foundHomestay.images || []);
         }
       } catch (error) {
         console.error("Error fetching homestay:", error);
@@ -451,7 +452,10 @@ export default function HomestayDetailPage() {
                 <CardContent>
                   <ImageUploader
                     uploadedImages={uploadedImages}
-                    setUploadedImages={setUploadedImages}
+                    setUploadedImages={(images) => {
+                      setUploadedImages(images);
+                      form.setValue("images", images);
+                    }}
                   />
                 </CardContent>
               </Card>
