@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, Star, Check, Hotel, Home } from "lucide-react";
+import {
+  MapPin,
+  Star,
+  Check,
+  Hotel,
+  Home,
+  ThumbsUp,
+  Flag,
+  ChevronRight,
+} from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -25,12 +34,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { useCartStore } from "@/lib/store/cartStore";
 import { bookingSchema } from "@/lib/validation";
 import { RoomCard } from "@/components/homestay/room-card";
 import type { Homestay, Room } from "@/lib/types";
 import { AmenityList } from "@/components/homestay/amenity-list";
+import { Review } from "@prisma/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 interface HomestayDetailPageProps {
   params: {
@@ -58,6 +70,9 @@ export default function HomestayDetailPage({
   const [bookingType, setBookingType] = useState<"whole" | "rooms">("whole");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [bookingError, setBookingError] = useState("");
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [reviewsError, setReviewsError] = useState("");
 
   useEffect(() => {
     const fetchHomestay = async () => {
@@ -66,7 +81,7 @@ export default function HomestayDetailPage({
         if (!response.ok) {
           throw new Error("Không thể tải thông tin homestay");
         }
-  
+
         const data = await response.json();
         setHomestay(data);
       } catch (err) {
@@ -76,21 +91,21 @@ export default function HomestayDetailPage({
         setIsLoading(false);
       }
     };
-  
+
     const fetchRooms = async () => {
       try {
         const response = await fetch(`/api/rooms?homestayId=${params.id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin phòng");
         }
-  
+
         const data = await response.json();
         setRooms(data.rooms || []); // Đảm bảo rooms là một mảng
       } catch (err) {
         console.error("Error fetching rooms:", err);
       }
     };
-  
+
     fetchHomestay();
     fetchRooms();
   }, [params.id]);
@@ -184,6 +199,19 @@ export default function HomestayDetailPage({
 
   const handleBookNow = () => {
     handleAddToCart();
+  };
+
+  const renderStars = (rating: number) => {
+    return Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${
+            i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+          }`}
+        />
+      ));
   };
 
   if (isLoading) {
@@ -284,17 +312,165 @@ export default function HomestayDetailPage({
               </div>
             </TabsContent>
             <TabsContent value="amenities" className="mt-4">
-              <AmenityList amenities={homestay.amenities} showTooltip={true} columns={4} />
+              <AmenityList
+                amenities={homestay.amenities}
+                showTooltip={true}
+                columns={4}
+              />
             </TabsContent>
             <TabsContent value="reviews" className="mt-4">
               <div className="flex items-center mb-4">
                 <Star className="h-6 w-6 mr-2 fill-yellow-400 text-yellow-400" />
                 <span className="text-2xl font-bold">{homestay.rating}</span>
                 <span className="text-muted-foreground ml-2">
-                  (12 đánh giá)
+                  ({reviews.length} đánh giá)
                 </span>
               </div>
-              <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
+
+              {isLoadingReviews ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="ml-3 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ))}
+                </div>
+              ) : reviewsError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500 mb-4">{reviewsError}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsLoadingReviews(true);
+                      setReviewsError("");
+                      fetch(`/api/reviews?homestayId=${params.id}`)
+                        .then((res) => {
+                          if (!res.ok)
+                            throw new Error("Không thể tải đánh giá");
+                          return res.json();
+                        })
+                        .then((data) => setReviews(data))
+                        .catch((err) => {
+                          console.error(err);
+                          setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
+                        })
+                        .finally(() => setIsLoadingReviews(false));
+                    }}
+                  >
+                    Thử lại
+                  </Button>
+                </div>
+              ) : reviews.length === 0 ? (
+                <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
+              ) : (
+                <div className="space-y-6">
+                  {reviews.slice(0, 3).map((review) => (
+                    <div
+                      key={review.id}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      {/* Phần đánh giá của khách */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                            <Image
+                              src={review.userAvatar || "/placeholder.svg"}
+                              alt={review.userName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <h4 className="font-medium">{review.userName}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(review.date)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex">{renderStars(review.rating)}</div>
+                      </div>
+                      <p className="mb-4">{review.comment}</p>
+
+                      {/* Phần trả lời của chủ sở hữu - Hiển thị cho tất cả đánh giá */}
+                      <div className="mt-4 mb-4 ml-6 p-3 bg-gray-50 border-l-4 border-primary rounded-r-md">
+                        <div className="flex items-center mb-2">
+                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                            <Image
+                              src="/diverse-person-portrait.png"
+                              alt="Chủ sở hữu"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="ml-2">
+                            <div className="flex items-center">
+                              <h4 className="text-sm font-medium">
+                                Nguyễn Văn Chủ
+                              </h4>
+                              <span className="ml-2 text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+                                Chủ sở hữu
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Phản hồi:{" "}
+                              {formatDate(
+                                new Date(
+                                  new Date(review.date).getTime() + 86400000 * 3
+                                ).toISOString()
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm">
+                          {review.rating >= 4
+                            ? "Cảm ơn bạn đã đánh giá tích cực về Homestay của chúng tôi! Chúng tôi rất vui khi biết bạn đã có trải nghiệm tuyệt vời. Mong được đón tiếp bạn trong những lần tới!"
+                            : "Cảm ơn bạn đã chia sẻ phản hồi! Chúng tôi xin lỗi về những bất tiện bạn đã gặp phải. Chúng tôi sẽ cải thiện dịch vụ để mang đến trải nghiệm tốt hơn cho khách hàng trong tương lai. Rất mong được đón tiếp bạn lần sau!"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center text-muted-foreground">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                          >
+                            <ThumbsUp className="h-4 w-4 mr-1" />
+                            <span>Hữu ích ({review.helpfulCount})</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                          >
+                            <Flag className="h-4 w-4 mr-1" />
+                            <span>Báo cáo</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {reviews.length > 3 && (
+                    <div className="text-center pt-2">
+                      <Link href={`/homestays/${params.id}/reviews`}>
+                        <Button variant="outline" className="mt-2">
+                          Xem tất cả {reviews.length} đánh giá
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
