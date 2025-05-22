@@ -19,9 +19,31 @@ export async function getHomestayById(
   return homestays.find((homestay) => homestay.id === id);
 }
 
-export async function getRooms(): Promise<Room[]> {
-  return roomsData as Room[];
-}
+export const getRooms = async (params: {
+  search?: string;
+  status?: string;
+  homestayId?: string;
+  skip?: number;
+  limit?: number;
+} = {}) => {
+  const { search = "", status = "all", homestayId = "all", skip = 0, limit = 10 } = params;
+
+  try {
+    const response = await fetch(
+      `/api/rooms?search=${encodeURIComponent(search)}&status=${status}&homestayId=${homestayId}&skip=${skip}&limit=${limit}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch rooms");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    return { rooms: [], totalItems: 0, hasMore: false };
+  }
+};
 
 export async function getRoomsByHomestayId(
   homestayId: string

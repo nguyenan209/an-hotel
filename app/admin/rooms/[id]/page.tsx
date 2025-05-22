@@ -41,6 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { roomSchema } from "@/lib/schema";
 import ImageUploader from "@/components/upload/ImageUploader";
+import { RoomStatus } from "@prisma/client";
 
 type RoomFormValues = z.infer<typeof roomSchema>;
 
@@ -70,7 +71,7 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
           homestayId: "",
           price: 0,
           capacity: 1,
-          status: "available",
+          status: RoomStatus.AVAILABLE,
           amenities: [],
           bedTypes: [{ type: "Double", count: 1 }],
           images: [],
@@ -94,8 +95,6 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   };
 
   useEffect(() => {
-    fetchHomestays();
-
     if (isNewRoom) {
       setIsLoading(false);
       return;
@@ -104,33 +103,28 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
     // Simulate API call to fetch room details
     const fetchRoom = async () => {
       try {
-        // In a real app, you would fetch from an API
-        const mockRoom = {
-          id: params.id,
-          name: "Deluxe King Room",
-          description: "Spacious room with king-sized bed and ocean view",
-          homestayId: "homestay-1",
-          price: 120,
-          capacity: 2,
-          status: "available",
-          amenities: ["Wi-Fi", "Air Conditioning", "Mini Bar", "Safe"],
-          bedTypes: [{ type: "King", count: 1 }],
-          images: [
-            "/images/sunset-beach-villa-room-1.png",
-            "/images/sunset-beach-villa-room-2.png",
-          ],
-        };
+        const response = await fetch(`/api/rooms/${params.id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch room");
+        }
 
-        setRoom(mockRoom);
+        const roomData = await response.json();
+
+        setRoom(roomData);
+        setUploadedImages(roomData.images || []);
         form.reset({
-          name: mockRoom.name,
-          description: mockRoom.description,
-          homestayId: mockRoom.homestayId,
-          price: mockRoom.price,
-          capacity: mockRoom.capacity,
-          status: mockRoom.status,
-          amenities: mockRoom.amenities,
-          bedTypes: mockRoom.bedTypes,
+          name: roomData.name,
+          description: roomData.description,
+          homestayId: roomData.homestayId,
+          price: roomData.price,
+          capacity: roomData.capacity,
+          status: roomData.status,
+          amenities: roomData.amenities,
+          bedTypes: roomData.beds.map((bed: any) => ({
+            type: bed.type,
+            count: bed.count,
+          })),
+          images: roomData.images,
         });
       } catch (error) {
         console.error("Error fetching room:", error);
@@ -148,12 +142,19 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
         const url = isNewRoom ? "/api/rooms" : `/api/rooms/${params.id}`;
         const method = isNewRoom ? "POST" : "PUT";
 
+        // Chuẩn hóa dữ liệu images
+        const formattedData = {
+          ...data,
+          images: uploadedImages.map((image) => image), // Chỉ lấy URL
+        };
+
         const response = await fetch(url, {
           method,
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(formattedData),
         });
 
         if (!response.ok) {
@@ -220,9 +221,9 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   ];
 
   const roomStatusOptions = [
-    { value: "available", label: "Available" },
-    { value: "booked", label: "Booked" },
-    { value: "maintenance", label: "Maintenance" },
+    { value: "AVAILABLE", label: "Available" },
+    { value: "BOOKED", label: "Booked" },
+    { value: "MAINTENANCE", label: "Maintenance" },
   ];
 
   const roomAmenitiesList = [
@@ -283,15 +284,25 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                       <FormItem className="flex flex-col">
                         <FormLabel>Homestay</FormLabel>
                         <FormControl>
-                          <HomestayCombobox
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Select homestay"
-                            showAllOption={false}
-                          />
+                          {isNewRoom ? (
+                            <HomestayCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Select homestay"
+                              showAllOption={false}
+                            />
+                          ) : (
+                            <div className="p-2 border rounded-md bg-gray-100">
+                              {homestays.find(
+                                (homestay) => homestay.id === field.value
+                              )?.name || "Unknown Homestay"}
+                            </div>
+                          )}
                         </FormControl>
                         <FormDescription>
-                          The homestay this room belongs to.
+                          {isNewRoom
+                            ? "Select the homestay this room belongs to."
+                            : "This room belongs to the selected homestay."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -448,7 +459,10 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                 <CardContent>
                   <ImageUploader
                     uploadedImages={uploadedImages}
-                    setUploadedImages={setUploadedImages}
+                    setUploadedImages={(images) => {
+                      setUploadedImages(images);
+                      form.setValue("images", images);
+                    }}
                   />
                 </CardContent>
               </Card>

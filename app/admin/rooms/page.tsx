@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Plus, Trash } from "lucide-react";
+import { Edit, Loader2, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -32,6 +32,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getHomestays, getRooms } from "@/lib/data";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function RoomsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,32 +53,37 @@ export default function RoomsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [openHomestayCombobox, setOpenHomestayCombobox] = useState(false);
-  const [homestaySearchTerm, setHomestaySearchTerm] = useState("");
-  const [isLoadingMoreHomestays, setIsLoadingMoreHomestays] = useState(false);
-  const [hasMoreHomestays, setHasMoreHomestays] = useState(true);
-  const [homestaySkip, setHomestaySkip] = useState(0);
-
-  const { toast } = useToast();
   const observerTarget = useRef(null);
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch rooms and homestays on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const roomsData = await getRooms();
-        const homestaysData = await getHomestays();
-        setRooms(roomsData);
-        setHomestays(homestaysData);
+        const {
+          rooms: initialRooms,
+          totalItems,
+          hasMore,
+        } = await getRooms({
+          search: searchQuery,
+          status: statusFilter,
+          homestayId: homestayFilter,
+          skip: 0,
+          limit: 10,
+        });
+
+        setRooms(initialRooms);
+        setHasMore(hasMore);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching rooms:", error);
+        setError("Failed to load rooms");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [searchQuery, statusFilter, homestayFilter]);
 
   // Filter rooms based on search query, status filter, and homestay filter
   const filteredRooms = rooms.filter((room) => {
@@ -83,72 +98,12 @@ export default function RoomsPage() {
     return matchesSearch && matchesStatus && matchesHomestay;
   });
 
-  // Function to load more homestays
-  const loadMoreHomestays = async () => {
-    if (isLoadingMoreHomestays || !hasMoreHomestays) return;
-
-    try {
-      setIsLoadingMoreHomestays(true);
-
-      const nextSkip = homestaySkip + 5;
-      const response = await fetchHomestays({
-        search: homestaySearchTerm,
-        skip: nextSkip,
-        limit: 5,
-      });
-
-      setHomestays((prev) => [...prev, ...response.homestays]);
-      setHomestaySkip(nextSkip);
-      setHasMoreHomestays(response.hasMore);
-    } catch (error) {
-      console.error("Error loading more homestays:", error);
-    } finally {
-      setIsLoadingMoreHomestays(false);
-    }
-  };
-
   // Get homestay name by ID
   const getHomestayName = (homestayId: string) => {
     const homestay = homestays.find((h) => h.id === homestayId);
     return homestay ? homestay.name : "Unknown";
   };
 
-  // Function to handle search for homestays
-  const handleHomestaySearch = async (value) => {
-    setHomestaySearchTerm(value);
-
-    try {
-      // Reset pagination when search changes
-      setHomestaySkip(0);
-
-      const response = await fetchHomestays({
-        search: value,
-        skip: 0,
-        limit: 5,
-      });
-
-      setHomestays(response.homestays);
-      setHasMoreHomestays(response.hasMore);
-    } catch (error) {
-      console.error("Error searching homestays:", error);
-    }
-  };
-
-  // Handle scroll in the command list to implement infinite scrolling
-  const handleCommandListScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-
-    // If scrolled to bottom (with a small threshold)
-    if (
-      scrollHeight - scrollTop - clientHeight < 50 &&
-      hasMoreHomestays &&
-      !isLoadingMoreHomestays
-    ) {
-      loadMoreHomestays();
-    }
-  };
-
-  // Set up intersection observer for infinite scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -158,7 +113,7 @@ export default function RoomsPage() {
           !isLoadingMore &&
           !loading
         ) {
-          getRoomsData(true);
+          loadMoreRooms();
         }
       },
       { threshold: 1.0 }
@@ -175,58 +130,66 @@ export default function RoomsPage() {
     };
   }, [hasMore, isLoadingMore, loading, rooms.length]);
 
-  // Reset homestay pagination when dropdown opens
-  useEffect(() => {
-    if (openHomestayCombobox) {
-      // Reset search and pagination when opening the dropdown
-      setHomestaySearchTerm("");
-      setHomestaySkip(0);
+  const loadMoreRooms = async () => {
+    if (isLoadingMore || !hasMore) return;
 
-      // Fetch initial homestays
-      const fetchInitialHomestays = async () => {
-        try {
-          const response = await fetchHomestays({ limit: 5 });
-          setHomestays(response.homestays);
-          setHasMoreHomestays(response.hasMore);
-        } catch (error) {
-          console.error("Error fetching initial homestays:", error);
-        }
-      };
+    try {
+      setIsLoadingMore(true);
 
-      fetchInitialHomestays();
+      const nextSkip = rooms.length;
+      const { rooms: newRooms, hasMore: moreAvailable } = await getRooms({
+        search: searchQuery,
+        status: statusFilter,
+        homestayId: homestayFilter,
+        skip: nextSkip,
+        limit: 10,
+      });
+
+      setRooms((prev) => [...prev, ...newRooms]);
+      setHasMore(moreAvailable);
+    } catch (error) {
+      console.error("Error loading more rooms:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
-  }, [openHomestayCombobox]);
+  };
 
-  // Fetch rooms and homestays on component mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const homestaysData = await getHomestays();
-        setHomestays(homestaysData);
-        const fetchRooms = async () => {
-          try {
-            const roomsData = await getRooms();
-            setRooms(roomsData);
-          } catch (error) {
-            console.error("Error fetching rooms:", error);
-          }
-        };
-        fetchRooms();
-      } catch (error) {
-        setError("Error fetching data. Please try again.");
-        setLoading(false);
+  const handleDelete = async (roomId: string | null) => {
+    console.log("Deleting room with ID:", roomId);
+    if (!roomId) return;
+
+    try {
+      setIsDeleting(true);
+
+      const response = await fetch(`/api/rooms/${roomId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete room");
       }
-    };
 
-    fetchData();
-  }, []);
-
-  // Fetch rooms when filters change
-  useEffect(() => {
-    if (!loading && statusFilter !== "all") {
-      getRoomsData();
+      // Xóa phòng khỏi danh sách hiện tại
+      setRooms((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
+      useToast().toast({
+        title: "Room deleted",
+        description: "The room has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      useToast().toast({
+        title: "Error",
+        description: "Failed to delete the room. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
-  }, [statusFilter, homestayFilter]);
+  };
 
   if (loading) {
     return (
@@ -281,9 +244,9 @@ export default function RoomsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="booked">Booked</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="AVAILABLE">Available</SelectItem>
+                  <SelectItem value="BOOKED">Booked</SelectItem>
+                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -332,7 +295,12 @@ export default function RoomsPage() {
                               <span className="sr-only">Edit</span>
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setRoomToDelete(room.id)}
+                            disabled={isDeleting}
+                          >
                             <Trash className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
                           </Button>
@@ -344,8 +312,57 @@ export default function RoomsPage() {
               </TableBody>
             </Table>
           </div>
+          <div
+            ref={observerTarget}
+            className="py-4 text-center text-sm text-muted-foreground"
+          >
+            {isLoadingMore ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading more rooms...
+              </div>
+            ) : hasMore ? (
+              "Scroll to load more rooms"
+            ) : (
+              `Showing all rooms`
+            )}
+          </div>
         </CardContent>
       </Card>
+      {/* Confirmation Dialog */}
+      <AlertDialog
+        open={roomToDelete !== null}
+        onOpenChange={(open) => !open && setRoomToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác. Phòng này sẽ bị xóa vĩnh viễn
+              khỏi hệ thống.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleDelete(roomToDelete);
+                setRoomToDelete(null);
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xóa...
+                </>
+              ) : (
+                "Xóa"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

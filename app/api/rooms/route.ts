@@ -1,42 +1,58 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Đảm bảo bạn đã cấu hình Prisma Client
-import { Prisma } from '@prisma/client'
+import prisma from "@/lib/prisma";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || undefined;
+    const homestayId = searchParams.get("homestayId") || undefined;
     const skip = parseInt(searchParams.get("skip") || "0", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-    const where = search
-      ? {
-          name: {
-            mode: Prisma.QueryMode.insensitive,
-          },
-        }
-      : {};
+    // Xây dựng điều kiện lọc
+    const where: any = {};
 
-    const [homestays, totalItems] = await Promise.all([
-      prisma.homestay.findMany({
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: "insensitive",
+      };
+    }
+
+    if (status && status !== "all") {
+      where.status = status;
+    }
+
+    if (homestayId && homestayId !== "all") {
+      where.homestayId = homestayId;
+    }
+
+    // Truy vấn từ Prisma
+    const [rooms, totalItems] = await Promise.all([
+      prisma.room.findMany({
         where,
         skip,
         take: limit,
         select: {
           id: true,
           name: true,
+          capacity: true,
+          price: true,
+          status: true,
+          homestayId: true,
         },
       }),
-      prisma.homestay.count({ where }),
+      prisma.room.count({ where }),
     ]);
 
     return NextResponse.json({
-      homestays,
+      rooms,
       totalItems,
       hasMore: skip + limit < totalItems,
     });
   } catch (error) {
-    console.error("Error fetching homestays:", error);
+    console.error("Error fetching rooms:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -47,7 +63,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, price, homestayId, images, bedTypes } = body;
+    const { name, description, price, homestayId, images, bedTypes, status } =
+      body;
 
     if (!name || !description || !homestayId) {
       return new NextResponse(
@@ -67,6 +84,7 @@ export async function POST(request: Request) {
         description,
         price,
         capacity: 1,
+        status,
         homestay: { connect: { id: homestayId } },
         beds: {
           create: bedTypes.map((bed: { type: string; count: number }) => ({

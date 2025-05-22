@@ -1,4 +1,4 @@
-import { HomestayStatus } from "@prisma/client";
+import { HomestayStatus, RoomStatus } from "@prisma/client";
 import { z } from "zod";
 
 export const homestaySchema = z.object({
@@ -23,7 +23,9 @@ export const roomSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.coerce.number().min(0, "Price must be greater than 0"),
   capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  status: z.string(),
+  status: z.nativeEnum(RoomStatus, {
+    errorMap: () => ({ message: "Status is required" }),
+  }),
   amenities: z.array(z.string()),
   bedTypes: z.array(
     z.object({

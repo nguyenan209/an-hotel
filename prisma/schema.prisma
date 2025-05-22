@@ -194,10 +194,10 @@ model Room {
   status            RoomStatus          @default(AVAILABLE)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  images            String[]
   
   // Relationships
   beds              Bed[]
-  images            String[]
   bookingItems      BookingItem[]
   unavailableDates  UnavailableDate[]
 }
