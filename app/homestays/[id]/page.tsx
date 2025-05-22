@@ -30,6 +30,7 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { bookingSchema } from "@/lib/validation";
 import { RoomCard } from "@/components/homestay/room-card";
 import type { Homestay, Room } from "@/lib/types";
+import { AmenityList } from "@/components/homestay/amenity-list";
 
 interface HomestayDetailPageProps {
   params: {
@@ -283,14 +284,7 @@ export default function HomestayDetailPage({
               </div>
             </TabsContent>
             <TabsContent value="amenities" className="mt-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {homestay.amenities.map((amenity) => (
-                  <div key={amenity} className="flex items-center">
-                    <Check className="h-5 w-5 mr-2 text-primary" />
-                    <span>{amenity}</span>
-                  </div>
-                ))}
-              </div>
+              <AmenityList amenities={homestay.amenities} showTooltip={true} columns={4} />
             </TabsContent>
             <TabsContent value="reviews" className="mt-4">
               <div className="flex items-center mb-4">
