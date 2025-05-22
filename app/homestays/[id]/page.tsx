@@ -65,7 +65,7 @@ export default function HomestayDetailPage({
         if (!response.ok) {
           throw new Error("Không thể tải thông tin homestay");
         }
-
+  
         const data = await response.json();
         setHomestay(data);
       } catch (err) {
@@ -75,48 +75,23 @@ export default function HomestayDetailPage({
         setIsLoading(false);
       }
     };
-
+  
     const fetchRooms = async () => {
       try {
         const response = await fetch(`/api/rooms?homestayId=${params.id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin phòng");
         }
-
+  
         const data = await response.json();
-        setRooms(data);
+        setRooms(data.rooms || []); // Đảm bảo rooms là một mảng
       } catch (err) {
         console.error("Error fetching rooms:", err);
       }
     };
-
-    // For demo purposes, we'll use mock data instead of fetching
-    const fetchMockHomestay = async () => {
-      try {
-        // Import the mock data
-        const { getHomestayById, getRoomsByHomestayId } = await import(
-          "@/lib/data"
-        );
-        const data = await getHomestayById(params.id);
-
-        if (!data) {
-          throw new Error("Homestay không tồn tại");
-        }
-
-        setHomestay(data);
-
-        // Get rooms for this homestay
-        const roomsData = await getRoomsByHomestayId(params.id);
-        setRooms(roomsData);
-      } catch (err) {
-        setError("Đã xảy ra lỗi khi tải thông tin homestay");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMockHomestay();
+  
+    fetchHomestay();
+    fetchRooms();
   }, [params.id]);
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {

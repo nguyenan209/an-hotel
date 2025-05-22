@@ -41,7 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { roomSchema } from "@/lib/schema";
 import ImageUploader from "@/components/upload/ImageUploader";
-import { RoomStatus } from "@prisma/client";
+import { BedType, RoomStatus } from "@prisma/client";
 
 type RoomFormValues = z.infer<typeof roomSchema>;
 
@@ -58,8 +58,6 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   const [isLoading, setIsLoading] = useState(!isNewRoom);
   const [homestays, setHomestays] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const form = useForm<RoomFormValues>({
@@ -73,7 +71,7 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
           capacity: 1,
           status: RoomStatus.AVAILABLE,
           amenities: [],
-          bedTypes: [{ type: "Double", count: 1 }],
+          bedTypes: [{ type: BedType.DOUBLE, count: 1 }],
           images: [],
         }
       : undefined,
@@ -211,13 +209,13 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
   }
 
   const bedOptions = [
-    "Single",
-    "Twin",
-    "Double",
-    "Queen",
-    "King",
-    "Sofa Bed",
-    "Bunk Bed",
+    "SINGLE",
+    "TWIN",
+    "DOUBLE",
+    "QUEEN",
+    "KING",
+    "SOFA_BED",
+    "BUNK_BED",
   ];
 
   const roomStatusOptions = [

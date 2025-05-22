@@ -41,6 +41,12 @@ export async function GET(request: Request) {
           price: true,
           status: true,
           homestayId: true,
+          homestay: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       }),
       prisma.room.count({ where }),
@@ -63,8 +69,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, price, homestayId, images, bedTypes, status } =
-      body;
+    const {
+      name,
+      description,
+      price,
+      homestayId,
+      images,
+      bedTypes,
+      status,
+      amenities,
+      capacity,
+    } = body;
 
     if (!name || !description || !homestayId) {
       return new NextResponse(
@@ -83,7 +98,7 @@ export async function POST(request: Request) {
         name,
         description,
         price,
-        capacity: 1,
+        capacity,
         status,
         homestay: { connect: { id: homestayId } },
         beds: {
@@ -93,6 +108,7 @@ export async function POST(request: Request) {
           })),
         },
         images,
+        amenities,
       },
     });
 

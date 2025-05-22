@@ -1,4 +1,4 @@
-import { HomestayStatus, RoomStatus } from "@prisma/client";
+import { BedType, HomestayStatus, RoomStatus } from "@prisma/client";
 import { z } from "zod";
 
 export const homestaySchema = z.object({
@@ -29,7 +29,9 @@ export const roomSchema = z.object({
   amenities: z.array(z.string()),
   bedTypes: z.array(
     z.object({
-      type: z.string(),
+      type: z.nativeEnum(BedType, {
+        errorMap: () => ({ message: "Bed type is required" }),
+      }),
       count: z.coerce.number().min(1),
     })
   ),

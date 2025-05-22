@@ -25,7 +25,6 @@ export async function POST(req: Request) {
       q: address,
       key: OPENCAGE_API_KEY,
       limit: 1,
-      countrycode: "VN", // Giới hạn ở Việt Nam
     });
 
     const results = response.results;

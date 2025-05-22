@@ -1,9 +1,30 @@
 import { SearchForm } from "@/components/search/search-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
-import { getFeaturedHomestays } from "@/lib/data";
 
 export default async function Home() {
-  const featuredHomestays = await getFeaturedHomestays();
+  let featuredHomestays = [];
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/homestays?featured=true`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store", // Đảm bảo dữ liệu luôn được lấy mới
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch featured homestays");
+    }
+
+    const data = await response.json();
+    featuredHomestays = data.homestays || [];
+  } catch (error) {
+    console.error("Error fetching featured homestays:", error);
+  }
 
   return (
     <div className="container py-8">

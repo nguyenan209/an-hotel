@@ -155,7 +155,6 @@ export default function RoomsPage() {
   };
 
   const handleDelete = async (roomId: string | null) => {
-    console.log("Deleting room with ID:", roomId);
     if (!roomId) return;
 
     try {
@@ -275,7 +274,7 @@ export default function RoomsPage() {
                   filteredRooms.map((room) => (
                     <TableRow key={room.id}>
                       <TableCell className="font-medium">{room.name}</TableCell>
-                      <TableCell>{getHomestayName(room.homestayId)}</TableCell>
+                      <TableCell>{room?.homestay?.name}</TableCell>
                       <TableCell>{room.capacity} guests</TableCell>
                       <TableCell>{formatCurrency(room.price)}</TableCell>
                       <TableCell>
