@@ -139,7 +139,6 @@ model Admin {
   
   // Relationships
   homestayApprovals HomestayApproval[]
-  reviewModerations ReviewModeration[]
 }
 
 // Homestay
@@ -384,41 +383,25 @@ model Review {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
   customerId        String              @db.ObjectId
   customer          Customer            @relation(fields: [customerId], references: [id])
-  userId            String              @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
+  ownerId            String              @db.ObjectId
+  owner              User                @relation(fields: [ownerId], references: [id])
   homestayId        String              @db.ObjectId
   homestay          Homestay            @relation(fields: [homestayId], references: [id])
   bookingId         String?             @db.ObjectId
   booking           Booking?            @relation(fields: [bookingId], references: [id])
   rating            Int
   comment           String
-  photos            String[]
   status            ReviewStatus        @default(PENDING)
   ownerReply        String?
   ownerReplyDate    DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  
-  // Relationships
-  moderations       ReviewModeration[]
 }
 
 enum ReviewStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-// Kiểm duyệt đánh giá
-model ReviewModeration {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  reviewId          String              @db.ObjectId
-  review            Review              @relation(fields: [reviewId], references: [id])
-  adminId           String              @db.ObjectId
-  admin             Admin               @relation(fields: [adminId], references: [id])
-  status            ReviewStatus
-  reason            String?
-  moderatedAt       DateTime            @default(now())
 }
 
 // Khiếu nại
