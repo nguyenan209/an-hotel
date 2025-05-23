@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-04-30.basil",
 });
 
@@ -15,8 +15,9 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET || ""
+      process.env.NEXT_PUBLIC_STRIPE_WEBHOOK_SECRET || ""
     );
+    console.log("event", event);
   } catch (err: any) {
     console.error("Webhook signature verification failed.", err.message);
     return NextResponse.json(

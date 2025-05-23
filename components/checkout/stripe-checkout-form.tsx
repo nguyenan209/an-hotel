@@ -40,6 +40,20 @@ export function StripeCheckoutForm({
     setIsProcessing(true);
 
     try {
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        console.error("Submit error:", submitError);
+        toast({
+          title: "Lỗi xác thực",
+          description:
+            submitError.message ||
+            "Đã xảy ra lỗi khi xác thực thông tin thanh toán. Vui lòng thử lại.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       // Xác nhận thanh toán với client secret
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
