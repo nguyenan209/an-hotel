@@ -43,6 +43,7 @@ import { AmenityList } from "@/components/homestay/amenity-list";
 import { Review } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import Loading from "@/components/loading";
 
 interface HomestayDetailPageProps {
   params: {
@@ -215,13 +216,7 @@ export default function HomestayDetailPage({
   };
 
   if (isLoading) {
-    return (
-      <div className="container py-8">
-        <div className="flex items-center justify-center h-96">
-          <p>Đang tải...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error || !homestay) {
