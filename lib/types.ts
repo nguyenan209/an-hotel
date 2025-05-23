@@ -89,3 +89,10 @@ export interface SearchParams {
   amenities?: string[];
   roomsNeeded?: number;
 }
+
+
+export enum QRPaymentStatus {
+  PENDING = "pending",
+  CONFIRMED = "confirmed",
+  FAILED = "failed",
+}
