@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Cookies from "js-cookie";
 import { QrCode, Check, AlertCircle } from "lucide-react";
 import Pusher from "pusher-js";
 
@@ -35,6 +36,7 @@ export function QRPaymentPopup({
     "pending" | "success" | "expired"
   >("pending");
   const [paymentSessionId, setPaymentSessionId] = useState<string>("");
+  const [sessionUrl, setSessionUrl] = useState<string>("");
   const channelRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -74,6 +76,7 @@ export function QRPaymentPopup({
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${Cookies.get("token")}`,
               },
               body: JSON.stringify({
                 amount,
@@ -85,6 +88,13 @@ export function QRPaymentPopup({
             if (!response.ok) {
               throw new Error("Failed to create payment session");
             }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+              throw new Error(data.error || "Failed to create payment session");
+            }
+            setSessionUrl(data.paymentUrl);
 
             // Đăng ký kênh Pusher cho phiên thanh toán này
             if (pusher) {
@@ -183,6 +193,7 @@ export function QRPaymentPopup({
                     amount={amount}
                     className="w-[250px] h-[250px]"
                     sessionId={paymentSessionId}
+                    sessionUrl={sessionUrl}
                   />
                 </div>
 

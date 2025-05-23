@@ -49,7 +49,7 @@ export function PaymentMethodSelector({
         setIsLoadingClientSecret(true);
         try {
           // Gọi API để tạo payment intent
-          const response = await fetch("/api/create-payment-intent", {
+          const response = await fetch("/api/payment/create-payment-intent", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

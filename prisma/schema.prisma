@@ -332,6 +332,23 @@ model Payment {
   notes             String?
 }
 
+model PaymentSession {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  bookingId   String?  @db.ObjectId
+  amount      Float
+  status      String   @default("PENDING")
+  sessionId   String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum PaymentSessionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 // Hoàn tiền
 model Refund {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
@@ -535,3 +552,4 @@ enum NotificationType {
   COMPLAINT
   APPROVAL
 }
+

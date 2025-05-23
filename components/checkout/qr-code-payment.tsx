@@ -1,27 +1,31 @@
-import Image from "next/image"
-import { formatCurrency } from "@/lib/utils"
+import { QRCodeCanvas } from "qrcode.react";
+import { useMemo } from "react";
 
 interface QrCodePaymentProps {
-  amount: number
-  className?: string
+  amount: number;
+  sessionId: string;
+  className?: string;
+  sessionUrl?: string;
 }
 
-export function QrCodePayment({ amount, className = "" }: QrCodePaymentProps) {
+export function QrCodePayment({
+  amount,
+  sessionId,
+  className = "",
+  sessionUrl = "",
+}: QrCodePaymentProps) {
+
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      <div className="bg-white p-4 rounded-lg border">
-        <Image src="/images/payment-qr-code.png" alt="Mã QR thanh toán" width={200} height={200} className="mx-auto" />
-      </div>
-
-      <div className="mt-4 text-center">
-        <p className="font-medium">Số tiền: {formatCurrency(amount)}</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để thanh toán
-        </p>
-        <p className="text-xs text-muted-foreground mt-2">
-          Đơn hàng sẽ tự động được xác nhận sau khi thanh toán thành công
-        </p>
+      <div className="bg-white p-6 rounded-lg border shadow-md">
+        <QRCodeCanvas
+          value={sessionUrl}
+          size={200}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          className="mx-auto"
+        />
       </div>
     </div>
-  )
+  );
 }
