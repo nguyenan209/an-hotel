@@ -1,3 +1,5 @@
+import { BookingStatus, BookingType, HomestayStatus, Payment, PaymentMethod, PaymentStatus, RoomStatus } from "@prisma/client";
+
 export interface Room {
   id: string;
   homestayId: string;
@@ -11,7 +13,7 @@ export interface Room {
   }[];
   amenities: string[];
   images: string[];
-  status: "available" | "booked" | "maintenance";
+  status: RoomStatus;
 }
 
 export interface Homestay {
@@ -27,7 +29,7 @@ export interface Homestay {
   amenities: string[];
   featured: boolean;
   allowsPartialBooking: boolean; // Whether individual rooms can be booked
-  status: "active" | "inactive" | "maintenance";
+  status: HomestayStatus;
 }
 
 export interface CartItem {
@@ -37,7 +39,7 @@ export interface CartItem {
   checkOut: string;
   guests: number;
   nights: number;
-  bookingType: "whole" | "rooms";
+  bookingType: BookingType;
   rooms?: {
     roomId: string;
     roomName: string;
@@ -55,11 +57,11 @@ export interface Booking {
   checkOut: string;
   guests: number;
   totalPrice: number;
-  status: "pending" | "confirmed" | "completed" | "cancelled";
+  status: BookingStatus;
   createdAt: string;
-  paymentStatus: "pending" | "paid" | "refunded" | "failed";
-  paymentMethod: "pending" | "credit_card" | "bank_transfer" | "cash";
-  bookingType: "whole" | "rooms";
+  paymentStatus:PaymentStatus;
+  paymentMethod: PaymentMethod;
+  bookingType: BookingType;
   rooms?: {
     roomId: string;
     roomName: string;

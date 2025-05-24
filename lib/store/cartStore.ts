@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem, Homestay, Room } from "../types";
+import { BookingType } from "@prisma/client";
+import { Book } from "lucide-react";
 
 interface CartState {
   items: CartItem[];
@@ -40,10 +42,9 @@ export const useCartStore = create<CartState>()(
         );
 
         set((state) => {
-          // Check if item already exists
           const existingItemIndex = state.items.findIndex(
             (item) =>
-              item.homestayId === homestay.id && item.bookingType === "whole"
+              item.homestayId === homestay.id && item.bookingType === BookingType.WHOLE
           );
 
           if (existingItemIndex >= 0) {
@@ -69,7 +70,7 @@ export const useCartStore = create<CartState>()(
                   checkOut,
                   guests,
                   nights,
-                  bookingType: "whole",
+                  bookingType: BookingType.WHOLE,
                 },
               ],
             };
@@ -89,7 +90,7 @@ export const useCartStore = create<CartState>()(
           // Check if item already exists
           const existingItemIndex = state.items.findIndex(
             (item) =>
-              item.homestayId === homestay.id && item.bookingType === "rooms"
+              item.homestayId === homestay.id && item.bookingType === BookingType.ROOMS
           );
 
           const roomsData = rooms.map((room) => ({
@@ -122,7 +123,7 @@ export const useCartStore = create<CartState>()(
                   checkOut,
                   guests,
                   nights,
-                  bookingType: "rooms",
+                  bookingType: BookingType.ROOMS,
                   rooms: roomsData,
                 },
               ],
@@ -143,7 +144,7 @@ export const useCartStore = create<CartState>()(
 
       getTotalPrice: () => {
         return get().items.reduce((total, item) => {
-          if (item.bookingType === "whole") {
+          if (item.bookingType === BookingType.WHOLE) {
             return total + item.homestay.price * item.nights;
           } else {
             // Sum up the prices of all rooms
