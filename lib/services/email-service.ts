@@ -1,3 +1,4 @@
+import { sendEmail } from "../email";
 import { getConfirmRegistrationEmailHTML } from "../email-templates/confirm-registration";
 
 interface SendEmailOptions {
@@ -6,7 +7,6 @@ interface SendEmailOptions {
   html: string;
 }
 
-// Mock email service - thay thế bằng service thực tế như SendGrid, Nodemailer, etc.
 export class EmailService {
   static async sendEmail({
     to,
@@ -14,31 +14,11 @@ export class EmailService {
     html,
   }: SendEmailOptions): Promise<boolean> {
     try {
-      // Trong thực tế, bạn sẽ tích hợp với service email như:
-      // - SendGrid
-      // - Nodemailer
-      // - AWS SES
-      // - Mailgun
-
-      console.log("Sending email to:", to);
-      console.log("Subject:", subject);
-      console.log("HTML content:", html.substring(0, 200) + "...");
-
-      // Simulate email sending delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulate success (90% success rate)
-      const success = Math.random() > 0.1;
-
-      if (success) {
-        console.log("Email sent successfully");
-        return true;
-      } else {
-        console.error("Failed to send email");
-        return false;
-      }
+      await sendEmail({ to, subject, html });
+      console.log("Email sent successfully");
+      return true;
     } catch (error) {
-      console.error("Email service error:", error);
+      console.error("Failed to send email:", error);
       return false;
     }
   }
