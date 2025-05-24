@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const isFeatured = searchParams.get("featured") === "true";
 
-    const where = isFeatured ? { featured: true, isDelete: false } : { isDelete: false };
+    const where = isFeatured ? { featured: true, isDeleted: false } : { isDeleted: false };
 
     const homestays = await prisma.homestay.findMany({
       where,
