@@ -171,7 +171,7 @@ export default function BookingsPage() {
                               <div>
                                 <CardTitle>{booking.homestay.name}</CardTitle>
                                 <CardDescription className="text-base mt-1">
-                                  Booked at{" "}
+                                  Booked on {" "}
                                   {moment(booking.createdAt).format(
                                     "MMMM Do YYYY, h:mm A"
                                   )}
