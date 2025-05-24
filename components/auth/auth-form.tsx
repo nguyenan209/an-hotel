@@ -83,7 +83,7 @@ export function AuthForm({ type }: AuthFormProps) {
           body: JSON.stringify({
             email: data.email,
             password: data.password,
-            name: data.email, // Nếu có field name riêng thì dùng data.name
+            name: data.email,
           }),
         });
         const result = await res.json();
@@ -91,8 +91,7 @@ export function AuthForm({ type }: AuthFormProps) {
           setError(result.message || "Đăng ký thất bại");
           return;
         }
-        // Đăng ký thành công, chuyển sang trang đăng nhập
-        router.push("/login");
+        router.push("/register/confirm")
       }
     } catch (err) {
       setError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
