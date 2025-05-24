@@ -1,31 +1,38 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import type { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import Cookies from "js-cookie"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import type { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Cookies from "js-cookie";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { registerSchema, loginSchema } from "@/lib/validation"
-import { useAuth } from "@/context/AuthContext"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { registerSchema, loginSchema } from "@/lib/validation";
+import { useAuth } from "@/context/AuthContext";
 
 interface AuthFormProps {
-  type: "login" | "register"
+  type: "login" | "register";
 }
 
 export function AuthForm({ type }: AuthFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const { login  } = useAuth();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { login } = useAuth(); // Lấy hàm login từ AuthContext
 
-  const schema = type === "login" ? loginSchema : registerSchema
-  type FormValues = z.infer<typeof schema>
+  const schema = type === "login" ? loginSchema : registerSchema;
+  type FormValues = z.infer<typeof schema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -34,11 +41,11 @@ export function AuthForm({ type }: AuthFormProps) {
       password: "",
       ...(type === "register" ? { confirmPassword: "" } : {}),
     },
-  })
+  });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError("");
 
     try {
       if (type === "login") {
@@ -58,9 +65,15 @@ export function AuthForm({ type }: AuthFormProps) {
         }
         // Lưu token và user vào cookies
         Cookies.set("token", result.token, { expires: 7, path: "/" });
-        Cookies.set("user", JSON.stringify(result.user), { expires: 7, path: "/" });
-        console.log("User in AuthForm:", result.user);
+        Cookies.set("user", JSON.stringify(result.user), {
+          expires: 7,
+          path: "/",
+        });
+
+        // Cập nhật trạng thái người dùng trong AuthContext
         login(result.user);
+
+        // Chuyển hướng về trang chủ hoặc trang trước đó
         router.push("/");
       } else {
         // Gọi API đăng ký thực tế
@@ -82,16 +95,18 @@ export function AuthForm({ type }: AuthFormProps) {
         router.push("/login");
       }
     } catch (err) {
-      setError("Đã xảy ra lỗi. Vui lòng thử lại sau.")
+      setError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-md space-y-6 p-6 bg-white rounded-lg shadow-md">
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold">{type === "login" ? "Đăng nhập" : "Đăng ký"}</h1>
+        <h1 className="text-2xl font-bold">
+          {type === "login" ? "Đăng nhập" : "Đăng ký"}
+        </h1>
         <p className="text-muted-foreground">
           {type === "login"
             ? "Nhập thông tin đăng nhập của bạn để tiếp tục"
@@ -108,7 +123,11 @@ export function AuthForm({ type }: AuthFormProps) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="your.email@example.com" type="email" {...field} />
+                  <Input
+                    placeholder="your.email@example.com"
+                    type="email"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -148,7 +167,11 @@ export function AuthForm({ type }: AuthFormProps) {
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Đang xử lý..." : type === "login" ? "Đăng nhập" : "Đăng ký"}
+            {isLoading
+              ? "Đang xử lý..."
+              : type === "login"
+              ? "Đăng nhập"
+              : "Đăng ký"}
           </Button>
         </form>
       </Form>
@@ -158,7 +181,9 @@ export function AuthForm({ type }: AuthFormProps) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">Hoặc tiếp tục với</span>
+          <span className="bg-white px-2 text-muted-foreground">
+            Hoặc tiếp tục với
+          </span>
         </div>
       </div>
 
@@ -185,19 +210,25 @@ export function AuthForm({ type }: AuthFormProps) {
         {type === "login" ? (
           <>
             Chưa có tài khoản?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
+            <Link
+              href="/register"
+              className="font-medium text-primary hover:underline"
+            >
               Đăng ký
             </Link>
           </>
         ) : (
           <>
             Đã có tài khoản?{" "}
-            <Link href="/login" className="font-medium text-primary hover:underline">
+            <Link
+              href="/login"
+              className="font-medium text-primary hover:underline"
+            >
               Đăng nhập
             </Link>
           </>
         )}
       </div>
     </div>
-  )
+  );
 }

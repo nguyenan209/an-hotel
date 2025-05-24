@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
 import { Hotel, Home } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCartStore } from "@/lib/store/cartStore";
 
 interface BookingSummaryProps {
   items: CartItem[];
@@ -12,14 +12,7 @@ interface BookingSummaryProps {
 }
 
 export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
-  const [notes, setNotes] = useState<string>("");
-
-  useEffect(() => {
-    const savedNotes = localStorage.getItem("bookingNotes");
-    if (savedNotes) {
-      setNotes(savedNotes);
-    }
-  }, []);
+  const { notes } = useCartStore();
 
   return (
     <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 sticky top-24">

@@ -30,7 +30,7 @@ export default function PaymentPage() {
   );
   const [creditCardPaymentDetails, setCreditCardPaymentDetails] =
     useState<any>(null);
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, getTotalPrice, clearCart, notes } = useCartStore();
 
   // Fix hydration issues
   useEffect(() => {
@@ -107,12 +107,13 @@ export default function PaymentPage() {
             : item.homestay.price * item.nights,
         })),
         customer: {
+          userId: user?.id || null, // Lấy ID người dùng từ hook useUser
           name: user?.name,
           email: user?.email,
           phone: user?.phone,
           address: user?.address,
         },
-        specialRequests: "Phòng ở tầng cao, xa thang máy",
+        specialRequests: notes,
         status: BookingStatus.PENDING,
       };
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Dùng để điều hướng
 import { ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,11 +10,13 @@ import { CartItem } from "@/components/cart/cart-item";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext"
 
 export default function CartPage() {
   const [mounted, setMounted] = useState(false);
-  const { items, getTotalPrice, clearCart } = useCartStore();
-  const [notes, setNotes] = useState("");
+  const { items, notes, getTotalPrice, clearCart, setNotes } = useCartStore();
+  const { user } = useAuth(); // Lấy thông tin người dùng từ authStore
+  const router = useRouter(); // Dùng để điều hướng
 
   // Fix hydration issues
   useEffect(() => {
@@ -46,6 +49,18 @@ export default function CartPage() {
 
   const totalPrice = getTotalPrice();
 
+  // Hàm xử lý khi nhấn "Tiến hành thanh toán"
+  const handleCheckout = () => {
+    if (!user) {
+      // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
+      router.push("/login");
+      return;
+    }
+
+    // Nếu đã đăng nhập, chuyển đến trang thanh toán
+    router.push("/checkout/payment");
+  };
+
   return (
     <div className="container py-8">
       <div className="flex items-center justify-between mb-8">
@@ -62,6 +77,7 @@ export default function CartPage() {
               <CartItem key={item.homestayId} item={item} />
             ))}
           </div>
+
           {items.length > 0 && (
             <div className="mt-6 border rounded-lg p-4 shadow-sm">
               <h3 className="text-lg font-medium mb-2">Ghi chú đặc biệt</h3>
@@ -105,16 +121,10 @@ export default function CartPage() {
               <span>{formatCurrency(totalPrice)}</span>
             </div>
 
-            <Link
-              href="/checkout/payment"
-              onClick={() => {
-                if (notes.trim()) {
-                  localStorage.setItem("bookingNotes", notes.trim());
-                }
-              }}
-            >
-              <Button className="w-full">Tiến hành thanh toán</Button>
-            </Link>
+            {/* Nút Tiến hành thanh toán */}
+            <Button className="w-full" onClick={handleCheckout}>
+              Tiến hành thanh toán
+            </Button>
 
             <div className="mt-4 text-center text-sm text-muted-foreground">
               Giá đã bao gồm thuế và phí

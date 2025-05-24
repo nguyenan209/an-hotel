@@ -1,38 +1,56 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
+import Cookies from "js-cookie";
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  // Thêm các trường khác nếu cần
+}
 
 interface AuthContextType {
-    user: string | null;
-    login: (user: any) => void;
-    logout: () => void;
+  user: User | null;
+  login: (user: User) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<any | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
 
-    const login = (user: any) => {
-        console.log('Login function called with username:', user);
-        setUser(user);
-    };
+  // Kiểm tra token trong cookies khi ứng dụng khởi chạy
+  useEffect(() => {
+    const storedUser = Cookies.get("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
-    const logout = () => {
-        setUser(null);
-    };
+  const login = (user: User) => {
+    setUser(user);
+    Cookies.set("user", JSON.stringify(user), { expires: 7, path: "/" });
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const logout = () => {
+    setUser(null);
+    Cookies.remove("user");
+    Cookies.remove("token");
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
