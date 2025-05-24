@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User } from "lucide-react";
+import { BookOpen, LogOut, ShoppingCart, User, UserCircle } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -14,7 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 
 export function Header() {
   const pathname = usePathname();
@@ -24,16 +25,24 @@ export function Header() {
     0
   );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { user } = useAuth();
-  console.log("User in Header:", user);
+  const { user, logout } = useAuth();
   const router = useRouter();
-
-
+  console.log("User in Header:", user);
 
   useEffect(() => {
-    const token = Cookies.get("token");
-    setIsLoggedIn(!!token);
-  }, []);
+    if (user) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [user]);
+
+  const handleLogout = () => {
+    logout();
+
+    // Chuyển hướng người dùng đến trang đăng nhập
+    router.push("/login");
+  };
 
   return (
     <header className="border-b bg-white">
@@ -87,32 +96,47 @@ export function Header() {
             </Button>
           </Link>
           {isLoggedIn ? (
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">User menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link href="/bookings" className="w-full cursor-pointer">
-                  My Bookings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="w-full cursor-pointer">
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/login" className="w-full cursor-pointer">
-                  Login
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <>
+              <NotificationDropdown variant="user" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                    <span className="sr-only">User menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-fit p-0">
+                  {" "}
+                  {/* Thay w-56 bằng min-w-fit */}
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/bookings"
+                      className="w-full flex items-center gap-1 px-3 py-2 cursor-pointer"
+                    >
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      My Bookings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/profile"
+                      className="w-full flex items-center gap-1 px-3 py-2 cursor-pointer"
+                    >
+                      <UserCircle className="h-4 w-4 text-muted-foreground" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-1 px-3 py-2 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Link href="/login" className="hidden md:block">
