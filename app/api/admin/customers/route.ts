@@ -59,3 +59,41 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { name, email, phone, status } = body;
+
+    if (!name || !email || !phone) {
+      return NextResponse.json(
+        { error: "Name, email, and phone are required" },
+        { status: 400 }
+      );
+    }
+
+    const newCustomer = await prisma.customer.create({
+      data: {
+        user: {
+          create: {
+            name,
+            email,
+            phone,
+            status: status || "active",
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return NextResponse.json(newCustomer, { status: 201 });
+  } catch (error) {
+    console.error("Error creating customer:", error);
+    return NextResponse.json(
+      { error: "Failed to create customer" },
+      { status: 500 }
+    );
+  }
+}

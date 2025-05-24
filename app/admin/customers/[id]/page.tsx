@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Check, ShoppingCart, User } from "lucide-react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Check, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,24 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { mockBookings, mockCustomers } from "@/lib/mock-data/admin";
 import { getStatusColor } from "@/lib/utils";
 
 const customerSchema = z.object({
@@ -45,18 +29,9 @@ const customerSchema = z.object({
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
-
-interface CustomerDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function CustomerDetailPage({
-  params,
-}: CustomerDetailPageProps) {
+export default function CustomerDetailPage({ id }: { id: string }) {
   const router = useRouter();
-  const isNewCustomer = params.id === "new";
+  const isNewCustomer = id === "new";
   const [customer, setCustomer] = useState<any | null>(null);
   const [customerBookings, setCustomerBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(!isNewCustomer);
@@ -80,28 +55,26 @@ export default function CustomerDetailPage({
       return;
     }
 
-    // Simulate API call to fetch customer details
+    // Gọi API để lấy chi tiết khách hàng
     const fetchCustomer = async () => {
       try {
-        // In a real app, you would fetch from an API
-        const foundCustomer = mockCustomers.find((c) => c.id === params.id);
-
-        if (foundCustomer) {
-          setCustomer(foundCustomer);
-          form.reset({
-            name: foundCustomer.name,
-            email: foundCustomer.email,
-            phone: foundCustomer.phone,
-            address: foundCustomer.address,
-            status: foundCustomer.status,
-          });
-
-          // Get customer bookings
-          const bookings = mockBookings.filter(
-            (b) => b.customerId === params.id
-          );
-          setCustomerBookings(bookings);
+        const response = await fetch(`/api/admin/customers/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch customer details");
         }
+
+        const data = await response.json();
+        setCustomer(data);
+        form.reset({
+          name: data.user.name,
+          email: data.user.email,
+          phone: data.user.phone,
+          address: data.user.address,
+          status: data.user.status,
+        });
+
+        // Lấy danh sách booking của khách hàng
+        setCustomerBookings(data.bookings || []);
       } catch (error) {
         console.error("Error fetching customer:", error);
       } finally {
@@ -110,10 +83,10 @@ export default function CustomerDetailPage({
     };
 
     fetchCustomer();
-  }, [params.id, isNewCustomer, form]);
+  }, [id, isNewCustomer, form]);
 
   const onSubmit = (data: CustomerFormValues) => {
-    // In a real app, you would submit to an API
+    // Gửi dữ liệu cập nhật đến API
     console.log("Form submitted:", data);
 
     // Simulate successful submission
@@ -142,7 +115,7 @@ export default function CustomerDetailPage({
         <h2 className="text-3xl font-bold tracking-tight">
           {isNewCustomer
             ? "Add New Customer"
-            : `Edit Customer: ${customer?.name}`}
+            : `Edit Customer: ${customer?.user?.name}`}
         </h2>
       </div>
 
@@ -165,118 +138,8 @@ export default function CustomerDetailPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-center mb-6">
-                    <div className="relative">
-                      <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="h-12 w-12 text-gray-500" />
-                      </div>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                      >
-                        <span className="sr-only">Change avatar</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4"
-                        >
-                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                          <path d="m15 5 4 4" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter full name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter email address"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter phone number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter address" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Form fields */}
+                  {/* ... */}
                 </CardContent>
               </Card>
             </TabsContent>

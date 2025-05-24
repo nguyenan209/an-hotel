@@ -76,8 +76,6 @@ export default function HomestayDetailPage() {
   const [addressResults, setAddressResults] = useState<
     { id: string; address: string }[]
   >([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   // Homestay form
@@ -110,7 +108,7 @@ export default function HomestayDetailPage() {
     const fetchHomestay = async () => {
       try {
         if (params?.id) {
-          const foundHomestay = await fetchHomestayData(params.id, form.reset);
+          const foundHomestay = await fetchHomestayData(params?.id, form.reset);
           setHomestay(foundHomestay);
           setUploadedImages(foundHomestay.images || []);
         }

@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     // Truy vấn cơ sở dữ liệu để lấy thông tin homestay
     const homestay = await prisma.homestay.findUnique({
-      where: { id: params.id, isDeleted: false },
+      where: { id: id, isDeleted: false },
     });
 
     // Nếu không tìm thấy homestay, trả về lỗi 404
@@ -46,14 +47,15 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     // Cập nhật thông tin homestay trong cơ sở dữ liệu
     const updatedHomestay = await prisma.homestay.update({
-      where: { id: params.id, isDeleted: false },
+      where: { id, isDeleted: false },
       data: body,
     });
 
@@ -80,10 +82,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const homestayId = params.id;
+    const { id: homestayId } = await params;
 
     // Xóa Homestay
     await prisma.homestay.update({
