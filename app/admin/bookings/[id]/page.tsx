@@ -50,6 +50,7 @@ import {
 } from "@/lib/mock-data/admin";
 import { formatCurrency } from "@/lib/utils";
 import { getRoomsByHomestayId } from "@/lib/data";
+import { BookingType } from "@prisma/client";
 
 // Update the booking schema to include booking type
 const bookingSchema = z.object({
@@ -61,7 +62,7 @@ const bookingSchema = z.object({
   status: z.string(),
   paymentStatus: z.string(),
   paymentMethod: z.string(),
-  bookingType: z.enum(["whole", "rooms"]),
+  bookingType: z.enum([BookingType.ROOMS, BookingType.WHOLE]),
   selectedRooms: z.array(z.string()).optional(),
 });
 
@@ -70,7 +71,7 @@ type BookingFormValues = z.infer<typeof bookingSchema>;
 // Update mock bookings to include booking type
 const updatedMockBookings = mockBookings.map((booking, index) => ({
   ...booking,
-  bookingType: index % 3 === 0 ? "rooms" : "whole",
+  bookingType: index % 3 === 0 ? BookingType.ROOMS : BookingType.WHOLE,
   rooms:
     index % 3 === 0
       ? [
@@ -105,7 +106,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           status: "pending",
           paymentStatus: "pending",
           paymentMethod: "pending",
-          bookingType: "whole",
+          bookingType: BookingType.WHOLE,
           selectedRooms: [],
         }
       : undefined,
@@ -333,9 +334,9 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                           className="flex flex-col space-y-1"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="whole" id="whole" />
+                            <RadioGroupItem value={BookingType.WHOLE} id={BookingType.WHOLE} />
                             <Label
-                              htmlFor="whole"
+                              htmlFor={BookingType.WHOLE}
                               className="flex items-center"
                             >
                               <Home className="mr-2 h-4 w-4" />
@@ -359,7 +360,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   )}
                 />
 
-                {watchBookingType === "rooms" && watchHomestayId && (
+                {watchBookingType === BookingType.ROOMS && watchHomestayId && (
                   <FormField
                     control={form.control}
                     name="selectedRooms"
@@ -558,7 +559,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 </div>
 
                 <div className="flex items-center gap-4 rounded-lg border p-4">
-                  {booking.bookingType === "whole" ? (
+                  {booking.bookingType === BookingType.WHOLE ? (
                     <Home className="h-8 w-8 text-muted-foreground" />
                   ) : (
                     <Hotel className="h-8 w-8 text-muted-foreground" />
@@ -566,7 +567,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <div>
                     <h3 className="font-medium">Booking Type</h3>
                     <p className="text-sm text-muted-foreground">
-                      {booking.bookingType === "whole"
+                      {booking.bookingType === BookingType.WHOLE
                         ? "Whole Homestay"
                         : "Individual Rooms"}
                     </p>
@@ -603,7 +604,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 <div className="rounded-lg border p-4">
                   <h3 className="font-medium mb-2">Price Breakdown</h3>
                   <div className="space-y-1 text-sm">
-                    {booking.bookingType === "whole" ? (
+                    {booking.bookingType === BookingType.WHOLE ? (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
                           Homestay price

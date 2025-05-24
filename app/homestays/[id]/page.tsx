@@ -404,8 +404,8 @@ export default function HomestayDetailPage({
                     className="flex flex-col space-y-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="whole" id="whole" />
-                      <Label htmlFor="whole" className="flex items-center">
+                      <RadioGroupItem value={BookingType.WHOLE} id={BookingType.WHOLE} />
+                      <Label htmlFor={BookingType.WHOLE} className="flex items-center">
                         <Home className="mr-2 h-4 w-4" />
                         Đặt toàn bộ homestay
                       </Label>

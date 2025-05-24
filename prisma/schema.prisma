@@ -33,7 +33,6 @@ model User {
   ownerId           String?             @db.ObjectId
   admin             Admin?              @relation
   adminId           String?             @db.ObjectId
-  bookings          Booking[]
   reviews           Review[]
   complaints        Complaint[]
   notifications     Notification[]
@@ -255,8 +254,6 @@ model Booking {
   bookingNumber     String              
   customerId        String              @db.ObjectId
   customer          Customer            @relation(fields: [customerId], references: [id])
-  userId            String              @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
   homestayId        String              @db.ObjectId
   homestay          Homestay            @relation(fields: [homestayId], references: [id])
   checkIn           DateTime

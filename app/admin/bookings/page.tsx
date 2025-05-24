@@ -30,11 +30,12 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { mockBookings } from "@/lib/mock-data/admin";
+import { BookingType } from "@prisma/client";
 
 // Update mock bookings to include booking type
 const updatedMockBookings = mockBookings.map((booking, index) => ({
   ...booking,
-  bookingType: index % 3 === 0 ? "rooms" : "whole",
+  bookingType: index % 3 === 0 ? BookingType.ROOMS : BookingType.WHOLE,
   rooms:
     index % 3 === 0
       ? [
@@ -116,8 +117,8 @@ export default function BookingsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="whole">Whole Homestay</SelectItem>
-                  <SelectItem value="rooms">Individual Rooms</SelectItem>
+                  <SelectItem value={BookingType.WHOLE}>Whole Homestay</SelectItem>
+                  <SelectItem value={BookingType.ROOMS}>Individual Rooms</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -161,7 +162,7 @@ export default function BookingsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {booking.bookingType === "whole" ? (
+                        {booking.bookingType === BookingType.WHOLE ? (
                           <div className="flex items-center">
                             <Home className="mr-1 h-4 w-4" />
                             <span>Whole</span>

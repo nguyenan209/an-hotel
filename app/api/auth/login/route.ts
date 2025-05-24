@@ -13,7 +13,16 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
     if (!user || !user.password) {
       return NextResponse.json(
         { message: "Invalid credentials" },
@@ -33,7 +42,16 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-    const token = generateToken(user.id, user.role);
+    const token = generateToken({
+      id: user.id,
+      customerId: user.customer?.id ?? null,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      phone: user.phone ?? "",
+      address: user.address ?? "",
+      avatar: user.avatar ?? "",
+    });
     return NextResponse.json({
       message: "Login successful",
       user: {
@@ -44,6 +62,7 @@ export async function POST(req: Request) {
         phone: user.phone,
         address: user.address,
         avatar: user.avatar,
+        customerId: user.customer?.id ?? null,
       },
       token,
     });

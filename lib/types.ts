@@ -1,4 +1,13 @@
-import { BookingStatus, BookingType, HomestayStatus, Payment, PaymentMethod, PaymentStatus, RoomStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  BookingType,
+  HomestayStatus,
+  Payment,
+  PaymentMethod,
+  PaymentStatus,
+  RoomStatus,
+  UserRole,
+} from "@prisma/client";
 
 export interface Room {
   id: string;
@@ -59,7 +68,7 @@ export interface Booking {
   totalPrice: number;
   status: BookingStatus;
   createdAt: string;
-  paymentStatus:PaymentStatus;
+  paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   bookingType: BookingType;
   rooms?: {
@@ -92,6 +101,16 @@ export interface SearchParams {
   roomsNeeded?: number;
 }
 
+export type Token = {
+  id: string;
+  name: string;
+  email: string;
+  role?: UserRole;
+  phone?: string;
+  address?: string;
+  avatar?: string;
+  customerId: string;
+};
 
 export enum QRPaymentStatus {
   PENDING = "pending",

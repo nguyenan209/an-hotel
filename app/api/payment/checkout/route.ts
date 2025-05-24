@@ -17,38 +17,35 @@ export async function POST(request: NextRequest) {
     )}`;
 
     // Kiểm tra xem khách hàng đã tồn tại hay chưa
-    const customer = await prisma.customer.findUnique({
+    let customer = await prisma.customer.findUnique({
       where: {
         userId: bookingData.customer.userId,
       },
     });
-
-    const customerData = customer
-    ? { connect: { id: customer.id } } // Liên kết với khách hàng hiện có
-    : {
-        create: {
-          userId: bookingData.customer.userId, // Liên kết với User qua userId
-          user: {
-            connect: { id: bookingData.customer.userId }, // Liên kết với bảng User
-          },
+    
+    if (!customer) {
+      // create a new customer if not found
+      customer = await prisma.customer.create({
+        data: {
+          userId: bookingData.customer.userId,
           totalBookings: 0, // Giá trị mặc định
           totalSpent: 0, // Giá trị mặc định
           preferences: {}, // Giá trị mặc định (nếu cần)
         },
-      };
+      });
+      console.log("New customer created:", customer);
+    }
+
+    const customerData = { connect: { id: customer.id } };
 
     // Tạo danh sách các booking
     const createdBookings = await Promise.all(
       bookingData.items.map(async (item: any) => {
-
         // Tạo booking cho từng homestay
         const createdBooking = await prisma.booking.create({
           data: {
             bookingNumber, // Dùng chung bookingNumber cho tất cả các booking
             customer: customerData, // Liên kết hoặc tạo khách hàng
-            user: {
-              connect: { id: bookingData.customer.userId }, // Explicitly connect user
-            },
             homestay: {
               connect: { id: item.homestayId }, // Explicitly connect homestay
             },
@@ -103,8 +100,8 @@ export async function POST(request: NextRequest) {
               paymentMethod === PaymentMethod.CREDIT_CARD
                 ? `Card Last 4: ${paymentDetails?.cardLast4}, Brand: ${paymentDetails?.cardBrand}`
                 : paymentMethod === PaymentMethod.BANK_TRANSFER
-                ? `Bank: ${paymentDetails?.bankName}, Account: ${paymentDetails?.accountNumber}`
-                : null,
+                  ? `Bank: ${paymentDetails?.bankName}, Account: ${paymentDetails?.accountNumber}`
+                  : null,
           },
         });
 

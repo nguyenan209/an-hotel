@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,67 +15,38 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, User } from "lucide-react";
-
-// Mock booking data - in a real app, this would come from an API
-const mockBookings = [
-  {
-    id: "b1",
-    homestayId: "1",
-    homestayName: "Sunset Beach Villa",
-    roomName: "Deluxe Ocean View Suite",
-    checkIn: "2025-06-01",
-    checkOut: "2025-06-05",
-    guests: 2,
-    totalPrice: 1200,
-    status: "upcoming",
-    location: "Bali, Indonesia",
-    image: "/images/sunset-beach-villa-room-1.png",
-  },
-  {
-    id: "b2",
-    homestayId: "2",
-    homestayName: "Mountain Retreat",
-    roomName: "Cozy Fireplace Room",
-    checkIn: "2025-05-15",
-    checkOut: "2025-05-18",
-    guests: 2,
-    totalPrice: 750,
-    status: "completed",
-    location: "Sapa, Vietnam",
-    image: "/images/mountain-retreat-room-1.png",
-  },
-  {
-    id: "b3",
-    homestayId: "3",
-    homestayName: "Riverside Cottage",
-    roomName: "Riverside Suite",
-    checkIn: "2025-07-10",
-    checkOut: "2025-07-15",
-    guests: 3,
-    totalPrice: 950,
-    status: "upcoming",
-    location: "Hoi An, Vietnam",
-    image: "/images/riverside-cottage-room-1.png",
-  },
-];
+import { useAuth } from "@/context/AuthContext";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { user } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3);
 
   useEffect(() => {
-    // Simulate API call to fetch bookings
     const fetchBookings = async () => {
       try {
-        // In a real app, this would be an API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setBookings(mockBookings);
-      } catch (error) {
-        console.error("Failed to fetch bookings:", error);
+        const response = await fetch("/api/bookings/me", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Cookies.get("token")}`, // Thêm token từ localStorage
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch bookings");
+        }
+
+        const data = await response.json();
+        setBookings(data);
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        setError("Không thể tải danh sách đặt phòng");
       } finally {
         setIsLoading(false);
       }
@@ -82,6 +54,12 @@ export default function BookingsPage() {
 
     fetchBookings();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -136,6 +114,15 @@ export default function BookingsPage() {
           <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-lg">Loading your bookings...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-10 text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button onClick={() => router.refresh()}>Thử lại</Button>
       </div>
     );
   }

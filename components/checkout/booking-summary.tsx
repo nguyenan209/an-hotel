@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
 import { Hotel, Home } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
+import { BookingType } from "@prisma/client";
 
 interface BookingSummaryProps {
   items: CartItem[];
@@ -48,7 +49,7 @@ export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
               {formatDate(new Date(item.checkOut))}
             </div>
             <div className="text-sm flex items-center">
-              {item.bookingType === "whole" ? (
+              {item.bookingType === BookingType.WHOLE ? (
                 <>
                   <Home className="mr-1 h-4 w-4" /> Toàn bộ homestay
                 </>
@@ -63,7 +64,7 @@ export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
               {item.nights} đêm × {item.guests} khách
             </div>
 
-            {item.bookingType === "rooms" &&
+            {item.bookingType === BookingType.ROOMS &&
               item.rooms &&
               item.rooms.length > 0 && (
                 <div className="text-sm space-y-1">

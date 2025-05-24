@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { User, UserRole } from "@prisma/client";
+import { Token } from "@/lib/types";
 
 export function useUser(token: string | null) {
   const [user, setUser] = useState<Partial<User> | null>(null);
@@ -15,15 +16,7 @@ export function useUser(token: string | null) {
 
     try {
       // Giải mã token để lấy thông tin người dùng
-      const decodedToken = jwtDecode<{
-        id: string;
-        name: string;
-        email: string;
-        role?: UserRole;
-        phone?: string;
-        address?: string;
-        avatar?: string;
-      }>(token);
+      const decodedToken = jwtDecode<Token>(token);
       setUser({
         id: decodedToken.id,
         name: decodedToken.name,

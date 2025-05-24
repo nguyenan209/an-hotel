@@ -8,6 +8,7 @@ import type { CartItem as CartItemType } from "@/lib/types"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/lib/store/cartStore"
+import { BookingType } from "@prisma/client"
 
 interface CartItemProps {
   item: CartItemType
@@ -21,7 +22,7 @@ export function CartItem({ item }: CartItemProps) {
   }
 
   const calculateTotalPrice = () => {
-    if (item.bookingType === "whole") {
+    if (item.bookingType === BookingType.WHOLE) {
       return item.homestay.price * item.nights
     } else {
       // Sum up the prices of all rooms
@@ -83,7 +84,7 @@ export function CartItem({ item }: CartItemProps) {
 
         <div className="mt-2 flex items-center">
           <span className="inline-flex items-center text-sm font-medium">
-            {item.bookingType === "whole" ? (
+            {item.bookingType === BookingType.WHOLE ? (
               <>
                 <Home className="mr-1 h-4 w-4" /> Toàn bộ homestay
               </>
@@ -95,7 +96,7 @@ export function CartItem({ item }: CartItemProps) {
           </span>
         </div>
 
-        {item.bookingType === "rooms" && item.rooms && item.rooms.length > 0 && (
+        {item.bookingType === BookingType.ROOMS && item.rooms && item.rooms.length > 0 && (
           <div className="mt-2">
             <p className="text-sm font-medium">Phòng đã chọn:</p>
             <div className="mt-1 space-y-1">
@@ -111,7 +112,7 @@ export function CartItem({ item }: CartItemProps) {
 
         <div className="mt-auto pt-2 flex justify-between items-end">
           <div>
-            {item.bookingType === "whole" ? (
+            {item.bookingType === BookingType.WHOLE ? (
               <p className="text-sm">
                 <span className="font-medium">{formatCurrency(item.homestay.price)}</span> x {item.nights} đêm
               </p>
