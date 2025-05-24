@@ -12,10 +12,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Header() {
   const pathname = usePathname();
@@ -100,14 +102,24 @@ export function Header() {
               <NotificationDropdown variant="user" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-8 w-8 p-0"
+                  >
+                    <Avatar>
+                      <AvatarImage
+                        src="https://github.com/shadcn.png"
+                        alt="User avatar"
+                      />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
                     <span className="sr-only">User menu</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-fit p-0">
-                  {" "}
-                  {/* Thay w-56 bằng min-w-fit */}
+                <DropdownMenuContent align="end" className="min-w-fit p-0" sideOffset={10}>
+                  <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link
                       href="/bookings"

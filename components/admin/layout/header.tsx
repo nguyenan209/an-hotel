@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Bell, Menu, Search, User } from "lucide-react"
+import { Menu, Search, User, LogOut, Settings } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
+import { Sidebar } from "@/components/admin/layout/sidebar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,21 +13,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Sidebar } from "@/components/admin/layout/sidebar"
-import { useAuth } from "@/context/AuthContext"
-import { useRouter } from "next/navigation"
-
-
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { NotificationDropdown } from "@/components/ui/notification-dropdown";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface HeaderProps {
-  title?: string
+  title?: string;
 }
 
+
 export function Header({ title = "Dashboard" }: HeaderProps) {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <header className="w-full border-b bg-white sticky top-0 z-40 flex h-14 items-center gap-4 px-4 sm:px-6">
@@ -61,24 +59,7 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
           />
         </form>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Toggle notification menu</span>
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-              3
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>New booking: Sunset Beach Villa</DropdownMenuItem>
-          <DropdownMenuItem>New review: Mountain Retreat</DropdownMenuItem>
-          <DropdownMenuItem>Booking cancelled: Riverside Cottage</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <NotificationDropdown variant="admin" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="relative">
@@ -89,14 +70,21 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem>
+            <User className="mr-2 h-4 w-4" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
+            <LogOut className="mr-2 h-4 w-4" />
             <Link href="/admin/login">Log out</Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
-  )
+  );
 }
