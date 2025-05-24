@@ -106,11 +106,6 @@ export default function PaymentPage() {
               )
             : item.homestay.price * item.nights,
         })),
-        customer: {
-          userId: user?.id || null,
-          name: user?.name,
-          email: user?.email,
-        },
         specialRequests: notes,
         status: BookingStatus.PENDING,
       };

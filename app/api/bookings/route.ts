@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Đảm bảo bạn đã cấu hình Prisma client
 import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { getTokenData } from "@/lib/auth";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const decoded = getTokenData(request);
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await request.json();
     const {
-      userId,
       homestayId,
       checkInDate,
       checkOutDate,
@@ -20,7 +24,6 @@ export async function POST(request: Request) {
 
     // Kiểm tra các trường bắt buộc
     if (
-      !userId ||
       !homestayId ||
       !checkInDate ||
       !checkOutDate ||
@@ -37,7 +40,6 @@ export async function POST(request: Request) {
     // Tạo booking mới
     const newBooking = await prisma.booking.create({
       data: {
-        user: { connect: { id: userId } },
         homestayId,
         checkIn: new Date(checkInDate),
         checkOut: new Date(checkOutDate),
@@ -49,7 +51,7 @@ export async function POST(request: Request) {
         status: BookingStatus.PENDING,
         paymentStatus: PaymentStatus.PENDING,
         bookingNumber: `BK-${Date.now()}`,
-        customer: { connect: { id: userId } },
+        customer: { connect: { id: decoded.customerId } },
         homestay: { connect: { id: homestayId } },
       },
     });

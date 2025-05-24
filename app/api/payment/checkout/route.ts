@@ -1,9 +1,17 @@
 import { PaymentMethod, BookingStatus, PaymentStatus } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getTokenData } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const decoded = getTokenData(request);
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     const body = await request.json();
     const { paymentMethod, bookingData, paymentDetails } = body;
 
@@ -19,22 +27,23 @@ export async function POST(request: NextRequest) {
     // Kiểm tra xem khách hàng đã tồn tại hay chưa
     let customer = await prisma.customer.findUnique({
       where: {
-        userId: bookingData.customer.userId,
+        id: decoded.customerId,
+        isDeleted: false, 
       },
     });
     
     if (!customer) {
-      // create a new customer if not found
-      customer = await prisma.customer.create({
-        data: {
-          userId: bookingData.customer.userId,
-          totalBookings: 0, // Giá trị mặc định
-          totalSpent: 0, // Giá trị mặc định
-          preferences: {}, // Giá trị mặc định (nếu cần)
-        },
-      });
-      console.log("New customer created:", customer);
+      return NextResponse.json(
+        { error: "Customer not found" },
+        { status: 404 }
+      );
     }
+    // Nếu khách hàng không tồn tại, tạo mới khách hàng
+    customer = await prisma.customer.create({
+      data: {
+        userId: decoded.id,
+      }
+    });
 
     const customerData = { connect: { id: customer.id } };
 

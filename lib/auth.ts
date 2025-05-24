@@ -3,10 +3,11 @@ import { sign, verify } from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { PrismaClient } from "@prisma/client";
 import { Token } from "./types";
+import { NextRequest } from "next/server";
 
 const prisma = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const NEXT_PUBLIC_JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = "7d";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -20,11 +21,11 @@ export const comparePassword = async (
 ): Promise<boolean> => compare(password, hashedPassword);
 
 export const generateToken = (payload: Token): string =>
-  sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  sign(payload, NEXT_PUBLIC_JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
 export const verifyToken = (token: string): Token => {
   try {
-    return verify(token, JWT_SECRET) as Token;
+    return verify(token, NEXT_PUBLIC_JWT_SECRET) as Token;
   } catch {
     throw new Error("Invalid token");
   }
@@ -61,3 +62,24 @@ export const createOrUpdateUserFromGoogle = async (googleUser: any) => {
   }
   return user;
 };
+
+export function getTokenData(request: NextRequest) {
+  try {
+    // Lấy token từ header Authorization hoặc cookie
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : request.cookies.get("token")?.value;
+
+    if (!token) {
+      throw new Error("No token provided");
+    }
+
+    // Giải mã token bằng secret key
+    const decoded = verify(token, process.env.NEXT_PUBLIC_JWT_SECRET || "default_secret") as Token;
+    return decoded; // Trả về thông tin từ token
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null; // Trả về null nếu token không hợp lệ
+  }
+}
