@@ -7,6 +7,7 @@ import { ConditionalHeader } from "@/components/layout/conditional-header";
 import { ConditionalFooter } from "@/components/layout/conditional-footer";
 import CustomQueryClientProvider from "@/components/providers/CustomQueryClientProvider";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             </CustomQueryClientProvider>
             <ConditionalFooter />
           </AuthProvider>
+          <Toaster position="top-center" richColors />
         </div>
       </body>
     </html>
