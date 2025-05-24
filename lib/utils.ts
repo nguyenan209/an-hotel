@@ -53,3 +53,10 @@ export function getStatusColor(status: string): string {
       return "bg-gray-100 text-gray-800";
   }
 }
+
+export function getExpireOtpTime(): Date {
+  const otpExpirationTime =
+    parseInt(process.env.NEXT_PUBLIC_OTP_EXPIRATION_TIME || "300", 10) * 1000;
+  const expiryTime = new Date(Date.now() + otpExpirationTime * 60 * 1000);
+  return expiryTime;
+}

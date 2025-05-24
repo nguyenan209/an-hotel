@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { EmailService, OTPService } from "@/lib/services/email-service";
-
-// Mock OTP storage (trong thực tế, lưu vào database hoặc Redis)
-const otpStorage = new Map<
-  string,
-  { otp: string; createdAt: Date; attempts: number }
->();
+import prisma from "@/lib/prisma";
+import { getExpireOtpTime } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,11 +17,13 @@ export async function POST(request: NextRequest) {
     // Generate OTP
     const otpCode = OTPService.generateOTP();
 
-    // Store OTP (trong thực tế, lưu vào database với expiry)
-    otpStorage.set(email, {
-      otp: otpCode,
-      createdAt: new Date(),
-      attempts: 0,
+    const expiryTime = getExpireOtpTime();
+    await prisma.otpCode.create({
+      data: {
+        email,
+        otp: otpCode,
+        expiresAt: expiryTime,
+      },
     });
 
     // Send OTP email

@@ -101,20 +101,27 @@ export default function RegisterConfirmPage() {
     setIsVerifying(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Gọi API xác minh OTP
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          otp: otpCode,
+        }),
+      });
 
-      // Simulate verification (80% success rate for demo)
-      const success = Math.random() > 0.2;
+      const result = await res.json();
 
-      if (success) {
-        toast.success("Xác nhận thành công!");
-        router.push("/login?verified=true");
-      } else {
-        toast.error("Mã OTP không chính xác hoặc đã hết hạn");
+      if (!res.ok) {
+        toast.error(result.error || "Mã OTP không chính xác hoặc đã hết hạn");
         setOtp(["", "", "", "", "", ""]);
         inputRefs.current[0]?.focus();
+        return; // Thêm return để dừng thực thi tiếp
       }
+
+      toast.success("Xác nhận thành công!");
+      router.push("/login?verified=true");
     } catch (error) {
       toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
@@ -200,7 +207,7 @@ export default function RegisterConfirmPage() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
                     className="w-12 h-12 text-center text-lg font-bold"
-                    disabled={isVerifying}
+                    disabled={isVerifying || timeLeft === 0}
                   />
                 ))}
               </div>
@@ -214,7 +221,7 @@ export default function RegisterConfirmPage() {
                   <>Mã sẽ hết hạn sau {formatTime(timeLeft)}</>
                 ) : (
                   <span className="text-red-600 font-medium">
-                    Mã OTP đã hết hạn
+                    Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.
                   </span>
                 )}
               </span>

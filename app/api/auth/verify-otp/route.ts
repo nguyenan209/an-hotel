@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { OTPService, EmailService } from "@/lib/services/email-service";
-
-// Mock OTP storage (trong thực tế, lưu vào database hoặc Redis)
-const otpStorage = new Map<
-  string,
-  { otp: string; createdAt: Date; attempts: number }
->();
+import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,25 +13,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get stored OTP
-    const storedData = otpStorage.get(email);
+    // Kiểm tra OTP
+    const otpRecord = await prisma.otpCode.findFirst({
+      where: { email },
+    });
 
-    if (!storedData) {
-      return NextResponse.json(
-        { error: "Không tìm thấy mã OTP hoặc đã hết hạn" },
-        { status: 400 }
-      );
+    if (!otpRecord) {
+      return NextResponse.json({ error: "OTP không hợp lệ" }, { status: 400 });
     }
 
     // Check if OTP is expired
-    if (OTPService.isOTPExpired(storedData.createdAt, 5)) {
-      otpStorage.delete(email);
+    if (
+      OTPService.isOTPExpired(
+        otpRecord.createdAt,
+        parseInt(process.env.NEXT_PUBLIC_OTP_EXPIRATION_TIME || "5", 10)
+      )
+    ) {
+      prisma.otpCode.delete(email);
       return NextResponse.json({ error: "Mã OTP đã hết hạn" }, { status: 400 });
     }
 
     // Check attempts limit
-    if (storedData.attempts >= 3) {
-      otpStorage.delete(email);
+    if (otpRecord.attempts >= 3) {
+      prisma.otpCode.delete(email);
       return NextResponse.json(
         { error: "Đã vượt quá số lần thử. Vui lòng yêu cầu mã mới" },
         { status: 400 }
@@ -44,22 +43,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify OTP
-    if (storedData.otp !== otp) {
-      storedData.attempts += 1;
+    if (otpRecord.otp !== otp) {
+      otpRecord.attempts += 1;
       return NextResponse.json(
         {
           error: "Mã OTP không chính xác",
-          attemptsLeft: 3 - storedData.attempts,
+          attemptsLeft: 3 - otpRecord.attempts,
         },
         { status: 400 }
       );
     }
 
     // OTP is correct - remove from storage
-    otpStorage.delete(email);
+    prisma.otpCode.delete(email);
 
-    // In real app, update user status in database
-    // await updateUserVerificationStatus(email, true)
+    // Activate user account
+    prisma.user.update({
+      where: { email },
+      data: { status: "ACTIVE" },
+    });
 
     // Send welcome email
     const userName = email.split("@")[0]; // Simple extraction, use real name from database

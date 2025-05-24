@@ -553,3 +553,12 @@ enum NotificationType {
   APPROVAL
 }
 
+model OtpCode {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   // Email người nhận OTP
+  otp       String   // Mã OTP
+  expiresAt DateTime // Thời gian hết hạn
+  createdAt DateTime @default(now())
+  attempts  Int      @default(0) // Số lần thử nhập OTP
+}
+

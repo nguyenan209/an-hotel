@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "@/lib/auth";
+import { EmailService, OTPService } from "@/lib/services/email-service";
+import { getExpireOtpTime } from "@/lib/utils";
 
 const prisma = new PrismaClient();
 
@@ -20,6 +22,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    
     const hashedPassword = await hashPassword(password);
     const user = await prisma.user.create({
       data: {
@@ -27,14 +30,38 @@ export async function POST(req: Request) {
         password: hashedPassword,
         name: email,
         role: "CUSTOMER",
-        status: "ACTIVE",
+        status: "INACTIVE",
         provider: "credentials",
       },
     });
     await prisma.customer.create({ data: { userId: user.id } });
+
+    // Generate OTP
+    const otpCode = OTPService.generateOTP();
+
+    // Lưu OTP vào cơ sở dữ liệu
+    
+    const expiryTime = getExpireOtpTime();
+    await prisma.otpCode.create({
+      data: {
+        email,
+        otp: otpCode,
+        expiresAt: expiryTime,
+      },
+    });
+    // Send OTP email
+    const emailSent = await EmailService.sendOTPEmail(email, email, otpCode);
+
+    if (!emailSent) {
+      return NextResponse.json(
+        { error: "Không thể gửi email OTP" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
-        message: "User registered successfully",
+        message: "User registered successfully. Please activate your account using the OTP sent to your email.",
         user: {
           id: user.id,
           email: user.email,
