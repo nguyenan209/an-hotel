@@ -2,6 +2,7 @@
 
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 
 import { BookingSummary } from "@/components/checkout/booking-summary";
@@ -10,12 +11,16 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/lib/store/cartStore";
 import { QRPaymentStatus } from "@/lib/types";
-import { PaymentMethod } from "@prisma/client";
+import { BookingStatus, PaymentMethod } from "@prisma/client";
+import { useUser } from "@/hooks/use-user";
 
 export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const token = Cookies.get("token") || null;
+  const { user, loading } = useUser(token);
+
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     PaymentMethod.BANK_TRANSFER
   );
@@ -93,22 +98,22 @@ export default function PaymentPage() {
               roomId: room.roomId,
               roomName: room.roomName || "Unknown Room", // Đảm bảo có giá trị mặc định
               pricePerNight: room.price || 0, // Đặt giá trị mặc định nếu không có giá
-            })) || [], // Đảm bảo rooms là một mảng rỗng nếu không có dữ liệu
+            })) || [],
           totalPrice: item.rooms
             ? item.rooms.reduce(
                 (total, room) => total + room.price * item.nights,
                 0
               )
-            : item.homestay.price * item.nights, // Tính tổng giá dựa trên kiểu đặt phòng
+            : item.homestay.price * item.nights,
         })),
         customer: {
-          name: "Nguyễn Văn A", // Trong thực tế, lấy từ thông tin người dùng đã đăng nhập
-          email: "nguyenvana@example.com",
-          phone: "0987654321",
-          address: "123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh",
+          name: user?.name,
+          email: user?.email,
+          phone: user?.phone,
+          address: user?.address,
         },
         specialRequests: "Phòng ở tầng cao, xa thang máy",
-        status: "confirmed",
+        status: BookingStatus.PENDING,
       };
 
       // Gọi API checkout-payment

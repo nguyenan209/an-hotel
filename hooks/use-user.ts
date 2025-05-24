@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role?: string; // Thêm các trường khác nếu cần
-}
+import { User, UserRole } from "@prisma/client";
 
 export function useUser(token: string | null) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Partial<User> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,13 +19,19 @@ export function useUser(token: string | null) {
         id: string;
         name: string;
         email: string;
-        role?: string;
+        role?: UserRole;
+        phone?: string;
+        address?: string;
+        avatar?: string;
       }>(token);
       setUser({
         id: decodedToken.id,
         name: decodedToken.name,
         email: decodedToken.email,
-        role: decodedToken.role,
+        role: decodedToken?.role ?? UserRole.CUSTOMER,
+        phone: decodedToken.phone || "",
+        address: decodedToken.address || "",
+        avatar: decodedToken.avatar || "",
       });
     } catch (error) {
       console.error("Invalid token:", error);
