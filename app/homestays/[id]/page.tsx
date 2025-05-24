@@ -40,10 +40,11 @@ import { bookingSchema } from "@/lib/validation";
 import { RoomCard } from "@/components/homestay/room-card";
 import type { Homestay, Room } from "@/lib/types";
 import { AmenityList } from "@/components/homestay/amenity-list";
-import { Review } from "@prisma/client";
+import { BookingType, Review } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import Loading from "@/components/loading";
+import { Reviews } from "@/components/homestay/reviews";
 
 interface HomestayDetailPageProps {
   params: {
@@ -68,7 +69,9 @@ export default function HomestayDetailPage({
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("1");
-  const [bookingType, setBookingType] = useState<"whole" | "rooms">("whole");
+  const [bookingType, setBookingType] = useState<BookingType>(
+    BookingType.WHOLE
+  );
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [bookingError, setBookingError] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -109,7 +112,7 @@ export default function HomestayDetailPage({
 
     fetchHomestay();
     fetchRooms();
-  }, [params.id]);
+  }, [params?.id]);
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {
     if (isSelected) {
@@ -127,7 +130,7 @@ export default function HomestayDetailPage({
   };
 
   const calculateTotalPrice = () => {
-    if (bookingType === "whole") {
+    if (bookingType === BookingType.WHOLE) {
       return homestay?.price || 0;
     } else {
       return selectedRooms.reduce((total, roomId) => {
@@ -152,12 +155,12 @@ export default function HomestayDetailPage({
         selectedRooms,
       });
 
-      if (bookingType === "rooms" && selectedRooms.length === 0) {
+      if (bookingType === BookingType.ROOMS && selectedRooms.length === 0) {
         setBookingError("Vui lòng chọn ít nhất một phòng");
         return;
       }
 
-      if (bookingType === "rooms") {
+      if (bookingType === BookingType.ROOMS) {
         const totalCapacity = calculateTotalCapacity();
         if (Number(guests) > totalCapacity) {
           setBookingError(
@@ -283,8 +286,8 @@ export default function HomestayDetailPage({
                   {homestay.maxGuests <= 2
                     ? "cặp đôi"
                     : homestay.maxGuests <= 4
-                    ? "gia đình nhỏ"
-                    : "nhóm bạn bè hoặc gia đình lớn"}
+                      ? "gia đình nhỏ"
+                      : "nhóm bạn bè hoặc gia đình lớn"}
                   .
                 </p>
                 <p>
@@ -314,158 +317,26 @@ export default function HomestayDetailPage({
               />
             </TabsContent>
             <TabsContent value="reviews" className="mt-4">
-              <div className="flex items-center mb-4">
-                <Star className="h-6 w-6 mr-2 fill-yellow-400 text-yellow-400" />
-                <span className="text-2xl font-bold">{homestay.rating}</span>
-                <span className="text-muted-foreground ml-2">
-                  ({reviews.length} đánh giá)
-                </span>
-              </div>
-
-              {isLoadingReviews ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="border rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="ml-3 space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
-                  ))}
-                </div>
-              ) : reviewsError ? (
-                <div className="text-center py-8">
-                  <p className="text-red-500 mb-4">{reviewsError}</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsLoadingReviews(true);
-                      setReviewsError("");
-                      fetch(`/api/reviews?homestayId=${params.id}`)
-                        .then((res) => {
-                          if (!res.ok)
-                            throw new Error("Không thể tải đánh giá");
-                          return res.json();
-                        })
-                        .then((data) => setReviews(data))
-                        .catch((err) => {
-                          console.error(err);
-                          setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
-                        })
-                        .finally(() => setIsLoadingReviews(false));
-                    }}
-                  >
-                    Thử lại
-                  </Button>
-                </div>
-              ) : reviews.length === 0 ? (
-                <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
-              ) : (
-                <div className="space-y-6">
-                  {reviews.slice(0, 3).map((review) => (
-                    <div
-                      key={review.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                    >
-                      {/* Phần đánh giá của khách */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center">
-                          <div className="relative h-10 w-10 rounded-full overflow-hidden">
-                            <Image
-                              src={review.userAvatar || "/placeholder.svg"}
-                              alt={review.userName}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="font-medium">{review.userName}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDate(review.date)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex">{renderStars(review.rating)}</div>
-                      </div>
-                      <p className="mb-4">{review.comment}</p>
-
-                      {/* Phần trả lời của chủ sở hữu - Hiển thị cho tất cả đánh giá */}
-                      <div className="mt-4 mb-4 ml-6 p-3 bg-gray-50 border-l-4 border-primary rounded-r-md">
-                        <div className="flex items-center mb-2">
-                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                            <Image
-                              src="/diverse-person-portrait.png"
-                              alt="Chủ sở hữu"
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="ml-2">
-                            <div className="flex items-center">
-                              <h4 className="text-sm font-medium">
-                                Nguyễn Văn Chủ
-                              </h4>
-                              <span className="ml-2 text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-                                Chủ sở hữu
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Phản hồi:{" "}
-                              {formatDate(
-                                new Date(
-                                  new Date(review.date).getTime() + 86400000 * 3
-                                ).toISOString()
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-sm">
-                          {review.rating >= 4
-                            ? "Cảm ơn bạn đã đánh giá tích cực về Homestay của chúng tôi! Chúng tôi rất vui khi biết bạn đã có trải nghiệm tuyệt vời. Mong được đón tiếp bạn trong những lần tới!"
-                            : "Cảm ơn bạn đã chia sẻ phản hồi! Chúng tôi xin lỗi về những bất tiện bạn đã gặp phải. Chúng tôi sẽ cải thiện dịch vụ để mang đến trải nghiệm tốt hơn cho khách hàng trong tương lai. Rất mong được đón tiếp bạn lần sau!"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-muted-foreground">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2"
-                          >
-                            <ThumbsUp className="h-4 w-4 mr-1" />
-                            <span>Hữu ích ({review.helpfulCount})</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2"
-                          >
-                            <Flag className="h-4 w-4 mr-1" />
-                            <span>Báo cáo</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {reviews.length > 3 && (
-                    <div className="text-center pt-2">
-                      <Link href={`/homestays/${params.id}/reviews`}>
-                        <Button variant="outline" className="mt-2">
-                          Xem tất cả {reviews.length} đánh giá
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
+              <Reviews
+                reviews={reviews}
+                isLoading={isLoadingReviews}
+                error={reviewsError}
+                onRetry={() => {
+                  setIsLoadingReviews(true);
+                  setReviewsError("");
+                  fetch(`/api/reviews?homestayId=${params.id}`)
+                    .then((res) => {
+                      if (!res.ok) throw new Error("Không thể tải đánh giá");
+                      return res.json();
+                    })
+                    .then((data) => setReviews(data))
+                    .catch((err) => {
+                      console.error(err);
+                      setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
+                    })
+                    .finally(() => setIsLoadingReviews(false));
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>
@@ -528,7 +399,7 @@ export default function HomestayDetailPage({
                   <RadioGroup
                     value={bookingType}
                     onValueChange={(value) =>
-                      setBookingType(value as "whole" | "rooms")
+                      setBookingType(value as BookingType)
                     }
                     className="flex flex-col space-y-2"
                   >
@@ -550,49 +421,51 @@ export default function HomestayDetailPage({
                 </div>
               )}
 
-              {bookingType === "rooms" && homestay.allowsPartialBooking && (
-                <div className="space-y-2 pt-2 border-t">
-                  <label className="text-sm font-medium">Chọn phòng</label>
-                  <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                    {rooms.map((room) => (
-                      <div
-                        key={room.id}
-                        className={`border rounded-md p-3 cursor-pointer transition-colors ${
-                          selectedRooms.includes(room.id)
-                            ? "border-primary bg-primary/5"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          handleRoomSelection(
-                            room.id,
-                            !selectedRooms.includes(room.id)
-                          )
-                        }
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{room.name}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              Tối đa {room.capacity} khách
+              {bookingType === BookingType.ROOMS &&
+                homestay.allowsPartialBooking && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <label className="text-sm font-medium">Chọn phòng</label>
+                    <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                      {rooms.map((room) => (
+                        <div
+                          key={room.id}
+                          className={`border rounded-md p-3 cursor-pointer transition-colors ${
+                            selectedRooms.includes(room.id)
+                              ? "border-primary bg-primary/5"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleRoomSelection(
+                              room.id,
+                              !selectedRooms.includes(room.id)
+                            )
+                          }
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium">{room.name}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                Tối đa {room.capacity} khách
+                              </p>
+                            </div>
+                            <p className="font-semibold">
+                              {formatCurrency(room.price)}
                             </p>
                           </div>
-                          <p className="font-semibold">
-                            {formatCurrency(room.price)}
-                          </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  {bookingType === "rooms" && selectedRooms.length > 0 && (
-                    <div className="flex justify-between items-center pt-2 border-t">
-                      <span className="text-sm">Tổng giá phòng:</span>
-                      <span className="font-semibold">
-                        {formatCurrency(calculateTotalPrice())}
-                      </span>
+                      ))}
                     </div>
-                  )}
-                </div>
-              )}
+                    {bookingType === BookingType.ROOMS &&
+                      selectedRooms.length > 0 && (
+                        <div className="flex justify-between items-center pt-2 border-t">
+                          <span className="text-sm">Tổng giá phòng:</span>
+                          <span className="font-semibold">
+                            {formatCurrency(calculateTotalPrice())}
+                          </span>
+                        </div>
+                      )}
+                  </div>
+                )}
             </div>
 
             {bookingError && (
