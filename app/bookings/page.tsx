@@ -16,9 +16,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { BookingWithHomestay } from "@/lib/types";
+import { BookingStatus } from "@prisma/client";
+import moment from "moment";
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<BookingWithHomestay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái kiểm tra xác thực
@@ -68,13 +71,13 @@ export default function BookingsPage() {
     fetchBookings();
   }, []);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
-      case "upcoming":
+      case BookingStatus.UPCOMING:
         return <Badge className="bg-blue-500">Upcoming</Badge>;
-      case "completed":
+      case BookingStatus.COMPLETED:
         return <Badge className="bg-green-500">Completed</Badge>;
-      case "cancelled":
+      case BookingStatus.CANCELLED:
         return <Badge className="bg-red-500">Cancelled</Badge>;
       default:
         return <Badge>Unknown</Badge>;
@@ -94,7 +97,7 @@ export default function BookingsPage() {
     router.push(`/bookings/${bookingId}`);
   };
 
-  const filterBookings = (status: string) => {
+  const filterBookings = (status: BookingStatus | "all") => {
     if (status === "all") return bookings;
     return bookings.filter((booking) => booking.status === status);
   };
@@ -141,12 +144,12 @@ export default function BookingsPage() {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="all">All Bookings</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+          <TabsTrigger value={BookingStatus.UPCOMING}>Upcoming</TabsTrigger>
+          <TabsTrigger value={BookingStatus.COMPLETED}>Completed</TabsTrigger>
+          <TabsTrigger value={BookingStatus.CANCELLED}>Cancelled</TabsTrigger>
         </TabsList>
 
-        {["all", "upcoming", "completed", "cancelled"].map((status) => {
+        {["all", BookingStatus.UPCOMING, BookingStatus.COMPLETED, BookingStatus.CANCELLED].map((status) => {
           const filteredBookings = filterBookings(status);
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
           const paginatedBookings = paginateBookings(
@@ -160,18 +163,18 @@ export default function BookingsPage() {
               {filteredBookings.length === 0 ? (
                 <div className="text-center py-10">
                   <p className="text-lg text-gray-500">
-                    No {status} bookings found
+                    No bookings found
                   </p>
                 </div>
               ) : (
                 <>
-                  {paginatedBookings.map((booking) => (
+                  {paginatedBookings.map((booking: BookingWithHomestay) => (
                     <Card key={booking.id} className="overflow-hidden">
                       <div className="md:flex">
                         <div className="md:w-1/3 h-48 md:h-auto relative">
                           <img
-                            src={booking.image || "/placeholder.svg"}
-                            alt={booking.homestayName}
+                            src={booking.homestay.images[0] || "/placeholder.svg"}
+                            alt={booking.homestay.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -179,9 +182,9 @@ export default function BookingsPage() {
                           <CardHeader>
                             <div className="flex justify-between items-start">
                               <div>
-                                <CardTitle>{booking.homestayName}</CardTitle>
+                                <CardTitle>{booking.homestay.name}</CardTitle>
                                 <CardDescription className="text-base mt-1">
-                                  {booking.roomName}
+                                Booked at {moment(booking.createdAt).format("MMMM Do YYYY, h:mm A")}
                                 </CardDescription>
                               </div>
                               {getStatusBadge(booking.status)}
@@ -192,8 +195,8 @@ export default function BookingsPage() {
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-gray-500" />
                                 <span>
-                                  {formatDate(booking.checkIn)} -{" "}
-                                  {formatDate(booking.checkOut)}
+                                  {moment(booking.checkIn).format("MMMM Do YYYY")} -{" "}
+                                  {moment(booking.checkOut).format("MMMM Do YYYY")}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
@@ -205,14 +208,14 @@ export default function BookingsPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-gray-500" />
-                                <span>{booking.location}</span>
+                                <span>{booking.homestay.address}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-gray-500" />
                                 <span>
                                   {calculateNights(
-                                    booking.checkIn,
-                                    booking.checkOut
+                                    booking.checkIn.toString(),
+                                    booking.checkOut.toString()
                                   )}{" "}
                                   nights
                                 </span>
