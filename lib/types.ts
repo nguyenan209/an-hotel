@@ -1,14 +1,8 @@
 import {
   Booking,
   BookingItem,
-  BookingStatus,
   BookingType,
   Homestay,
-  HomestayStatus,
-  Payment,
-  PaymentMethod,
-  PaymentStatus,
-  RoomStatus,
   UserRole,
 } from "@prisma/client";
 

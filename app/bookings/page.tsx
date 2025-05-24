@@ -79,18 +79,11 @@ export default function BookingsPage() {
         return <Badge className="bg-green-500">Completed</Badge>;
       case BookingStatus.CANCELLED:
         return <Badge className="bg-red-500">Cancelled</Badge>;
+      case BookingStatus.PENDING:
+        return <Badge className="bg-yellow-500">Pending</Badge>;
       default:
         return <Badge>Unknown</Badge>;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
   const viewBookingDetails = (bookingId: string) => {
@@ -147,9 +140,15 @@ export default function BookingsPage() {
           <TabsTrigger value={BookingStatus.UPCOMING}>Upcoming</TabsTrigger>
           <TabsTrigger value={BookingStatus.COMPLETED}>Completed</TabsTrigger>
           <TabsTrigger value={BookingStatus.CANCELLED}>Cancelled</TabsTrigger>
+          <TabsTrigger value={BookingStatus.PENDING}>Pending</TabsTrigger>
         </TabsList>
 
-        {["all", BookingStatus.UPCOMING, BookingStatus.COMPLETED, BookingStatus.CANCELLED].map((status) => {
+        {[
+          "all",
+          BookingStatus.UPCOMING,
+          BookingStatus.COMPLETED,
+          BookingStatus.CANCELLED,
+        ].map((status) => {
           const filteredBookings = filterBookings(status);
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
           const paginatedBookings = paginateBookings(
@@ -162,9 +161,7 @@ export default function BookingsPage() {
             <TabsContent key={status} value={status} className="space-y-6">
               {filteredBookings.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-lg text-gray-500">
-                    No bookings found
-                  </p>
+                  <p className="text-lg text-gray-500">No bookings found</p>
                 </div>
               ) : (
                 <>
@@ -173,7 +170,9 @@ export default function BookingsPage() {
                       <div className="md:flex">
                         <div className="md:w-1/3 h-48 md:h-auto relative">
                           <img
-                            src={booking.homestay.images[0] || "/placeholder.svg"}
+                            src={
+                              booking.homestay.images[0] || "/placeholder.svg"
+                            }
                             alt={booking.homestay.name}
                             className="w-full h-full object-cover"
                           />
@@ -184,7 +183,10 @@ export default function BookingsPage() {
                               <div>
                                 <CardTitle>{booking.homestay.name}</CardTitle>
                                 <CardDescription className="text-base mt-1">
-                                Booked at {moment(booking.createdAt).format("MMMM Do YYYY, h:mm A")}
+                                  Booked at{" "}
+                                  {moment(booking.createdAt).format(
+                                    "MMMM Do YYYY, h:mm A"
+                                  )}
                                 </CardDescription>
                               </div>
                               {getStatusBadge(booking.status)}
@@ -195,8 +197,13 @@ export default function BookingsPage() {
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-gray-500" />
                                 <span>
-                                  {moment(booking.checkIn).format("MMMM Do YYYY")} -{" "}
-                                  {moment(booking.checkOut).format("MMMM Do YYYY")}
+                                  {moment(booking.checkIn).format(
+                                    "MMMM Do YYYY"
+                                  )}{" "}
+                                  -{" "}
+                                  {moment(booking.checkOut).format(
+                                    "MMMM Do YYYY"
+                                  )}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
