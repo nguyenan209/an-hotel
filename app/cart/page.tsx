@@ -105,7 +105,14 @@ export default function CartPage() {
               <span>{formatCurrency(totalPrice)}</span>
             </div>
 
-            <Link href="/checkout/payment">
+            <Link
+              href="/checkout/payment"
+              onClick={() => {
+                if (notes.trim()) {
+                  localStorage.setItem("bookingNotes", notes.trim());
+                }
+              }}
+            >
               <Button className="w-full">Tiến hành thanh toán</Button>
             </Link>
 
