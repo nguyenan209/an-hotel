@@ -24,6 +24,7 @@ model User {
   provider          String              @default("credentials") // Add provider field
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   customer          Customer?           @relation
@@ -61,6 +62,7 @@ model Customer {
   preferences       Json?               // Lưu trữ các sở thích của khách hàng
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   bookings          Booking[]
@@ -87,6 +89,7 @@ model Owner {
   totalRevenue      Float               @default(0)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   transactions      OwnerTransaction[]
   documents         OwnerDocument[]
@@ -136,6 +139,7 @@ model Admin {
   permissions       String[]            // Mảng các quyền hạn
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   homestayApprovals HomestayApproval[]
@@ -160,6 +164,7 @@ model Homestay {
   status            HomestayStatus      @default(PENDING)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   rooms             Room[]
@@ -193,6 +198,7 @@ model Room {
   status            RoomStatus          @default(AVAILABLE)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   images            String[]
   
   // Relationships
@@ -265,6 +271,7 @@ model Booking {
   cancellationReason String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   bookingItems      BookingItem[]
@@ -361,6 +368,7 @@ model Refund {
   notes             String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
 }
 
 enum RefundStatus {
@@ -413,6 +421,7 @@ model Review {
   ownerReplyDate    DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
 }
 
 enum ReviewStatus {
@@ -439,6 +448,7 @@ model Complaint {
   resolvedAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
   
   // Relationships
   attachments       ComplaintAttachment[]
