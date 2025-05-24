@@ -1,10 +1,11 @@
-import type { Homestay, Room, SearchParams, User } from "./types";
+import type { SearchParams } from "./types";
 import homestaysData from "./mock-data/homestays.json";
 import roomsData from "./mock-data/rooms.json";
 import usersData from "./mock-data/users.json";
+import { Homestay, Room, RoomStatus, User } from "@prisma/client";
 
-export async function getHomestays(): Promise<Homestay[]> {
-  return homestaysData as Homestay[];
+export async function getHomestays(): Promise<any[]> {
+  return homestaysData;
 }
 
 export async function getFeaturedHomestays(): Promise<Homestay[]> {
@@ -19,14 +20,22 @@ export async function getHomestayById(
   return homestays.find((homestay) => homestay.id === id);
 }
 
-export const getRooms = async (params: {
-  search?: string;
-  status?: string;
-  homestayId?: string;
-  skip?: number;
-  limit?: number;
-} = {}) => {
-  const { search = "", status = "all", homestayId = "all", skip = 0, limit = 10 } = params;
+export const getRooms = async (
+  params: {
+    search?: string;
+    status?: string;
+    homestayId?: string;
+    skip?: number;
+    limit?: number;
+  } = {}
+): Promise<{ rooms: Room[]; totalItems: number; hasMore: boolean }> => {
+  const {
+    search = "",
+    status = "all",
+    homestayId = "all",
+    skip = 0,
+    limit = 10,
+  } = params;
 
   try {
     const response = await fetch(
@@ -38,7 +47,7 @@ export const getRooms = async (params: {
     }
 
     const data = await response.json();
-    return data;
+    return data as { rooms: Room[]; totalItems: number; hasMore: boolean };
   } catch (error) {
     console.error("Error fetching rooms:", error);
     return { rooms: [], totalItems: 0, hasMore: false };
@@ -49,12 +58,12 @@ export async function getRoomsByHomestayId(
   homestayId: string
 ): Promise<Room[]> {
   const rooms = await getRooms();
-  return rooms.filter((room) => room.homestayId === homestayId);
+  return rooms.rooms.filter((room) => room.homestayId === homestayId);
 }
 
 export async function getRoomById(id: string): Promise<Room | undefined> {
   const rooms = await getRooms();
-  return rooms.find((room) => room.id === id);
+  return rooms.rooms.find((room) => room.id === id);
 }
 
 export async function getAvailableRoomsByHomestayId(
@@ -64,7 +73,7 @@ export async function getAvailableRoomsByHomestayId(
 ): Promise<Room[]> {
   // In a real app, you would check against bookings
   const rooms = await getRoomsByHomestayId(homestayId);
-  return rooms.filter((room) => room.status === "available");
+  return rooms.filter((room) => room.status === RoomStatus.AVAILABLE);
 }
 
 export async function searchHomestays(

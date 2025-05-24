@@ -96,7 +96,7 @@ const generateMockNotifications = () => {
 
   // Generate 50 random notifications
   for (let i = 0; i < 50; i++) {
-    const type = types[Math.floor(Math.random() * types.length)];
+    const type = types[Math.floor(Math.random() * types.length)] as keyof typeof titles;
     const message =
       messages[type][Math.floor(Math.random() * messages[type].length)];
     const daysAgo = Math.floor(Math.random() * 30);

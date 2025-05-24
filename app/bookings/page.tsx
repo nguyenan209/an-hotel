@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -95,7 +95,7 @@ export default function BookingsPage() {
   useEffect(() => {
     // Reset to first page when changing tabs
     setCurrentPage(1);
-  }, [router.query?.tab]);
+  }, [useSearchParams().get("tab")]);
 
   if (isLoading) {
     return (
@@ -137,7 +137,7 @@ export default function BookingsPage() {
           BookingStatus.CANCELLED,
           BookingStatus.PENDING,
         ].map((status) => {
-          const filteredBookings = filterBookings(status);
+          const filteredBookings = filterBookings(status as BookingStatus | "all");
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
           const paginatedBookings = paginateBookings(
             filteredBookings,

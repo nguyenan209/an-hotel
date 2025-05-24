@@ -4,6 +4,7 @@ import {
   BookingType,
   Homestay,
   Prisma,
+  Room,
   UserRole,
 } from "@prisma/client";
 
@@ -62,4 +63,12 @@ type HomestayWithOwner = Prisma.HomestayGetPayload<{
 export interface BookingWithHomestay extends Booking {
   homestay: HomestayWithOwner;
   bookingItems: BookingItem[];
+}
+
+export interface RoomWithBeds  extends Room {
+  beds: {
+    id: string;
+    type: string;
+    count: number;
+  }[];
 }

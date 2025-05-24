@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -81,15 +81,11 @@ const updatedMockBookings = mockBookings.map((booking, index) => ({
       : undefined,
 }));
 
-interface BookingDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function BookingDetailPage({ params }: BookingDetailPageProps) {
+export default function BookingDetailPage() {
+  const params = useParams();
+  const { id } = params;
   const router = useRouter();
-  const isNewBooking = params.id === "new";
+  const isNewBooking = id === "new";
   const [booking, setBooking] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewBooking);
   const [availableRooms, setAvailableRooms] = useState<any[]>([]);
@@ -141,9 +137,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     const fetchBooking = async () => {
       try {
         // In a real app, you would fetch from an API
-        const foundBooking = updatedMockBookings.find(
-          (b) => b.id === params.id
-        );
+        const foundBooking = updatedMockBookings.find((b) => b.id === id);
 
         if (foundBooking) {
           setBooking(foundBooking);
@@ -174,7 +168,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     };
 
     fetchBooking();
-  }, [params.id, isNewBooking, form]);
+  }, [id, isNewBooking, form]);
 
   const onSubmit = (data: BookingFormValues) => {
     // In a real app, you would submit to an API
@@ -204,7 +198,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isNewBooking ? "Create New Booking" : `Booking #${params.id}`}
+          {isNewBooking ? "Create New Booking" : `Booking #${id}`}
         </h2>
       </div>
 
@@ -334,7 +328,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                           className="flex flex-col space-y-1"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value={BookingType.WHOLE} id={BookingType.WHOLE} />
+                            <RadioGroupItem
+                              value={BookingType.WHOLE}
+                              id={BookingType.WHOLE}
+                            />
                             <Label
                               htmlFor={BookingType.WHOLE}
                               className="flex items-center"

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, Plus, Trash, Upload } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,15 +45,10 @@ import { BedType, RoomStatus } from "@prisma/client";
 
 type RoomFormValues = z.infer<typeof roomSchema>;
 
-interface RoomDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function RoomDetailPage({ params }: RoomDetailPageProps) {
+export default function RoomDetailPage() {
   const router = useRouter();
-  const isNewRoom = params.id === "new";
+  const { id } = useParams();
+  const isNewRoom = id === "new";
   const [room, setRoom] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewRoom);
   const [homestays, setHomestays] = useState<any[]>([]);
@@ -101,7 +96,7 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
     // Simulate API call to fetch room details
     const fetchRoom = async () => {
       try {
-        const response = await fetch(`/api/rooms/${params.id}`);
+        const response = await fetch(`/api/rooms/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch room");
         }
@@ -132,12 +127,12 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
     };
 
     fetchRoom();
-  }, [params.id, isNewRoom, form]);
+  }, [id, isNewRoom, form]);
 
   const onSubmit = (data: RoomFormValues) => {
     const createOrUpdateRoom = async () => {
       try {
-        const url = isNewRoom ? "/api/rooms" : `/api/rooms/${params.id}`;
+        const url = isNewRoom ? "/api/rooms" : `/api/rooms/${id}`;
         const method = isNewRoom ? "POST" : "PUT";
 
         // Chuẩn hóa dữ liệu images
@@ -178,7 +173,7 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
     const currentBedTypes = form.getValues().bedTypes || [];
     form.setValue("bedTypes", [
       ...currentBedTypes,
-      { type: "Single", count: 1 },
+      { type: BedType.SINGLE, count: 1 },
     ]);
   };
 
@@ -393,7 +388,7 @@ export default function RoomDetailPage({ params }: RoomDetailPageProps) {
                         <div key={index} className="flex items-center gap-4">
                           <Select
                             value={form.watch(`bedTypes.${index}.type`)}
-                            onValueChange={(value) =>
+                            onValueChange={(value: BedType) =>
                               form.setValue(`bedTypes.${index}.type`, value)
                             }
                           >

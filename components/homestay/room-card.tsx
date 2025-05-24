@@ -2,16 +2,16 @@
 
 import Image from "next/image";
 import { Bed, Check, ChevronLeft, ChevronRight, Users, X } from "lucide-react";
-
-import type { Room } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { useState } from "react";
+import { Room } from "@prisma/client";
+import { RoomWithBeds } from "@/lib/types";
 
 interface RoomCardProps {
-  room: Room;
+  room: RoomWithBeds;
   isSelected?: boolean;
   onSelect?: (roomId: string, isSelected: boolean) => void;
   selectable?: boolean;

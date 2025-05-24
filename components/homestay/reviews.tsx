@@ -60,16 +60,16 @@ export function Reviews({ reviews, isLoading, error, onRetry }: ReviewsProps) {
             <div className="flex items-center">
               <div className="relative h-10 w-10 rounded-full overflow-hidden">
                 <Image
-                  src={review.userAvatar || "/placeholder.svg"}
-                  alt={review.userName}
+                  src={review.ownerId || "/placeholder.svg"}
+                  alt={review.ownerId}
                   fill
                   className="object-cover"
                 />
               </div>
               <div className="ml-3">
-                <h4 className="font-medium">{review.userName}</h4>
+                <h4 className="font-medium">{review.ownerId}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {formatDate(review.date)}
+                  {formatDate(review.createdAt)}
                 </p>
               </div>
             </div>

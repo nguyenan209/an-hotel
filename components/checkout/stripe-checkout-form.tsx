@@ -84,8 +84,8 @@ export function StripeCheckoutForm({
         // Chuẩn bị thông tin thanh toán để gửi lên API
         const paymentDetails = {
           paymentIntentId: paymentIntent.id,
-          cardLast4: paymentIntent.payment_method?.card?.last4,
-          cardBrand: paymentIntent.payment_method?.card?.brand,
+          cardLast4: typeof paymentIntent.payment_method !== "string" ? paymentIntent.payment_method?.card?.last4 : undefined,
+          cardBrand: typeof paymentIntent.payment_method !== "string" ? paymentIntent.payment_method?.card?.brand : undefined,
           amountInUSD: amountInUSD,
           exchangeRate: 24000, // Tỷ giá giả định
         };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, Hotel, User } from "lucide-react";
 import { z } from "zod";
@@ -54,15 +54,11 @@ const ownerSchema = z.object({
 
 type OwnerFormValues = z.infer<typeof ownerSchema>;
 
-interface OwnerDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
+export default function OwnerDetailPage() {
+  const params = useParams();
+  const { id } = params;
   const router = useRouter();
-  const isNewOwner = params.id === "new";
+  const isNewOwner = id === "new";
   const [owner, setOwner] = useState<any | null>(null);
   const [ownerHomestays, setOwnerHomestays] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(!isNewOwner);
@@ -113,7 +109,7 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
           },
         ];
 
-        const foundOwner = mockOwners.find((o) => o.id === params.id);
+        const foundOwner = mockOwners.find((o) => o.id === id);
 
         if (foundOwner) {
           setOwner(foundOwner);
@@ -163,7 +159,7 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
     };
 
     fetchOwner();
-  }, [params.id, isNewOwner, form]);
+  }, [id, isNewOwner, form]);
 
   const onSubmit = (data: OwnerFormValues) => {
     // In a real app, you would submit to an API
@@ -389,8 +385,8 @@ export default function OwnerDetailPage({ params }: OwnerDetailPageProps) {
                                       homestay.status === "active"
                                         ? "bg-green-100 text-green-800"
                                         : homestay.status === "pending"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-red-100 text-red-800"
                                     }
                                   >
                                     {homestay.status.charAt(0).toUpperCase() +

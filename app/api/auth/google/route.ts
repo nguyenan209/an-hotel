@@ -22,7 +22,13 @@ export async function POST(req: Request) {
       );
     }
     const user = await createOrUpdateUserFromGoogle(googleUser);
-    const jwtToken = generateToken(user.id, user.role);
+    const jwtToken = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role, 
+      customerId: user.customerId ?? "", // Assuming customerId is part of the user object
+    });
     return NextResponse.json({
       message: "Google login successful",
       user: {

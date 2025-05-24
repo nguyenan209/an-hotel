@@ -38,3 +38,13 @@ export const roomSchema = z.object({
   homestayId: z.string(),
   images: z.array(z.string()).optional(),
 });
+
+export const customerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone number is required"),
+  address: z.string().optional(),
+  status: z.string(),
+});
+
+export type CustomerFormValues = z.infer<typeof customerSchema>;

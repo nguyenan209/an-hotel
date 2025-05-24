@@ -18,23 +18,19 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { useParams } from "next/navigation";
 
-interface ApprovalDetailPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function ApprovalDetailPage() {
 
-export default function ApprovalDetailPage({
-  params,
-}: ApprovalDetailPageProps) {
+  const params = useParams();
+  const { id } = params;
   const [status, setStatus] = useState("pending");
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock data for the homestay approval
   const homestay = {
-    id: params.id,
+    id: id,
     name: "Sunset Beach Villa",
     description:
       "A beautiful beachfront villa with stunning sunset views. Perfect for family vacations or romantic getaways. Features a private pool, direct beach access, and modern amenities.",
@@ -173,8 +169,8 @@ export default function ApprovalDetailPage({
               status === "approved"
                 ? "bg-green-100 text-green-800"
                 : status === "rejected"
-                ? "bg-red-100 text-red-800"
-                : "bg-yellow-100 text-yellow-800"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-yellow-100 text-yellow-800"
             }
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}

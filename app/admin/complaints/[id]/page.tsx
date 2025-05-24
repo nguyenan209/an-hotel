@@ -23,19 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
+import { useParams } from "next/navigation";
 
-interface ComplaintDetailPageProps {
-  params: {
-    id: string;
-  };
-}
 
-export default function ComplaintDetailPage({
-  params,
-}: ComplaintDetailPageProps) {
-  // Mock data for the complaint
+export default function ComplaintDetailPage() {
+    const params = useParams();
+    const { id } = params;
   const complaint = {
-    id: params.id,
+    id: id,
     subject: "Phòng không sạch sẽ",
     description:
       "Khi chúng tôi đến nơi, phòng không được dọn dẹp sạch sẽ. Có rác từ khách trước và phòng tắm không được vệ sinh. Chúng tôi đã liên hệ với chủ nhà nhưng không nhận được phản hồi kịp thời.",
@@ -200,9 +195,7 @@ export default function ComplaintDetailPage({
           </Link>
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
-            Complaint #{params.id}
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight">Complaint #{id}</h2>
           <p className="text-muted-foreground">
             Submitted by{" "}
             <Link
@@ -302,8 +295,8 @@ export default function ComplaintDetailPage({
                         message.senderType === "admin"
                           ? "bg-blue-100 text-blue-800"
                           : message.senderType === "owner"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-1">

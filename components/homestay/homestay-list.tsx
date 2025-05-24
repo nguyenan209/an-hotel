@@ -1,18 +1,21 @@
-import type { Homestay } from "@/lib/types"
-import { HomestayCard } from "./homestay-card"
+import { Homestay } from "@prisma/client";
+import { HomestayCard } from "./homestay-card";
 
 interface HomestayListProps {
-  homestays: Homestay[]
-  emptyMessage?: string
+  homestays: Homestay[];
+  emptyMessage?: string;
 }
 
-export function HomestayList({ homestays, emptyMessage = "Không tìm thấy homestay nào" }: HomestayListProps) {
+export function HomestayList({
+  homestays,
+  emptyMessage = "Không tìm thấy homestay nào",
+}: HomestayListProps) {
   if (homestays.length === 0) {
     return (
       <div className="flex items-center justify-center h-40">
         <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -21,5 +24,5 @@ export function HomestayList({ homestays, emptyMessage = "Không tìm thấy hom
         <HomestayCard key={homestay.id} homestay={homestay} />
       ))}
     </div>
-  )
+  );
 }

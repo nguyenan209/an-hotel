@@ -68,8 +68,8 @@ type HomestayFormValues = z.infer<typeof homestaySchema>;
 
 export default function HomestayDetailPage() {
   const router = useRouter();
-  const params = useParams();
-  const isNewHomestay = params.id === "new";
+  const { id } = useParams();
+  const isNewHomestay = id === "new";
   const [homestay, setHomestay] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!isNewHomestay);
   const [addressSearchOpen, setAddressSearchOpen] = useState(false);
@@ -107,8 +107,8 @@ export default function HomestayDetailPage() {
 
     const fetchHomestay = async () => {
       try {
-        if (params?.id) {
-          const foundHomestay = await fetchHomestayData(params?.id, form.reset);
+        if (id) {
+          const foundHomestay = await fetchHomestayData(id.toString(), form.reset);
           setHomestay(foundHomestay);
           setUploadedImages(foundHomestay.images || []);
         }
@@ -120,7 +120,7 @@ export default function HomestayDetailPage() {
     };
 
     fetchHomestay();
-  }, [params.id, isNewHomestay, form]);
+  }, [id, isNewHomestay, form]);
 
   const debouncedSearchAddress = useCallback(
     debounce(async (query: string) => {
@@ -153,7 +153,7 @@ export default function HomestayDetailPage() {
           throw new Error("User is not authenticated");
         }
 
-        const response = await fetch(`/api/homestays/${params.id}`, {
+        const response = await fetch(`/api/homestays/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

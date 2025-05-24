@@ -17,14 +17,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/utils";
+import { useParams } from "next/navigation";
 
-interface ReviewDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
+export default function ReviewDetailPage() {
+  const { id } = useParams();
   const [status, setStatus] = useState("published");
   const [ownerResponse, setOwnerResponse] = useState(
     "Thank you for your feedback! We're glad you enjoyed your stay and hope to welcome you back soon."
@@ -34,7 +30,7 @@ export default function ReviewDetailPage({ params }: ReviewDetailPageProps) {
 
   // Mock data for the review
   const review = {
-    id: params.id,
+    id: id,
     homestayId: "hs1",
     homestayName: "Sunset Beach Villa",
     homestayImage: "/images/sunset-beach-villa-1.png",

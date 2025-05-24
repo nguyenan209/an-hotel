@@ -3,10 +3,10 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const roomId = params.id;
+    const { id: roomId } = await params;
 
     const room = await prisma.room.findUnique({
       where: { id: roomId, isDeleted: false },
@@ -34,8 +34,9 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const {
@@ -56,7 +57,7 @@ export async function PUT(
     );
 
     const updatedRoom = await prisma.room.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         name,
         description,
@@ -88,10 +89,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id; // Lấy `id` từ `params`
+    const { id } = await params; // Lấy `id` từ `params`
 
     // Xóa `Room`
     await prisma.room.update({

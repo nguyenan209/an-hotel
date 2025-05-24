@@ -1,11 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 import { MapPin, Star, Users } from "lucide-react"
-
-import type { Homestay } from "@/lib/types"
 import { formatCurrency } from "@/lib/utils"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Homestay } from "@prisma/client"
 
 interface HomestayCardProps {
   homestay: Homestay

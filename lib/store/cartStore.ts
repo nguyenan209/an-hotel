@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem, Homestay, Room } from "../types";
-import { BookingType } from "@prisma/client";
+import type { CartItem } from "../types";
+import { BookingType, Homestay, Room } from "@prisma/client";
 
 interface CartState {
   items: CartItem[];

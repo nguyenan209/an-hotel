@@ -1,13 +1,10 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function PaymentPage({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
-  const { sessionId } = params;
+export default function PaymentPage() {
+  const { sessionId } = useParams();
   const [paymentSession, setPaymentSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

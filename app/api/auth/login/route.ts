@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     }
     const token = generateToken({
       id: user.id,
-      customerId: user.customer?.id ?? null,
+      customerId: user.customer?.id ?? "",
       email: user.email,
       role: user.role,
       name: user.name,

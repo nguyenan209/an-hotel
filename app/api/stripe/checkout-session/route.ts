@@ -1,33 +1,52 @@
-// /api/create-checkout-session.ts (Next.js)
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
+const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-04-30.basil", // Sử dụng phiên bản Stripe API phù hợp
 });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"], // hoặc thêm 'alipay', 'wechat_pay' nếu có
-    line_items: [
-      {
-        price_data: {
-          currency: "vnd",
-          product_data: {
-            name: "Thanh toán đặt phòng Homestay",
-          },
-          unit_amount: 19200000, // đơn vị: VND * 1000 vì Stripe không hỗ trợ VND nên có thể cần dùng USD để demo
-        },
-        quantity: 1,
-      },
-    ],
-    mode: "payment",
-    success_url: `${req.headers.origin}/payment-success`,
-    cancel_url: `${req.headers.origin}/payment-cancel`,
-  });
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
 
-  res.status(200).json({ url: session.url });
+    // Kiểm tra dữ liệu đầu vào
+    if (!body.amount || !body.currency || !body.successUrl || !body.cancelUrl) {
+      return NextResponse.json(
+        {
+          error:
+            "Missing required fields: amount, currency, successUrl, cancelUrl",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Tạo phiên thanh toán (checkout session)
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"], // Các phương thức thanh toán
+      line_items: [
+        {
+          price_data: {
+            currency: body.currency, // Ví dụ: 'usd'
+            product_data: {
+              name: "Thanh toán đặt phòng Homestay",
+            },
+            unit_amount: body.amount, // Số tiền (đơn vị: cents nếu là USD)
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: body.successUrl, // URL khi thanh toán thành công
+      cancel_url: body.cancelUrl, // URL khi hủy thanh toán
+    });
+
+    // Trả về URL của phiên thanh toán
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    return NextResponse.json(
+      { error: "Failed to create checkout session" },
+      { status: 500 }
+    );
+  }
 }

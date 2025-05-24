@@ -6,7 +6,7 @@ import { searchHomestays } from "@/lib/data";
 import type { SearchParams } from "@/lib/types";
 
 interface SearchPageProps {
-  searchParams: {
+  searchParams: Promise<{
     location?: string;
     checkIn?: string;
     checkOut?: string;
@@ -15,29 +15,30 @@ interface SearchPageProps {
     maxPrice?: string;
     rating?: string;
     amenities?: string;
-  };
+  }>;
 }
-
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   // Parse search params
+
+  const resolvedSearchParams = await searchParams;
   const params: SearchParams = {
-    location: searchParams.location,
-    checkIn: searchParams.checkIn,
-    checkOut: searchParams.checkOut,
-    guests: searchParams.guests
-      ? Number.parseInt(searchParams.guests)
+    location: resolvedSearchParams.location,
+    checkIn: resolvedSearchParams.checkIn,
+    checkOut: resolvedSearchParams.checkOut,
+    guests: resolvedSearchParams.guests
+      ? Number.parseInt(resolvedSearchParams.guests)
       : undefined,
-    minPrice: searchParams.minPrice
-      ? Number.parseInt(searchParams.minPrice)
+    minPrice: resolvedSearchParams.minPrice
+      ? Number.parseInt(resolvedSearchParams.minPrice)
       : undefined,
-    maxPrice: searchParams.maxPrice
-      ? Number.parseInt(searchParams.maxPrice)
+    maxPrice: resolvedSearchParams.maxPrice
+      ? Number.parseInt(resolvedSearchParams.maxPrice)
       : undefined,
-    rating: searchParams.rating
-      ? Number.parseFloat(searchParams.rating)
+    rating: resolvedSearchParams.rating
+      ? Number.parseFloat(resolvedSearchParams.rating)
       : undefined,
-    amenities: searchParams.amenities
-      ? searchParams.amenities.split(",")
+    amenities: resolvedSearchParams.amenities
+      ? resolvedSearchParams.amenities.split(",")
       : undefined,
   };
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   MapPin,
   Star,
@@ -38,23 +38,14 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { useCartStore } from "@/lib/store/cartStore";
 import { bookingSchema } from "@/lib/validation";
 import { RoomCard } from "@/components/homestay/room-card";
-import type { Homestay, Room } from "@/lib/types";
 import { AmenityList } from "@/components/homestay/amenity-list";
-import { BookingType, Review } from "@prisma/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
+import { BookingType, Homestay, Review, Room } from "@prisma/client";
 import Loading from "@/components/loading";
 import { Reviews } from "@/components/homestay/reviews";
+import { RoomWithBeds } from "@/lib/types";
 
-interface HomestayDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function HomestayDetailPage({
-  params,
-}: HomestayDetailPageProps) {
+export default function HomestayDetailPage() {
+  const { id } = useParams();
   const router = useRouter();
   const addWholeHomestayToCart = useCartStore(
     (state) => state.addWholeHomestayToCart
@@ -62,7 +53,7 @@ export default function HomestayDetailPage({
   const addRoomsToCart = useCartStore((state) => state.addRoomsToCart);
 
   const [homestay, setHomestay] = useState<Homestay | null>(null);
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<RoomWithBeds[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -81,7 +72,7 @@ export default function HomestayDetailPage({
   useEffect(() => {
     const fetchHomestay = async () => {
       try {
-        const response = await fetch(`/api/homestays/${params.id}`);
+        const response = await fetch(`/api/homestays/${id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin homestay");
         }
@@ -98,7 +89,7 @@ export default function HomestayDetailPage({
 
     const fetchRooms = async () => {
       try {
-        const response = await fetch(`/api/rooms?homestayId=${params.id}`);
+        const response = await fetch(`/api/rooms?homestayId=${id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin phòng");
         }
@@ -112,7 +103,7 @@ export default function HomestayDetailPage({
 
     fetchHomestay();
     fetchRooms();
-  }, [params?.id]);
+  }, [id]);
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {
     if (isSelected) {
@@ -301,7 +292,9 @@ export default function HomestayDetailPage({
             <TabsContent value="rooms" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {rooms.length > 0 ? (
-                  rooms.map((room) => <RoomCard key={room.id} room={room} />)
+                  rooms.map((room) => {
+                    return <RoomCard key={room.id} room={room} />
+                  })
                 ) : (
                   <p className="col-span-full text-muted-foreground">
                     Không có thông tin phòng
@@ -324,7 +317,7 @@ export default function HomestayDetailPage({
                 onRetry={() => {
                   setIsLoadingReviews(true);
                   setReviewsError("");
-                  fetch(`/api/reviews?homestayId=${params.id}`)
+                  fetch(`/api/reviews?homestayId=${id}`)
                     .then((res) => {
                       if (!res.ok) throw new Error("Không thể tải đánh giá");
                       return res.json();

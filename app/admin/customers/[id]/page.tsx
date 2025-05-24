@@ -3,10 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,17 +18,11 @@ import {
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getStatusColor } from "@/lib/utils";
+import { CustomerFormValues, customerSchema } from "@/lib/schema";
 
-const customerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone number is required"),
-  address: z.string().optional(),
-  status: z.string(),
-});
-
-type CustomerFormValues = z.infer<typeof customerSchema>;
-export default function CustomerDetailPage({ id }: { id: string }) {
+export default function CustomerDetailPage() {
+  const params = useParams();
+  const { id } = params;
   const router = useRouter();
   const isNewCustomer = id === "new";
   const [customer, setCustomer] = useState<any | null>(null);
