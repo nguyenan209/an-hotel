@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { OTPService, EmailService } from "@/lib/services/email-service";
 import prisma from "@/lib/prisma";
+import { UserStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Kiểm tra OTP
     const otpRecord = await prisma.otpCode.findFirst({
-      where: { email },
+      where: { email, otp },
     });
 
     if (!otpRecord) {
@@ -29,13 +30,17 @@ export async function POST(request: NextRequest) {
         parseInt(process.env.NEXT_PUBLIC_OTP_EXPIRATION_TIME || "5", 10)
       )
     ) {
-      prisma.otpCode.delete(email);
+      await prisma.otpCode.delete({
+        where: { id: otpRecord.id },
+      });
       return NextResponse.json({ error: "Mã OTP đã hết hạn" }, { status: 400 });
     }
 
     // Check attempts limit
     if (otpRecord.attempts >= 3) {
-      prisma.otpCode.delete(email);
+      await prisma.otpCode.delete({
+        where: { id: otpRecord.id },
+      });
       return NextResponse.json(
         { error: "Đã vượt quá số lần thử. Vui lòng yêu cầu mã mới" },
         { status: 400 }
@@ -55,12 +60,14 @@ export async function POST(request: NextRequest) {
     }
 
     // OTP is correct - remove from storage
-    prisma.otpCode.delete(email);
+    await prisma.otpCode.delete({
+      where: { id: otpRecord.id },
+    });
 
     // Activate user account
-    prisma.user.update({
+    await prisma.user.update({
       where: { email },
-      data: { status: "ACTIVE" },
+      data: { status: UserStatus.ACTIVE },
     });
 
     // Send welcome email

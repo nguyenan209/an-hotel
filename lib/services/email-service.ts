@@ -1,5 +1,6 @@
 import { sendEmail } from "../email";
 import { getConfirmRegistrationEmailHTML } from "../email-templates/confirm-registration";
+import { getWelcomeEmailHTML } from "../email-templates/welcome-email";
 
 interface SendEmailOptions {
   to: string;
@@ -46,13 +47,10 @@ export class EmailService {
     email: string,
     userName: string
   ): Promise<boolean> {
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1>Chào mừng ${userName}!</h1>
-        <p>Tài khoản của bạn đã được kích hoạt thành công.</p>
-        <p>Bạn có thể bắt đầu khám phá và đặt homestay ngay bây giờ!</p>
-      </div>
-    `;
+    const html = getWelcomeEmailHTML({
+      userName,
+      userEmail: "support@homestay.com",
+    });
 
     return this.sendEmail({
       to: email,
