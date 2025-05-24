@@ -2,22 +2,24 @@ import { SearchForm } from "@/components/search/search-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
 import Cookies from "js-cookie";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   let featuredHomestays = [];
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/homestays?featured=true`,
       {
+        cache: "no-store", // Tự động làm mới dữ liệu sau 60 giây
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${Cookies.get('token')}`, // Sử dụng token từ biến môi trường
+          Authorization: `Bearer ${Cookies.get("token")}`, // Sử dụng token từ biến môi trường
         },
-        cache: "no-store", // Đảm bảo dữ liệu luôn được lấy mới
       }
     );
     console.log(response);
-    
+
     console.log("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
     if (!response.ok) {
