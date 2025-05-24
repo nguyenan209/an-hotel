@@ -148,6 +148,7 @@ export default function BookingsPage() {
           BookingStatus.UPCOMING,
           BookingStatus.COMPLETED,
           BookingStatus.CANCELLED,
+          BookingStatus.PENDING,
         ].map((status) => {
           const filteredBookings = filterBookings(status);
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
