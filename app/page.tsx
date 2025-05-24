@@ -1,9 +1,9 @@
 import { SearchForm } from "@/components/search/search-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
+import Cookies from "js-cookie";
 
 export default async function Home() {
   let featuredHomestays = [];
-
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/homestays?featured=true`,
@@ -11,10 +11,14 @@ export default async function Home() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${Cookies.get('token')}`, // Sử dụng token từ biến môi trường
         },
         cache: "no-store", // Đảm bảo dữ liệu luôn được lấy mới
       }
     );
+    console.log(response);
+    
+    console.log("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
     if (!response.ok) {
       throw new Error("Failed to fetch featured homestays");

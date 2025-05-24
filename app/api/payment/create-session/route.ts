@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       {
         success: true,
         sessionId: paymentSession.sessionId,
-        paymentUrl: `${process.env.NEXT_PUBLIC_URL}/payment/${paymentSession.sessionId}`, // URL thanh toán
+        paymentUrl: `${process.env.NEXT_PUBLIC_API_URL}/payment/${paymentSession.sessionId}`, // URL thanh toán
       },
       { status: 201 }
     );

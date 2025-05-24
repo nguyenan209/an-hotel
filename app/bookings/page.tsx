@@ -21,11 +21,24 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái kiểm tra xác thực
   const router = useRouter();
   const { user } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3);
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setIsLoggedIn(true); // Đánh dấu quá trình xác thực đã hoàn tất
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (isLoggedIn && !user) {
+      router.push("/login"); // Chuyển hướng nếu không có user
+    }
+  }, [isLoggedIn, user, router]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -54,12 +67,6 @@ export default function BookingsPage() {
 
     fetchBookings();
   }, []);
-
-  useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    }
-  }, [user, router]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
