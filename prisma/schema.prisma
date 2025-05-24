@@ -246,7 +246,7 @@ model UnavailableDate {
 // Đặt phòng
 model Booking {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  bookingNumber     String              @unique
+  bookingNumber     String              
   customerId        String              @db.ObjectId
   customer          Customer            @relation(fields: [customerId], references: [id])
   userId            String              @db.ObjectId

@@ -1,6 +1,6 @@
 import { PaymentMethod, BookingStatus, PaymentStatus } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Đảm bảo bạn đã cấu hình Prisma client
+import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,9 +63,13 @@ export async function POST(request: NextRequest) {
             specialRequests: bookingData.specialRequests,
             bookingItems: {
               create: item.rooms.map((room: any) => ({
-                roomId: room.roomId,
-                roomName: room.roomName,
+                room: {
+                  connect: { id: room.roomId },
+                },
                 price: room.pricePerNight,
+                quantity: 1,
+                discount: 0,
+                notes: room.notes || null,
               })),
             },
           },

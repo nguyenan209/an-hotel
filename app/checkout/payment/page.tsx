@@ -12,14 +12,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/lib/store/cartStore";
 import { QRPaymentStatus } from "@/lib/types";
 import { BookingStatus, PaymentMethod } from "@prisma/client";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/context/AuthContext";
 
 export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
-  const token = Cookies.get("token") || null;
-  const { user, loading } = useUser(token);
+  const { user } = useAuth();
+
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     PaymentMethod.BANK_TRANSFER
@@ -107,11 +107,9 @@ export default function PaymentPage() {
             : item.homestay.price * item.nights,
         })),
         customer: {
-          userId: user?.id || null, // Lấy ID người dùng từ hook useUser
+          userId: user?.id || null,
           name: user?.name,
           email: user?.email,
-          phone: user?.phone,
-          address: user?.address,
         },
         specialRequests: notes,
         status: BookingStatus.PENDING,

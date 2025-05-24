@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem, Homestay, Room } from "../types";
 import { BookingType } from "@prisma/client";
-import { Book } from "lucide-react";
 
 interface CartState {
   items: CartItem[];
