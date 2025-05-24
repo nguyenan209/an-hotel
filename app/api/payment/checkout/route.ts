@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const decoded = getTokenData(request);
     if (!decoded) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json();
     const { paymentMethod, bookingData, paymentDetails } = body;
@@ -28,22 +25,20 @@ export async function POST(request: NextRequest) {
     let customer = await prisma.customer.findUnique({
       where: {
         id: decoded.customerId,
-        isDeleted: false, 
+        isDeleted: false,
       },
     });
-    
+
+    console.log("Customer found:", customer);
+
     if (!customer) {
-      return NextResponse.json(
-        { error: "Customer not found" },
-        { status: 404 }
-      );
+      // Nếu khách hàng không tồn tại, tạo mới khách hàng
+      customer = await prisma.customer.create({
+        data: {
+          userId: decoded.id,
+        },
+      });
     }
-    // Nếu khách hàng không tồn tại, tạo mới khách hàng
-    customer = await prisma.customer.create({
-      data: {
-        userId: decoded.id,
-      }
-    });
 
     const customerData = { connect: { id: customer.id } };
 

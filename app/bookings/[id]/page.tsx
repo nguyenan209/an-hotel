@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,96 +32,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-// Mock booking data - in a real app, this would come from an API
-const mockBookings = [
-  {
-    id: "b1",
-    homestayId: "1",
-    homestayName: "Sunset Beach Villa",
-    roomName: "Deluxe Ocean View Suite",
-    checkIn: "2025-06-01",
-    checkOut: "2025-06-05",
-    guests: 2,
-    totalPrice: 1200,
-    status: "upcoming",
-    location: "Bali, Indonesia",
-    image: "/images/sunset-beach-villa-room-1.png",
-    bookingDate: "2025-03-15",
-    bookingId: "BK-2025-0315-001",
-    hostName: "Sarah Johnson",
-    hostPhone: "+1 (555) 123-4567",
-    paymentMethod: "Credit Card",
-    amenities: [
-      "Ocean View",
-      "King Bed",
-      "Private Balcony",
-      "Air Conditioning",
-      "Free WiFi",
-    ],
-    cancellationPolicy:
-      "Free cancellation up to 7 days before check-in. After that, 50% of the total amount will be charged.",
-  },
-  {
-    id: "b2",
-    homestayId: "2",
-    homestayName: "Mountain Retreat",
-    roomName: "Cozy Fireplace Room",
-    checkIn: "2025-05-15",
-    checkOut: "2025-05-18",
-    guests: 2,
-    totalPrice: 750,
-    status: "completed",
-    location: "Sapa, Vietnam",
-    image: "/images/mountain-retreat-room-1.png",
-    bookingDate: "2025-02-20",
-    bookingId: "BK-2025-0220-003",
-    hostName: "Michael Chen",
-    hostPhone: "+84 (123) 456-7890",
-    paymentMethod: "PayPal",
-    amenities: [
-      "Mountain View",
-      "Fireplace",
-      "Queen Bed",
-      "Heating",
-      "Free WiFi",
-    ],
-    cancellationPolicy:
-      "Free cancellation up to 5 days before check-in. After that, 70% of the total amount will be charged.",
-  },
-  {
-    id: "b3",
-    homestayId: "3",
-    homestayName: "Riverside Cottage",
-    roomName: "Riverside Suite",
-    checkIn: "2025-07-10",
-    checkOut: "2025-07-15",
-    guests: 3,
-    totalPrice: 950,
-    status: "upcoming",
-    location: "Hoi An, Vietnam",
-    image: "/images/riverside-cottage-room-1.png",
-    bookingDate: "2025-04-05",
-    bookingId: "BK-2025-0405-007",
-    hostName: "Linh Nguyen",
-    hostPhone: "+84 (987) 654-3210",
-    paymentMethod: "Bank Transfer",
-    amenities: [
-      "River View",
-      "King Bed",
-      "Private Terrace",
-      "Air Conditioning",
-      "Free WiFi",
-    ],
-    cancellationPolicy:
-      "Free cancellation up to 10 days before check-in. After that, 60% of the total amount will be charged.",
-  },
-];
+import { getStatusBadge } from "@/components/booking/status-badge";
+import { BookingWithHomestay } from "@/lib/types";
+import { calculateNights, CANCELLATION_POLICIES } from "@/lib/utils";
+import moment from "moment";
+import { BookingStatus } from "@prisma/client";
 
 export default function BookingDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const [booking, setBooking] = useState<any | null>(null);
+  const [booking, setBooking] = useState<BookingWithHomestay | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -128,16 +49,20 @@ export default function BookingDetailsPage() {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        // In a real app, this would be an API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const foundBooking = mockBookings.find((b) => b.id === params.id);
+        const response = await fetch(`/api/bookings/${params.id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Cookies.get("token")}`, // Assuming you store the token in cookies
+          },
+        });
 
-        if (foundBooking) {
-          setBooking(foundBooking);
-        } else {
-          // Handle booking not found
-          console.error("Booking not found");
+        if (!response.ok) {
+          throw new Error("Failed to fetch booking details");
         }
+
+        const data = await response.json();
+        setBooking(data);
       } catch (error) {
         console.error("Failed to fetch booking details:", error);
       } finally {
@@ -149,36 +74,6 @@ export default function BookingDetailsPage() {
       fetchBookingDetails();
     }
   }, [params.id]);
-
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return new Date(dateString).toLocaleDateString("en-US", options);
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return <Badge className="bg-blue-500">Upcoming</Badge>;
-      case "completed":
-        return <Badge className="bg-green-500">Completed</Badge>;
-      case "cancelled":
-        return <Badge className="bg-red-500">Cancelled</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
-
-  const calculateNights = (checkIn: string, checkOut: string) => {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
 
   const handleCancelBooking = async () => {
     try {
@@ -243,23 +138,24 @@ export default function BookingDetailsPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <CardTitle className="text-2xl">
-                    {booking.homestayName}
+                    {booking.homestay.name}
                   </CardTitle>
                   <CardDescription className="text-lg mt-1">
-                    {booking.roomName}
+                    Booked at{" "}
+                    {moment(booking.createdAt).format("MMMM Do YYYY, h:mm A")}
                   </CardDescription>
                 </div>
                 <div className="mt-2 md:mt-0">
                   <p className="text-sm text-gray-500">Booking ID</p>
-                  <p className="font-medium">{booking.bookingId}</p>
+                  <p className="font-medium">{booking.bookingNumber}</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="aspect-video relative overflow-hidden rounded-md">
                 <img
-                  src={booking.image || "/placeholder.svg"}
-                  alt={booking.homestayName}
+                  src={booking.homestay.images[0] || "/placeholder.svg"}
+                  alt={booking.homestay.name}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -273,14 +169,17 @@ export default function BookingDetailsPage() {
                     <div className="flex items-center mt-1">
                       <Calendar className="h-5 w-5 text-gray-500 mr-2" />
                       <span>
-                        {formatDate(booking.checkIn)} -{" "}
-                        {formatDate(booking.checkOut)}
+                        {moment(booking.checkIn).format("MMMM Do YYYY")} -{" "}
+                        {moment(booking.checkOut).format("MMMM Do YYYY")}
                       </span>
                     </div>
                     <div className="flex items-center mt-1">
                       <Clock className="h-5 w-5 text-gray-500 mr-2" />
                       <span>
-                        {calculateNights(booking.checkIn, booking.checkOut)}{" "}
+                        {calculateNights(
+                          booking.checkIn.toString(),
+                          booking.checkOut.toString()
+                        )}{" "}
                         nights
                       </span>
                     </div>
@@ -301,7 +200,7 @@ export default function BookingDetailsPage() {
                     <h3 className="font-medium text-gray-500">Location</h3>
                     <div className="flex items-center mt-1">
                       <MapPin className="h-5 w-5 text-gray-500 mr-2" />
-                      <span>{booking.location}</span>
+                      <span>{booking.homestay.address}</span>
                     </div>
                   </div>
                 </div>
@@ -311,11 +210,11 @@ export default function BookingDetailsPage() {
                     <h3 className="font-medium text-gray-500">Host</h3>
                     <div className="flex items-center mt-1">
                       <User className="h-5 w-5 text-gray-500 mr-2" />
-                      <span>{booking.hostName}</span>
+                      <span>{booking.homestay.owner.name}</span>
                     </div>
                     <div className="flex items-center mt-1">
                       <Phone className="h-5 w-5 text-gray-500 mr-2" />
-                      <span>{booking.hostPhone}</span>
+                      <span>{booking.homestay.owner.phone}</span>
                     </div>
                   </div>
 
@@ -327,7 +226,13 @@ export default function BookingDetailsPage() {
                     </div>
                     <div className="flex items-center mt-1">
                       <Calendar className="h-5 w-5 text-gray-500 mr-2" />
-                      <span>Booked on {formatDate(booking.bookingDate)}</span>
+                      <span>
+                        {" "}
+                        Booked on{" "}
+                        {moment(booking.createdAt).format(
+                          "MMMM Do YYYY, h:mm A"
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -336,15 +241,17 @@ export default function BookingDetailsPage() {
               <div>
                 <h3 className="font-medium text-gray-500 mb-2">Amenities</h3>
                 <div className="flex flex-wrap gap-2">
-                  {booking.amenities.map((amenity: string, index: number) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-gray-100"
-                    >
-                      {amenity}
-                    </Badge>
-                  ))}
+                  {booking.homestay.amenities.map(
+                    (amenity: string, index: number) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="bg-gray-100"
+                      >
+                        {amenity}
+                      </Badge>
+                    )
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -361,7 +268,11 @@ export default function BookingDetailsPage() {
               <div className="flex justify-between">
                 <span>
                   Room rate (
-                  {calculateNights(booking.checkIn, booking.checkOut)} nights)
+                  {calculateNights(
+                    booking.checkIn.toString(),
+                    booking.checkOut.toString()
+                  )}{" "}
+                  nights)
                 </span>
                 <span>${booking.totalPrice.toLocaleString()}</span>
               </div>
@@ -375,7 +286,7 @@ export default function BookingDetailsPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              {booking.status === "upcoming" && (
+              {booking.status === BookingStatus.UPCOMING && (
                 <Button
                   className="w-full"
                   variant="destructive"
@@ -384,7 +295,9 @@ export default function BookingDetailsPage() {
                   Cancel Booking
                 </Button>
               )}
-              <ContactHostButton hostPhone={booking.hostPhone} />
+              <ContactHostButton
+                hostPhone={booking.homestay.owner.phone || ""}
+              />
             </CardFooter>
           </Card>
 
@@ -393,7 +306,7 @@ export default function BookingDetailsPage() {
               <CardTitle>Cancellation Policy</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{booking.cancellationPolicy}</p>
+              <p className="text-sm">{CANCELLATION_POLICIES}</p>
             </CardContent>
           </Card>
         </div>
@@ -409,7 +322,7 @@ export default function BookingDetailsPage() {
             </DialogTitle>
             <DialogDescription>
               Are you sure you want to cancel your booking at{" "}
-              {booking.homestayName}?
+              {booking.homestay.name}?
             </DialogDescription>
           </DialogHeader>
 
@@ -424,7 +337,7 @@ export default function BookingDetailsPage() {
                     Cancellation Policy
                   </h3>
                   <div className="mt-2 text-sm text-amber-700">
-                    <p>{booking.cancellationPolicy}</p>
+                    <p>{CANCELLATION_POLICIES}</p>
                   </div>
                 </div>
               </div>

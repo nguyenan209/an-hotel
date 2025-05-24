@@ -12,30 +12,29 @@ datasource db {
 
 // Người dùng hệ thống
 model User {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  email             String              @unique
-  password          String?             // Optional for Google users
-  name              String
-  phone             String?
-  address           String?
-  avatar            String?
-  role              UserRole            @default(CUSTOMER)
-  status            UserStatus          @default(ACTIVE)
-  provider          String              @default("credentials") // Add provider field
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String     @unique
+  password  String? // Optional for Google users
+  name      String
+  phone     String?
+  address   String?
+  avatar    String?
+  role      UserRole   @default(CUSTOMER)
+  status    UserStatus @default(ACTIVE)
+  provider  String     @default("credentials") // Add provider field
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
+
   // Relationships
-  customer          Customer?           @relation
-  customerId        String?             @db.ObjectId
-  owner             Owner?              @relation
-  ownerId           String?             @db.ObjectId
-  admin             Admin?              @relation
-  adminId           String?             @db.ObjectId
-  reviews           Review[]
-  complaints        Complaint[]
-  notifications     Notification[]
+  customer      Customer?      @relation
+  customerId    String?        @db.ObjectId
+  homestays         Homestay[]
+  admin         Admin?         @relation
+  adminId       String?        @db.ObjectId
+  reviews       Review[]
+  complaints    Complaint[]
+  notifications Notification[]
 }
 
 enum UserRole {
@@ -53,65 +52,27 @@ enum UserStatus {
 
 // Thông tin khách hàng
 model Customer {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String              @unique @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
-  totalBookings     Int                 @default(0)
-  totalSpent        Float               @default(0)
-  preferences       Json?               // Lưu trữ các sở thích của khách hàng
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
-  // Relationships
-  bookings          Booking[]
-  reviews           Review[]
-  complaints        Complaint[]
-  wishlist          WishlistItem[]
-}
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  totalBookings Int      @default(0)
+  totalSpent    Float    @default(0)
+  preferences   Json? // Lưu trữ các sở thích của khách hàng
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isDeleted     Boolean  @default(false)
 
-// Thông tin chủ homestay
-model Owner {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String              @unique @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
-  businessName      String?
-  businessAddress   String?
-  taxId             String?
-  bankAccount       String?
-  bankName          String?
-  verificationStatus VerificationStatus @default(PENDING)
-  commissionRate    Float               @default(10) // Tỷ lệ hoa hồng (%)
-  rating            Float               @default(0)
-  totalHomestays    Int                 @default(0)
-  totalBookings     Int                 @default(0)
-  totalRevenue      Float               @default(0)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
-  transactions      OwnerTransaction[]
-  documents         OwnerDocument[]
+  // Relationships
+  bookings   Booking[]
+  reviews    Review[]
+  complaints Complaint[]
+  wishlist   WishlistItem[]
 }
 
 enum VerificationStatus {
   PENDING
   VERIFIED
   REJECTED
-}
-
-// Tài liệu xác minh chủ homestay
-model OwnerDocument {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId           String              @db.ObjectId
-  owner             Owner               @relation(fields: [ownerId], references: [id])
-  type              DocumentType
-  fileUrl           String
-  status            DocumentStatus      @default(PENDING)
-  notes             String?
-  uploadedAt        DateTime            @default(now())
-  reviewedAt        DateTime?
-  reviewedBy        String?
 }
 
 enum DocumentType {
@@ -131,48 +92,49 @@ enum DocumentStatus {
 
 // Thông tin quản trị viên
 model Admin {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String              @unique @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
-  position          String?
-  permissions       String[]            // Mảng các quyền hạn
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  position    String?
+  permissions String[] // Mảng các quyền hạn
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
   // Relationships
   homestayApprovals HomestayApproval[]
 }
 
 // Homestay
 model Homestay {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId           String              @db.ObjectId
-  name              String
-  slug              String              @unique
-  description       String
-  location          Float[]
-  address           String
-  price             Float
-  rating            Float               @default(5)
-  maxGuests         Int
-  totalRooms        Int
-  amenities         String[]
-  featured          Boolean             @default(false)
-  allowsPartialBooking Boolean          @default(true) // Cho phép đặt từng phòng
-  status            HomestayStatus      @default(PENDING)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId              String         @db.ObjectId
+  owner                User          @relation(fields: [ownerId], references: [id])
+  name                 String
+  slug                 String         @unique
+  description          String
+  location             Float[]
+  address              String
+  price                Float
+  rating               Float          @default(5)
+  maxGuests            Int
+  totalRooms           Int
+  amenities            String[]
+  featured             Boolean        @default(false)
+  allowsPartialBooking Boolean        @default(true) // Cho phép đặt từng phòng
+  status               HomestayStatus @default(PENDING)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  isDeleted            Boolean        @default(false)
+
   // Relationships
-  rooms             Room[]
-  images            String[]
-  bookings          Booking[]
-  reviews           Review[]
-  approvals         HomestayApproval[]
-  unavailableDates  UnavailableDate[]
-  wishlistItems     WishlistItem[]
+  rooms            Room[]
+  images           String[]
+  bookings         Booking[]
+  reviews          Review[]
+  approvals        HomestayApproval[]
+  unavailableDates UnavailableDate[]
+  wishlistItems    WishlistItem[]
 }
 
 enum HomestayStatus {
@@ -185,25 +147,25 @@ enum HomestayStatus {
 
 // Phòng trong homestay
 model Room {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  name              String
-  description       String
-  price             Float
-  capacity          Int
-  size              Float?              // Kích thước phòng (m²)
-  amenities         String[]
-  status            RoomStatus          @default(AVAILABLE)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  images            String[]
-  
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  homestayId  String     @db.ObjectId
+  homestay    Homestay   @relation(fields: [homestayId], references: [id])
+  name        String
+  description String
+  price       Float
+  capacity    Int
+  size        Float? // Kích thước phòng (m²)
+  amenities   String[]
+  status      RoomStatus @default(AVAILABLE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  isDeleted   Boolean    @default(false)
+  images      String[]
+
   // Relationships
-  beds              Bed[]
-  bookingItems      BookingItem[]
-  unavailableDates  UnavailableDate[]
+  beds             Bed[]
+  bookingItems     BookingItem[]
+  unavailableDates UnavailableDate[]
 }
 
 enum RoomStatus {
@@ -214,11 +176,11 @@ enum RoomStatus {
 
 // Giường trong phòng
 model Bed {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  roomId            String              @db.ObjectId
-  room              Room                @relation(fields: [roomId], references: [id])
-  type              BedType
-  count             Int                 @default(1)
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  roomId String  @db.ObjectId
+  room   Room    @relation(fields: [roomId], references: [id])
+  type   BedType
+  count  Int     @default(1)
 }
 
 enum BedType {
@@ -233,16 +195,16 @@ enum BedType {
 
 // Ngày không khả dụng (đã đặt hoặc bảo trì)
 model UnavailableDate {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  date              DateTime
-  reason            String?
-  
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  date   DateTime
+  reason String?
+
   // Có thể áp dụng cho cả homestay hoặc phòng cụ thể
-  homestayId        String?             @db.ObjectId
-  homestay          Homestay?           @relation(fields: [homestayId], references: [id])
-  roomId            String?             @db.ObjectId
-  room              Room?               @relation(fields: [roomId], references: [id])
-  
+  homestayId String?   @db.ObjectId
+  homestay   Homestay? @relation(fields: [homestayId], references: [id])
+  roomId     String?   @db.ObjectId
+  room       Room?     @relation(fields: [roomId], references: [id])
+
   // Đảm bảo mỗi ngày chỉ có một bản ghi cho mỗi homestay/phòng
   @@unique([date, homestayId])
   @@unique([date, roomId])
@@ -250,32 +212,32 @@ model UnavailableDate {
 
 // Đặt phòng
 model Booking {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  bookingNumber     String              
-  customerId        String              @db.ObjectId
-  customer          Customer            @relation(fields: [customerId], references: [id])
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  checkIn           DateTime
-  checkOut          DateTime
-  guests            Int
-  totalPrice        Float
-  bookingType       BookingType
-  status            BookingStatus       @default(PENDING)
-  paymentStatus     PaymentStatus       @default(PENDING)
-  paymentMethod     PaymentMethod?
-  specialRequests   String?
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  bookingNumber      String
+  customerId         String         @db.ObjectId
+  customer           Customer       @relation(fields: [customerId], references: [id])
+  homestayId         String         @db.ObjectId
+  homestay           Homestay       @relation(fields: [homestayId], references: [id])
+  checkIn            DateTime
+  checkOut           DateTime
+  guests             Int
+  totalPrice         Float
+  bookingType        BookingType
+  status             BookingStatus  @default(PENDING)
+  paymentStatus      PaymentStatus  @default(PENDING)
+  paymentMethod      PaymentMethod?
+  specialRequests    String?
   cancellationReason String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  isDeleted          Boolean        @default(false)
+
   // Relationships
-  bookingItems      BookingItem[]
-  payments          Payment[]
-  refunds           Refund[]
-  reviews           Review[]
-  complaints        Complaint[]
+  bookingItems BookingItem[]
+  payments     Payment[]
+  refunds      Refund[]
+  reviews      Review[]
+  complaints   Complaint[]
 }
 
 enum BookingType {
@@ -313,39 +275,39 @@ enum PaymentMethod {
 
 // Chi tiết đặt phòng (khi đặt từng phòng)
 model BookingItem {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId         String              @db.ObjectId
-  booking           Booking             @relation(fields: [bookingId], references: [id])
-  roomId            String              @db.ObjectId
-  room              Room                @relation(fields: [roomId], references: [id])
-  price             Float               // Giá tại thời điểm đặt
-  quantity          Int                 @default(1)
-  discount          Float               @default(0)
-  notes             String?
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String  @db.ObjectId
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  roomId    String  @db.ObjectId
+  room      Room    @relation(fields: [roomId], references: [id])
+  price     Float // Giá tại thời điểm đặt
+  quantity  Int     @default(1)
+  discount  Float   @default(0)
+  notes     String?
 }
 
 // Thanh toán
 model Payment {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId         String              @db.ObjectId
-  booking           Booking             @relation(fields: [bookingId], references: [id])
-  amount            Float
-  method            PaymentMethod
-  status            PaymentStatus       @default(PENDING)
-  transactionId     String?             // ID giao dịch từ cổng thanh toán
-  paymentDate       DateTime            @default(now())
-  notes             String?
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId     String        @db.ObjectId
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  amount        Float
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  transactionId String? // ID giao dịch từ cổng thanh toán
+  paymentDate   DateTime      @default(now())
+  notes         String?
 }
 
 model PaymentSession {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  bookingId   String?  @db.ObjectId
-  amount      Float
-  status      String   @default("PENDING")
-  sessionId   String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  bookingId String?  @db.ObjectId
+  amount    Float
+  status    String   @default("PENDING")
+  sessionId String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum PaymentSessionStatus {
@@ -356,36 +318,23 @@ enum PaymentSessionStatus {
 
 // Hoàn tiền
 model Refund {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId         String              @db.ObjectId
-  booking           Booking             @relation(fields: [bookingId], references: [id])
-  amount            Float
-  reason            String
-  status            RefundStatus        @default(PENDING)
-  refundDate        DateTime?
-  notes             String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId  String       @db.ObjectId
+  booking    Booking      @relation(fields: [bookingId], references: [id])
+  amount     Float
+  reason     String
+  status     RefundStatus @default(PENDING)
+  refundDate DateTime?
+  notes      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  isDeleted  Boolean      @default(false)
 }
 
 enum RefundStatus {
   PENDING
   PROCESSED
   REJECTED
-}
-
-// Giao dịch với chủ homestay
-model OwnerTransaction {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId           String              @db.ObjectId
-  owner             Owner               @relation(fields: [ownerId], references: [id])
-  amount            Float
-  type              TransactionType
-  status            TransactionStatus   @default(PENDING)
-  description       String
-  transactionDate   DateTime            @default(now())
-  notes             String?
 }
 
 enum TransactionType {
@@ -403,23 +352,23 @@ enum TransactionStatus {
 
 // Đánh giá
 model Review {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  customerId        String              @db.ObjectId
-  customer          Customer            @relation(fields: [customerId], references: [id])
-  ownerId            String              @db.ObjectId
-  owner              User                @relation(fields: [ownerId], references: [id])
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  bookingId         String?             @db.ObjectId
-  booking           Booking?            @relation(fields: [bookingId], references: [id])
-  rating            Int
-  comment           String
-  status            ReviewStatus        @default(PENDING)
-  ownerReply        String?
-  ownerReplyDate    DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  customerId     String       @db.ObjectId
+  customer       Customer     @relation(fields: [customerId], references: [id])
+  ownerId        String       @db.ObjectId
+  owner          User         @relation(fields: [ownerId], references: [id])
+  homestayId     String       @db.ObjectId
+  homestay       Homestay     @relation(fields: [homestayId], references: [id])
+  bookingId      String?      @db.ObjectId
+  booking        Booking?     @relation(fields: [bookingId], references: [id])
+  rating         Int
+  comment        String
+  status         ReviewStatus @default(PENDING)
+  ownerReply     String?
+  ownerReplyDate DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
 }
 
 enum ReviewStatus {
@@ -430,27 +379,27 @@ enum ReviewStatus {
 
 // Khiếu nại
 model Complaint {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  customerId        String              @db.ObjectId
-  customer          Customer            @relation(fields: [customerId], references: [id])
-  userId            String              @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
-  bookingId         String?             @db.ObjectId
-  booking           Booking?            @relation(fields: [bookingId], references: [id])
-  type              ComplaintType
-  subject           String
-  description       String
-  status            ComplaintStatus     @default(OPEN)
-  priority          ComplaintPriority   @default(MEDIUM)
-  resolution        String?
-  resolvedAt        DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isDeleted         Boolean             @default(false)
-  
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  customerId  String            @db.ObjectId
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  userId      String            @db.ObjectId
+  user        User              @relation(fields: [userId], references: [id])
+  bookingId   String?           @db.ObjectId
+  booking     Booking?          @relation(fields: [bookingId], references: [id])
+  type        ComplaintType
+  subject     String
+  description String
+  status      ComplaintStatus   @default(OPEN)
+  priority    ComplaintPriority @default(MEDIUM)
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  isDeleted   Boolean           @default(false)
+
   // Relationships
-  attachments       ComplaintAttachment[]
-  responses         ComplaintResponse[]
+  attachments ComplaintAttachment[]
+  responses   ComplaintResponse[]
 }
 
 enum ComplaintType {
@@ -479,24 +428,24 @@ enum ComplaintPriority {
 
 // Tệp đính kèm khiếu nại
 model ComplaintAttachment {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  complaintId       String              @db.ObjectId
-  complaint         Complaint           @relation(fields: [complaintId], references: [id])
-  fileUrl           String
-  fileName          String
-  fileType          String
-  uploadedAt        DateTime            @default(now())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  complaintId String    @db.ObjectId
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  fileUrl     String
+  fileName    String
+  fileType    String
+  uploadedAt  DateTime  @default(now())
 }
 
 // Phản hồi khiếu nại
 model ComplaintResponse {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  complaintId       String              @db.ObjectId
-  complaint         Complaint           @relation(fields: [complaintId], references: [id])
-  responderType     ResponderType       // Người phản hồi là admin hay chủ homestay
-  responderName     String
-  message           String
-  createdAt         DateTime            @default(now())
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  complaintId   String        @db.ObjectId
+  complaint     Complaint     @relation(fields: [complaintId], references: [id])
+  responderType ResponderType // Người phản hồi là admin hay chủ homestay
+  responderName String
+  message       String
+  createdAt     DateTime      @default(now())
 }
 
 enum ResponderType {
@@ -507,16 +456,16 @@ enum ResponderType {
 
 // Phê duyệt homestay
 model HomestayApproval {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  adminId           String?             @db.ObjectId
-  admin             Admin?              @relation(fields: [adminId], references: [id])
-  status            ApprovalStatus      @default(PENDING)
-  notes             String?
-  checklist         Json?               // Danh sách kiểm tra các tiêu chí
-  submittedAt       DateTime            @default(now())
-  reviewedAt        DateTime?
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  homestayId  String         @db.ObjectId
+  homestay    Homestay       @relation(fields: [homestayId], references: [id])
+  adminId     String?        @db.ObjectId
+  admin       Admin?         @relation(fields: [adminId], references: [id])
+  status      ApprovalStatus @default(PENDING)
+  notes       String?
+  checklist   Json? // Danh sách kiểm tra các tiêu chí
+  submittedAt DateTime       @default(now())
+  reviewedAt  DateTime?
 }
 
 enum ApprovalStatus {
@@ -528,27 +477,27 @@ enum ApprovalStatus {
 
 // Danh sách yêu thích
 model WishlistItem {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  customerId        String              @db.ObjectId
-  customer          Customer            @relation(fields: [customerId], references: [id])
-  homestayId        String              @db.ObjectId
-  homestay          Homestay            @relation(fields: [homestayId], references: [id])
-  addedAt           DateTime            @default(now())
-  
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String   @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id])
+  homestayId String   @db.ObjectId
+  homestay   Homestay @relation(fields: [homestayId], references: [id])
+  addedAt    DateTime @default(now())
+
   @@unique([customerId, homestayId])
 }
 
 // Thông báo
 model Notification {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String              @db.ObjectId
-  user              User                @relation(fields: [userId], references: [id])
-  title             String
-  message           String
-  type              NotificationType
-  isRead            Boolean             @default(false)
-  relatedId         String?             // ID của đối tượng liên quan (booking, review, etc.)
-  createdAt         DateTime            @default(now())
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String           @db.ObjectId
+  user      User             @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  relatedId String? // ID của đối tượng liên quan (booking, review, etc.)
+  createdAt DateTime         @default(now())
 }
 
 enum NotificationType {
@@ -563,10 +512,9 @@ enum NotificationType {
 
 model OtpCode {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   // Email người nhận OTP
-  otp       String   // Mã OTP
+  email     String // Email người nhận OTP
+  otp       String // Mã OTP
   expiresAt DateTime // Thời gian hết hạn
   createdAt DateTime @default(now())
   attempts  Int      @default(0) // Số lần thử nhập OTP
 }
-

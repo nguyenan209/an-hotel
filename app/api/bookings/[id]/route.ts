@@ -16,10 +16,34 @@ export async function GET(
     const booking = await prisma.booking.findUnique({
       where: { id, isDeleted: false }, // Kiểm tra isDeleted để chỉ lấy các booking chưa bị xóa
       include: {
-        homestay: true, // Bao gồm thông tin homestay liên quan
+        homestay: {
+          include: {
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                avatar: true,
+              }
+            }
+          },
+        }, // Bao gồm thông tin homestay liên quan
         bookingItems: {
           include: {
             room: true, // Bao gồm thông tin phòng liên quan
+          },
+        },
+        customer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+              },
+            },
           },
         },
       },
@@ -31,7 +55,7 @@ export async function GET(
     }
 
     // Trả về dữ liệu booking
-    return NextResponse.json(booking);
+    return NextResponse.json({ ...booking, hsdfsdlk: 1 });
   } catch (error) {
     console.error("Error fetching booking:", error);
     return NextResponse.json(

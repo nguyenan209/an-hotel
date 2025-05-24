@@ -19,6 +19,8 @@ import { useAuth } from "@/context/AuthContext";
 import { BookingWithHomestay } from "@/lib/types";
 import { BookingStatus } from "@prisma/client";
 import moment from "moment";
+import { getStatusBadge } from "@/components/booking/status-badge";
+import { calculateNights } from "@/lib/utils";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingWithHomestay[]>([]);
@@ -70,21 +72,6 @@ export default function BookingsPage() {
 
     fetchBookings();
   }, []);
-
-  const getStatusBadge = (status: BookingStatus) => {
-    switch (status) {
-      case BookingStatus.UPCOMING:
-        return <Badge className="bg-blue-500">Upcoming</Badge>;
-      case BookingStatus.COMPLETED:
-        return <Badge className="bg-green-500">Completed</Badge>;
-      case BookingStatus.CANCELLED:
-        return <Badge className="bg-red-500">Cancelled</Badge>;
-      case BookingStatus.PENDING:
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
 
   const viewBookingDetails = (bookingId: string) => {
     router.push(`/bookings/${bookingId}`);
@@ -299,10 +286,3 @@ export default function BookingsPage() {
   );
 }
 
-function calculateNights(checkIn: string, checkOut: string) {
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-}

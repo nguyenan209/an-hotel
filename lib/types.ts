@@ -3,6 +3,7 @@ import {
   BookingItem,
   BookingType,
   Homestay,
+  Prisma,
   UserRole,
 } from "@prisma/client";
 
@@ -54,7 +55,11 @@ export enum QRPaymentStatus {
   FAILED = "failed",
 }
 
+type HomestayWithOwner = Prisma.HomestayGetPayload<{
+  include: { owner: true };
+}>;
+
 export interface BookingWithHomestay extends Booking {
-  homestay: Homestay;
-  bookingItems: BookingItem[]; 
+  homestay: HomestayWithOwner;
+  bookingItems: BookingItem[];
 }

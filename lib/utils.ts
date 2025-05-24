@@ -60,3 +60,14 @@ export function getExpireOtpTime(): Date {
   const expiryTime = new Date(Date.now() + otpExpirationTime * 60 * 1000);
   return expiryTime;
 }
+
+export function calculateNights(checkIn: string, checkOut: string) {
+  const start = new Date(checkIn);
+  const end = new Date(checkOut);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+export const CANCELLATION_POLICIES =
+  "Free cancellation up to 7 days before check-in. After that, 50% of the total amount will be charged.";
