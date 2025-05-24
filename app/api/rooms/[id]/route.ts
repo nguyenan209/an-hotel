@@ -9,7 +9,7 @@ export async function GET(
     const roomId = params.id;
 
     const room = await prisma.room.findUnique({
-      where: { id: roomId },
+      where: { id: roomId, isDeleted: false },
       include: {
         homestay: {
           select: { id: true, name: true },
@@ -93,14 +93,10 @@ export async function DELETE(
   try {
     const id = params.id; // Lấy `id` từ `params`
 
-    // Xóa các `Bed` liên kết trước khi xóa `Room`
-    await prisma.bed.deleteMany({
-      where: { roomId: id },
-    });
-
     // Xóa `Room`
-    await prisma.room.delete({
+    await prisma.room.update({
       where: { id },
+      data: { isDeleted: true },
     });
 
     return NextResponse.json({ message: "Room deleted successfully" });

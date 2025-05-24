@@ -10,7 +10,7 @@ export async function GET(
   try {
     // Truy vấn cơ sở dữ liệu để lấy thông tin homestay
     const homestay = await prisma.homestay.findUnique({
-      where: { id: params.id },
+      where: { id: params.id, isDeleted: false },
     });
 
     // Nếu không tìm thấy homestay, trả về lỗi 404
@@ -53,7 +53,7 @@ export async function PUT(
 
     // Cập nhật thông tin homestay trong cơ sở dữ liệu
     const updatedHomestay = await prisma.homestay.update({
-      where: { id: params.id },
+      where: { id: params.id, isDeleted: false },
       data: body,
     });
 
@@ -75,5 +75,28 @@ export async function PUT(
   } finally {
     // Đảm bảo Prisma Client được ngắt kết nối sau khi xử lý xong
     await prisma.$disconnect();
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const homestayId = params.id;
+
+    // Xóa Homestay
+    await prisma.homestay.update({
+      where: { id: homestayId },
+      data: { isDeleted: true },
+    });
+
+    return NextResponse.json({ message: "Homestay deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting homestay:", error);
+    return NextResponse.json(
+      { error: "Failed to delete homestay" },
+      { status: 500 }
+    );
   }
 }

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
     // Xây dựng điều kiện lọc
-    const where: any = {};
+    const where: any = { isDeleted: false };
 
     if (search) {
       where.name = {

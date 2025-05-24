@@ -2,7 +2,7 @@
 
 import { Edit, Loader2, Plus, Trash } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { HomestayCombobox } from "@/components/homestay/homestay-compobox";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InfiniteScroll } from "@/components/infinite-scroll";
 import { useToast } from "@/hooks/use-toast";
 import { getHomestays, getRooms } from "@/lib/data";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
@@ -42,6 +43,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Loading from "@/components/loading";
 
 export default function RoomsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,7 +55,6 @@ export default function RoomsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef(null);
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -84,51 +85,6 @@ export default function RoomsPage() {
 
     fetchData();
   }, [searchQuery, statusFilter, homestayFilter]);
-
-  // Filter rooms based on search query, status filter, and homestay filter
-  const filteredRooms = rooms.filter((room) => {
-    const matchesSearch = room.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || room.status === statusFilter;
-    const matchesHomestay =
-      homestayFilter === "all" || room.homestayId === homestayFilter;
-
-    return matchesSearch && matchesStatus && matchesHomestay;
-  });
-
-  // Get homestay name by ID
-  const getHomestayName = (homestayId: string) => {
-    const homestay = homestays.find((h) => h.id === homestayId);
-    return homestay ? homestay.name : "Unknown";
-  };
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          hasMore &&
-          !isLoadingMore &&
-          !loading
-        ) {
-          loadMoreRooms();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
-      }
-    };
-  }, [hasMore, isLoadingMore, loading, rooms.length]);
 
   const loadMoreRooms = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -164,7 +120,7 @@ export default function RoomsPage() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -193,7 +149,7 @@ export default function RoomsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <p>Loading...</p>
+        <Loading />
       </div>
     );
   }
@@ -264,14 +220,14 @@ export default function RoomsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRooms.length === 0 ? (
+                {rooms.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-4">
                       No rooms found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredRooms.map((room) => (
+                  rooms.map((room) => (
                     <TableRow key={room.id}>
                       <TableCell className="font-medium">{room.name}</TableCell>
                       <TableCell>{room?.homestay?.name}</TableCell>
@@ -311,21 +267,11 @@ export default function RoomsPage() {
               </TableBody>
             </Table>
           </div>
-          <div
-            ref={observerTarget}
-            className="py-4 text-center text-sm text-muted-foreground"
-          >
-            {isLoadingMore ? (
-              <div className="flex items-center justify-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading more rooms...
-              </div>
-            ) : hasMore ? (
-              "Scroll to load more rooms"
-            ) : (
-              `Showing all rooms`
-            )}
-          </div>
+          <InfiniteScroll
+            onLoadMore={loadMoreRooms}
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+          />
         </CardContent>
       </Card>
       {/* Confirmation Dialog */}

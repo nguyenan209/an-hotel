@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
 
@@ -28,25 +28,87 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatDate, getStatusColor } from "@/lib/utils";
-import { mockCustomers } from "@/lib/mock-data/admin";
+import Loading from "@/components/loading";
 
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<
+    {
+      id: string;
+      user: { name: string; email: string; phone: string; status: string };
+      totalBookings: number;
+      createdAt: string;
+    }[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  // Filter customers based on search query and status filter
-  const filteredCustomers = mockCustomers.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery);
+  const fetchCustomers = async (reset = false) => {
+    if (isLoading || isLoadingMore) return;
 
-    const matchesStatus =
-      statusFilter === "all" || customer.status === statusFilter;
+    if (reset) {
+      setPage(1);
+      setHasMore(true);
+    }
 
-    return matchesSearch && matchesStatus;
-  });
+    const currentPage = reset ? 1 : page;
+
+    try {
+      if (reset) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const response = await fetch(
+        `/api/admin/customers?search=${searchQuery}&status=${statusFilter}&page=${currentPage}&limit=10`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch customers");
+      }
+      const data = await response.json();
+
+      setCustomers((prev) =>
+        reset ? data.customers : [...prev, ...data.customers]
+      );
+      setHasMore(data.customers.length > 0);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    } finally {
+      if (reset) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers(true); // Reset data khi searchQuery hoặc statusFilter thay đổi
+  }, [searchQuery, statusFilter]);
+
+  const loadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchCustomers();
+    }
+  }, [page]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <Loading />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -64,7 +126,7 @@ export default function CustomersPage() {
         <CardHeader>
           <CardTitle>Manage Customers</CardTitle>
           <CardDescription>
-            You have a total of {mockCustomers.length} customers in the system.
+            You have a total of {customers.length} customers in the system.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -84,8 +146,8 @@ export default function CustomersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -105,29 +167,29 @@ export default function CustomersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.length === 0 ? (
+                {customers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
                       No customers found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCustomers.map((customer) => (
+                  customers.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">
-                        {customer.name}
+                        {customer.user.name}
                       </TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.phone}</TableCell>
+                      <TableCell>{customer.user.email}</TableCell>
+                      <TableCell>{customer.user.phone}</TableCell>
                       <TableCell>{customer.totalBookings}</TableCell>
                       <TableCell>{formatDate(customer.createdAt)}</TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                            customer.status
+                            customer.user.status
                           )}`}
                         >
-                          {customer.status}
+                          {customer.user.status}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -150,6 +212,11 @@ export default function CustomersPage() {
               </TableBody>
             </Table>
           </div>
+          <InfiniteScroll
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+          />
         </CardContent>
       </Card>
     </div>

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10", 10); // Lấy số lượng item mỗi trang, mặc định là 10
 
     // Xây dựng điều kiện lọc
-    const where: any = {};
+    const where: any = { isDeleted: false }; // Điều kiện mặc định là không bị xóa
 
     if (status && status !== "all") {
       where.status = status; // Lọc theo status nếu có
