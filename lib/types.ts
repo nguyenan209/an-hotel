@@ -5,6 +5,7 @@ import {
   Homestay,
   Prisma,
   Room,
+  User,
   UserRole,
 } from "@prisma/client";
 
@@ -65,10 +66,45 @@ export interface BookingWithHomestay extends Booking {
   bookingItems: BookingItem[];
 }
 
-export interface RoomWithBeds  extends Room {
+export interface RoomWithBeds extends Room {
   beds: {
     id: string;
     type: string;
     count: number;
   }[];
+}
+
+export type FetchBookingsParams = {
+  search?: string;
+  status?: string;
+  bookingType?: string;
+  skip: number;
+  limit: number;
+};
+
+export interface BookingHomestayAndCustomer extends Booking {
+  homestay: {
+    id: Homestay["id"];
+    name: Homestay["name"];
+    address: Homestay["address"];
+    images: Homestay["images"];
+    rooms: {
+      id: string
+    }[];
+  };
+  customer: {
+    id: User["id"];
+    user: {
+      id: User["id"];
+      name: User["name"];
+      email: User["email"];
+      phone: User["phone"];
+      avatar: User["avatar"];
+    };
+  };
+}
+
+export interface BookingsResponse {
+  bookings: BookingHomestayAndCustomer[];
+  hasMore: boolean;
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Calendar, Edit, Eye, Home, Hotel, Plus } from "lucide-react";
+import { Calendar, Eye, Home, Hotel, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,42 +28,96 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { mockBookings } from "@/lib/mock-data/admin";
-import { BookingType } from "@prisma/client";
-
-// Update mock bookings to include booking type
-const updatedMockBookings = mockBookings.map((booking, index) => ({
-  ...booking,
-  bookingType: index % 3 === 0 ? BookingType.ROOMS : BookingType.WHOLE,
-  rooms:
-    index % 3 === 0
-      ? [
-          { roomId: "1-1", roomName: "Master Suite", price: 500000 },
-          { roomId: "1-2", roomName: "Deluxe Room", price: 400000 },
-        ]
-      : undefined,
-}));
+import { fetchBookings } from "@/lib/booking";
+import { Booking, BookingStatus, BookingType } from "@prisma/client";
+import moment from "moment";
+import {
+  BookingHomestayAndCustomer,
+  BookingsResponse,
+  BookingWithHomestay,
+} from "@/lib/types";
 
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [bookingTypeFilter, setBookingTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">(
+    "all"
+  );
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<
+    BookingType | "all"
+  >("all");
+  const [bookings, setBookings] = useState<BookingHomestayAndCustomer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  // Filter bookings based on search query, status filter, and booking type filter
-  const filteredBookings = updatedMockBookings.filter((booking) => {
-    const matchesSearch =
-      booking.homestayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.id.includes(searchQuery);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const { bookings: initialBookings, hasMore } = await fetchBookings({
+          search: searchQuery,
+          status: statusFilter,
+          bookingType: bookingTypeFilter,
+          skip: 0,
+          limit: 10,
+        });
 
-    const matchesStatus =
-      statusFilter === "all" || booking.status === statusFilter;
-    const matchesBookingType =
-      bookingTypeFilter === "all" || booking.bookingType === bookingTypeFilter;
+        setBookings(initialBookings);
+        setHasMore(hasMore);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+        setError("Failed to load bookings");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return matchesSearch && matchesStatus && matchesBookingType;
-  });
+    fetchData();
+  }, [searchQuery, statusFilter, bookingTypeFilter]);
+
+  const loadMoreBookings = async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    try {
+      setIsLoadingMore(true);
+
+      const nextSkip = bookings.length;
+      const { bookings: newBookings, hasMore: moreAvailable } =
+        await fetchBookings({
+          search: searchQuery,
+          status: statusFilter,
+          bookingType: bookingTypeFilter,
+          skip: nextSkip,
+          limit: 10,
+        });
+
+      setBookings((prev) => [...prev, ...newBookings]);
+      setHasMore(moreAvailable);
+    } catch (error) {
+      console.error("Error loading more bookings:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <div>{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -81,8 +135,7 @@ export default function BookingsPage() {
         <CardHeader>
           <CardTitle>Manage Bookings</CardTitle>
           <CardDescription>
-            You have a total of {updatedMockBookings.length} bookings in the
-            system.
+            You have a total of {bookings.length} bookings in the system.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,33 +149,36 @@ export default function BookingsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as "all" | BookingStatus)
+                }
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value={BookingStatus.PENDING}>Pending</SelectItem>
+                  <SelectItem value={BookingStatus.CONFIRMED}>Confirmed</SelectItem>
+                  <SelectItem value={BookingStatus.COMPLETED}>Completed</SelectItem>
+                  <SelectItem value={BookingStatus.CANCELLED}>Cancelled</SelectItem>
                 </SelectContent>
               </Select>
               <Select
                 value={bookingTypeFilter}
-                onValueChange={setBookingTypeFilter}
+                onValueChange={(value) =>
+                  setBookingTypeFilter(value as BookingType | "all")
+                }
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by booking type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={BookingType.WHOLE}>
-                    Whole Homestay
-                  </SelectItem>
-                  <SelectItem value={BookingType.ROOMS}>
-                    Individual Rooms
-                  </SelectItem>
+                  <SelectItem value={BookingType.WHOLE}>Whole Homestay</SelectItem>
+                  <SelectItem value={BookingType.ROOMS}>Individual Rooms</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,25 +199,25 @@ export default function BookingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBookings.length === 0 ? (
+                {bookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-4">
                       No bookings found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredBookings.map((booking) => (
+                  bookings.map((booking) => (
                     <TableRow key={booking.id}>
                       <TableCell className="font-medium">
-                        #{booking.id}
+                        #{booking.bookingNumber}
                       </TableCell>
-                      <TableCell>{booking.homestayName}</TableCell>
-                      <TableCell>{booking.customerName}</TableCell>
+                      <TableCell>{booking.homestay.name}</TableCell>
+                      <TableCell>{booking.customer.user.name}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                           <span>
-                            {booking.checkIn} - {booking.checkOut}
+                            {`${moment(booking.checkIn).format("DD/MM/YYYY")} - ${moment(booking.checkOut).format("DD/MM/YYYY")}`}
                           </span>
                         </div>
                       </TableCell>
@@ -175,8 +231,10 @@ export default function BookingsPage() {
                           <div className="flex items-center">
                             <Hotel className="mr-1 h-4 w-4" />
                             <span>
-                              {booking.rooms?.length || 0}{" "}
-                              {booking.rooms?.length === 1 ? "Room" : "Rooms"}
+                              {booking.homestay.rooms.length || 0}{" "}
+                              {booking.homestay.rooms.length === 1
+                                ? "Room"
+                                : "Rooms"}
                             </span>
                           </div>
                         )}
@@ -207,6 +265,11 @@ export default function BookingsPage() {
               </TableBody>
             </Table>
           </div>
+          <InfiniteScroll
+            onLoadMore={loadMoreBookings}
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+          />
         </CardContent>
       </Card>
     </div>
