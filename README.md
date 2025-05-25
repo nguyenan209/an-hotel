@@ -42,3 +42,4 @@ This project was built with care by **An** as a passion project to explore real-
 ├── prisma/           # DB schema (if using Prisma)
 ├── docs/             # Documentation & mockups
 └── README.md
+
