@@ -224,6 +224,7 @@ export default function BookingDetailPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={true}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -252,6 +253,7 @@ export default function BookingDetailPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={true}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -279,7 +281,7 @@ export default function BookingDetailPage() {
                       <FormItem>
                         <FormLabel>Check-in Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} disabled={true} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -293,7 +295,7 @@ export default function BookingDetailPage() {
                       <FormItem>
                         <FormLabel>Check-out Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} disabled={true} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -308,7 +310,12 @@ export default function BookingDetailPage() {
                     <FormItem>
                       <FormLabel>Number of Guests</FormLabel>
                       <FormControl>
-                        <Input type="number" min="1" {...field} />
+                        <Input
+                          type="number"
+                          min="1"
+                          {...field}
+                          disabled={true}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -325,12 +332,14 @@ export default function BookingDetailPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={true}
                           className="flex flex-col space-y-1"
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem
                               value={BookingType.WHOLE}
                               id={BookingType.WHOLE}
+                              disabled={true}
                             />
                             <Label
                               htmlFor={BookingType.WHOLE}
@@ -341,7 +350,11 @@ export default function BookingDetailPage() {
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="rooms" id="rooms" />
+                            <RadioGroupItem
+                              value="rooms"
+                              id="rooms"
+                              disabled={true}
+                            />
                             <Label
                               htmlFor="rooms"
                               className="flex items-center"
@@ -416,6 +429,7 @@ export default function BookingDetailPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={true}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -448,6 +462,7 @@ export default function BookingDetailPage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={true}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -475,6 +490,7 @@ export default function BookingDetailPage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={true}
                         >
                           <FormControl>
                             <SelectTrigger>

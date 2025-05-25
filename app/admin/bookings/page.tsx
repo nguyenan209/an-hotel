@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Edit, Home, Hotel, Plus } from "lucide-react";
+import { Calendar, Edit, Eye, Home, Hotel, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -117,8 +117,12 @@ export default function BookingsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={BookingType.WHOLE}>Whole Homestay</SelectItem>
-                  <SelectItem value={BookingType.ROOMS}>Individual Rooms</SelectItem>
+                  <SelectItem value={BookingType.WHOLE}>
+                    Whole Homestay
+                  </SelectItem>
+                  <SelectItem value={BookingType.ROOMS}>
+                    Individual Rooms
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -192,8 +196,8 @@ export default function BookingsPage() {
                       <TableCell className="text-right">
                         <Link href={`/admin/bookings/${booking.id}`}>
                           <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View</span>
                           </Button>
                         </Link>
                       </TableCell>
