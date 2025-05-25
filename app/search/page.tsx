@@ -2,21 +2,8 @@ import { Suspense } from "react";
 import { SearchForm } from "@/components/search/search-form";
 import { FilterForm } from "@/components/search/filter-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
-import { searchHomestays } from "@/lib/data";
-import type { SearchParams } from "@/lib/types";
+import type { SearchPageProps, SearchParams } from "@/lib/types";
 
-interface SearchPageProps {
-  searchParams: Promise<{
-    location?: string;
-    checkIn?: string;
-    checkOut?: string;
-    guests?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    rating?: string;
-    amenities?: string;
-  }>;
-}
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   // Parse search params
 
@@ -42,20 +29,36 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       : undefined,
   };
 
-  // Search homestays
-  const homestays = await searchHomestays(params);
+  // Loại bỏ các giá trị undefined khỏi params
+  const filteredParams = Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value !== undefined)
+  );
+
+  // Fetch homestays from API
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/homestays/search?${new URLSearchParams(filteredParams)}`,
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch homestays");
+  }
+
+  const homestays = await response.json();
 
   // Build search summary
   let searchSummary = "Tất cả homestay";
   if (params.location) {
     searchSummary = `Homestay tại ${params.location}`;
   }
+  
+  console.log("Search Params:", params);
 
   return (
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">{searchSummary}</h1>
-        <SearchForm />
+        <SearchForm params={params} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

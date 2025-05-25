@@ -46,7 +46,7 @@ export default async function Home() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <SearchForm />
+          <SearchForm params={{}} />
         </div>
       </section>
 

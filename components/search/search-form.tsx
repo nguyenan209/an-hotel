@@ -2,14 +2,14 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -17,14 +17,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchParams } from "@/lib/types";
 import { searchSchema } from "@/lib/validation";
 
-export function SearchForm() {
+export function SearchForm({ params }: { params: SearchParams }) {
   const router = useRouter();
-  const [location, setLocation] = useState("");
-  const [checkIn, setCheckIn] = useState<Date>();
-  const [checkOut, setCheckOut] = useState<Date>();
-  const [guests, setGuests] = useState("1");
+  const [location, setLocation] = useState(params.location || "");
+  const [checkIn, setCheckIn] = useState<Date>(
+    new Date(params.checkIn || new Date())
+  );
+  const [checkOut, setCheckOut] = useState<Date>(
+    new Date(params.checkOut || new Date())
+  );
+  const [guests, setGuests] = useState(params.guests?.toString() || "1");
   const [roomsNeeded, setRoomsNeeded] = useState("");
   const [error, setError] = useState("");
 
@@ -97,7 +102,7 @@ export function SearchForm() {
           <label className="text-sm font-medium">Ngày nhận phòng</label>
           <DatePicker
             date={checkIn}
-            setDate={setCheckIn}
+            setDate={(date) => setCheckIn(date || new Date())}
             placeholder="Chọn ngày"
           />
         </div>
@@ -106,7 +111,7 @@ export function SearchForm() {
           <label className="text-sm font-medium">Ngày trả phòng</label>
           <DatePicker
             date={checkOut}
-            setDate={setCheckOut}
+            setDate={(date) => setCheckOut(date || new Date())}
             placeholder="Chọn ngày"
           />
         </div>

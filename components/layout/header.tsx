@@ -29,7 +29,6 @@ export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
-  console.log("User in Header:", user);
 
   useEffect(() => {
     if (user) {
@@ -54,16 +53,6 @@ export function Header() {
             HomeStay
           </Link>
           <nav className="hidden md:flex gap-4">
-            <Link
-              href="/"
-              className={`text-sm font-medium ${
-                pathname === "/"
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Trang chủ
-            </Link>
             <Link
               href="/search"
               className={`text-sm font-medium ${
@@ -117,7 +106,11 @@ export function Header() {
                     <span className="sr-only">User menu</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-fit p-0" sideOffset={10}>
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-fit p-0"
+                  sideOffset={10}
+                >
                   <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

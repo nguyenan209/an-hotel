@@ -11,7 +11,6 @@ interface HomestayCardProps {
 }
 
 export function HomestayCard({ homestay }: HomestayCardProps) {
-  console.log("Rendering HomestayCard for:", homestay)
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div className="relative aspect-[4/3] overflow-hidden">

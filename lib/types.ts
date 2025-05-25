@@ -89,7 +89,7 @@ export interface BookingHomestayAndCustomer extends Booking {
     address: Homestay["address"];
     images: Homestay["images"];
     rooms: {
-      id: string
+      id: string;
     }[];
   };
   customer: {
@@ -107,4 +107,17 @@ export interface BookingHomestayAndCustomer extends Booking {
 export interface BookingsResponse {
   bookings: BookingHomestayAndCustomer[];
   hasMore: boolean;
+}
+
+export interface SearchPageProps {
+  searchParams: Promise<{
+    location?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    rating?: string;
+    amenities?: string;
+  }>;
 }
