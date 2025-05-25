@@ -404,8 +404,8 @@ export default function HomestayDetailPage() {
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="rooms" id="rooms" />
-                      <Label htmlFor="rooms" className="flex items-center">
+                      <RadioGroupItem value={BookingType.ROOMS} id={BookingType.ROOMS} />
+                      <Label htmlFor={BookingType.ROOMS} className="flex items-center">
                         <Hotel className="mr-2 h-4 w-4" />
                         Đặt từng phòng
                       </Label>
