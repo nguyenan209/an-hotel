@@ -21,6 +21,7 @@ import { BookingStatus } from "@prisma/client";
 import moment from "moment";
 import { getStatusBadge } from "@/components/booking/status-badge";
 import { calculateNights } from "@/lib/utils";
+import Loading from "@/components/loading";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingWithHomestay[]>([]);
@@ -99,12 +100,7 @@ export default function BookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-10">
-        <div className="flex flex-col items-center justify-center min-h-[50vh]">
-          <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 rounded-full animate-spin"></div>
-          <p className="mt-4 text-lg">Loading your bookings...</p>
-        </div>
-      </div>
+      <Loading />
     );
   }
 

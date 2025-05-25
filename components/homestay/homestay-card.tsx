@@ -11,6 +11,7 @@ interface HomestayCardProps {
 }
 
 export function HomestayCard({ homestay }: HomestayCardProps) {
+  console.log("Rendering HomestayCard for:", homestay)
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -26,7 +27,7 @@ export function HomestayCard({ homestay }: HomestayCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center text-sm text-muted-foreground">
             <MapPin className="mr-1 h-4 w-4" />
-            {homestay.location}
+            {homestay.address}
           </div>
           <div className="flex items-center">
             <Star className="mr-1 h-4 w-4 fill-yellow-400 text-yellow-400" />

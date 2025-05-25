@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         rating: true,
         images: true,
         featured: true,
+        maxGuests: true,
       },
     });
 
