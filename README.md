@@ -43,3 +43,28 @@ This project was built with care by **An** as a passion project to explore real-
 ├── docs/             # Documentation & mockups
 └── README.md
 
+## 🛠️ Getting Started
+
+### Install Dependencies
+
+Make sure you have [pnpm](https://pnpm.io/) installed. Then, run the following command to install all dependencies for both the frontend and backend:
+
+```bash
+pnpm install
+```
+
+### Start the Project
+
+To start the project, use the following commands:
+
+1. Start the backend server:
+    ```bash
+    pnpm run dev:server
+    ```
+
+2. Start the frontend client:
+    ```bash
+    pnpm run dev:client
+    ```
+
+The application should now be running locally. Open your browser and navigate to `http://localhost:3000` (or the port specified in your configuration).
