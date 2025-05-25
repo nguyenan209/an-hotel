@@ -5,7 +5,6 @@ import { BookingType, Homestay, Room } from "@prisma/client";
 
 interface CartState {
   items: CartItem[];
-  notes: string;
   addWholeHomestayToCart: (
     homestay: Homestay,
     checkIn: string,
@@ -21,7 +20,6 @@ interface CartState {
   ) => void;
   removeFromCart: (homestayId: string) => void;
   clearCart: () => void;
-  setNotes: (notes: string) => void;
   getTotalPrice: () => number;
   getItemCount: () => number;
   updateItemNote: (homestayId: string, note: string) => void;
@@ -31,7 +29,6 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      notes: "",
 
       addWholeHomestayToCart: (homestay, checkIn, checkOut, guests) => {
         const checkInDate = new Date(checkIn);
@@ -44,7 +41,8 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           const existingItemIndex = state.items.findIndex(
             (item) =>
-              item.homestayId === homestay.id && item.bookingType === BookingType.WHOLE
+              item.homestayId === homestay.id &&
+              item.bookingType === BookingType.WHOLE
           );
 
           if (existingItemIndex >= 0) {
@@ -90,7 +88,8 @@ export const useCartStore = create<CartState>()(
           // Check if item already exists
           const existingItemIndex = state.items.findIndex(
             (item) =>
-              item.homestayId === homestay.id && item.bookingType === BookingType.ROOMS
+              item.homestayId === homestay.id &&
+              item.bookingType === BookingType.ROOMS
           );
 
           const roomsData = rooms.map((room) => ({
@@ -138,9 +137,7 @@ export const useCartStore = create<CartState>()(
         }));
       },
 
-      setNotes: (notes) => set({ notes }),
-
-      clearCart: () => set({ items: [], notes: "" }),
+      clearCart: () => set({ items: [] }),
 
       getTotalPrice: () => {
         return get().items.reduce((total, item) => {
@@ -158,8 +155,10 @@ export const useCartStore = create<CartState>()(
       getItemCount: () => get().items.length,
       updateItemNote: (homestayId: string, note: string) => {
         set((state) => ({
-          items: state.items.map((item) => (item.homestayId === homestayId ? { ...item, note } : item)),
-        }))
+          items: state.items.map((item) =>
+            item.homestayId === homestayId ? { ...item, note } : item
+          ),
+        }));
       },
     }),
     {

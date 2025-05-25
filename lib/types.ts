@@ -1,8 +1,10 @@
 import {
   Booking,
   BookingItem,
+  BookingStatus,
   BookingType,
   Homestay,
+  PaymentMethod,
   Prisma,
   Room,
   User,
@@ -22,7 +24,7 @@ export interface CartItem {
     roomName: string;
     price: number;
   }[];
-  note: string | null;
+  note?: string;
 }
 
 export interface Cart {
@@ -121,4 +123,46 @@ export interface SearchPageProps {
     rating?: string;
     amenities?: string;
   }>;
+}
+export interface RoomPayload {
+  roomId: string;
+  roomName: string;
+  pricePerNight: number;
+}
+
+export interface BookingItemPayload {
+  homestayId: string;
+  homestayName: string;
+  checkIn: string; // ISO 8601 date string
+  checkOut: string; // ISO 8601 date string
+  guests: number;
+  nights: number;
+  bookingType: BookingType;
+  note: string;
+  rooms: RoomPayload[];
+  totalPrice: number;
+}
+
+export interface BookingPayload {
+  paymentMethod: PaymentMethod;
+  totalAmount: number;
+  currency: string;
+  items: BookingItemPayload[];
+  status: BookingStatus;
+}
+
+export interface PaymentDetails {
+  qrStatus: QRPaymentStatus; 
+  cardDetails?: {
+    cardNumber: string;
+    cardHolder: string;
+    expiryDate: string;
+    cvv: string;
+  };
+}
+
+export interface CheckoutPayload {
+  paymentMethod: PaymentMethod;
+  bookingData: BookingPayload;
+  paymentDetails?: PaymentDetails;
 }
