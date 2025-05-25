@@ -43,6 +43,7 @@ import { BookingType, Homestay, Review, Room } from "@prisma/client";
 import Loading from "@/components/loading";
 import { Reviews } from "@/components/homestay/reviews";
 import { RoomWithBeds } from "@/lib/types";
+import { LeafletMap } from "@/components/map/leaflet-map";
 
 export default function HomestayDetailPage() {
   const { id } = useParams();
@@ -232,7 +233,7 @@ export default function HomestayDetailPage() {
           <div className="flex items-center gap-4 mb-6">
             <div className="flex items-center">
               <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-              <span className="text-muted-foreground">{homestay.location}</span>
+              <span className="text-muted-foreground">{homestay.address}</span>
             </div>
             <div className="flex items-center">
               <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
@@ -262,10 +263,11 @@ export default function HomestayDetailPage() {
           </Carousel>
 
           <Tabs defaultValue="description" className="mb-8">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="description">Mô tả</TabsTrigger>
               <TabsTrigger value="rooms">Phòng</TabsTrigger>
               <TabsTrigger value="amenities">Tiện nghi</TabsTrigger>
+              <TabsTrigger value="location">Địa điểm</TabsTrigger>
               <TabsTrigger value="reviews">Đánh giá</TabsTrigger>
             </TabsList>
             <TabsContent value="description" className="mt-4">
@@ -293,7 +295,7 @@ export default function HomestayDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {rooms.length > 0 ? (
                   rooms.map((room) => {
-                    return <RoomCard key={room.id} room={room} />
+                    return <RoomCard key={room.id} room={room} />;
                   })
                 ) : (
                   <p className="col-span-full text-muted-foreground">
@@ -330,6 +332,56 @@ export default function HomestayDetailPage() {
                     .finally(() => setIsLoadingReviews(false));
                 }}
               />
+            </TabsContent>
+            <TabsContent value="location" className="mt-4">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Vị trí</h3>
+                  <div className="flex items-center text-muted-foreground mb-4">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <span>{homestay.address}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-3">Bản đồ</h4>
+                  <LeafletMap
+                    latitude={10.762622} // Tọa độ mẫu cho TP.HCM
+                    longitude={106.660172}
+                    zoom={15}
+                    height="h-64"
+                    markerTitle={homestay.name}
+                    className="mb-4"
+                  />
+                  <p className="text-sm text-muted-foreground text-center">
+                    📍 Vị trí chính xác sẽ được chia sẻ sau khi đặt phòng
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-3">Thông tin khu vực</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium">Gần đây</h5>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Bãi biển - 5 phút đi bộ</li>
+                        <li>• Chợ địa phương - 10 phút đi bộ</li>
+                        <li>• Nhà hàng - 3 phút đi bộ</li>
+                        <li>• Siêu thị - 15 phút đi bộ</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium">Giao thông</h5>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Sân bay - 45 phút lái xe</li>
+                        <li>• Ga tàu - 20 phút lái xe</li>
+                        <li>• Bến xe buýt - 5 phút đi bộ</li>
+                        <li>• Thuê xe máy - 2 phút đi bộ</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -397,15 +449,27 @@ export default function HomestayDetailPage() {
                     className="flex flex-col space-y-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value={BookingType.WHOLE} id={BookingType.WHOLE} />
-                      <Label htmlFor={BookingType.WHOLE} className="flex items-center">
+                      <RadioGroupItem
+                        value={BookingType.WHOLE}
+                        id={BookingType.WHOLE}
+                      />
+                      <Label
+                        htmlFor={BookingType.WHOLE}
+                        className="flex items-center"
+                      >
                         <Home className="mr-2 h-4 w-4" />
                         Đặt toàn bộ homestay
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value={BookingType.ROOMS} id={BookingType.ROOMS} />
-                      <Label htmlFor={BookingType.ROOMS} className="flex items-center">
+                      <RadioGroupItem
+                        value={BookingType.ROOMS}
+                        id={BookingType.ROOMS}
+                      />
+                      <Label
+                        htmlFor={BookingType.ROOMS}
+                        className="flex items-center"
+                      >
                         <Hotel className="mr-2 h-4 w-4" />
                         Đặt từng phòng
                       </Label>
