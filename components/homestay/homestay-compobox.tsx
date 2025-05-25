@@ -38,7 +38,7 @@ const fetchHomestays = async (params: FetchHomestaysParams = {}) => {
   try {
     // Gọi API thực tế
     const response = await fetch(
-      `/api/admin/homestays?search=${encodeURIComponent(search)}&skip=${skip}&limit=${limit}`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${encodeURIComponent(search)}&skip=${skip}&limit=${limit}`
     );
 
     if (!response.ok) {

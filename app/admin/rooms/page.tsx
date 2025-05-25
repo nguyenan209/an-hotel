@@ -116,7 +116,7 @@ export default function RoomsPage() {
     try {
       setIsDeleting(true);
 
-      const response = await fetch(`/api/rooms/${roomId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

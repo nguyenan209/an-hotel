@@ -51,7 +51,7 @@ export default function CustomerDetailPage() {
     // Gọi API để lấy chi tiết khách hàng
     const fetchCustomer = async () => {
       try {
-        const response = await fetch(`/api/admin/customers/${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/customers/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch customer details");
         }

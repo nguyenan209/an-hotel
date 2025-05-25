@@ -104,7 +104,7 @@ export default function BookingDetailPage() {
     const fetchBooking = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/admin/bookings/${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/bookings/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch booking details");
         }
@@ -128,7 +128,7 @@ export default function BookingDetailPage() {
         // Fetch rooms for this homestay
         if (data.homestayId) {
           const roomsResponse = await fetch(
-            `/api/admin/homestays/${data.homestayId}/rooms`
+            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays/${data.homestayId}/rooms`
           );
           if (roomsResponse.ok) {
             const rooms = await roomsResponse.json();
@@ -148,7 +148,7 @@ export default function BookingDetailPage() {
   const onSubmit = async (data: BookingFormValues) => {
     try {
       const response = await fetch(
-        isNewBooking ? `/api/admin/bookings` : `/api/admin/bookings/${id}`,
+        isNewBooking ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/bookings` : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/bookings/${id}`,
         {
           method: isNewBooking ? "POST" : "PUT",
           headers: {

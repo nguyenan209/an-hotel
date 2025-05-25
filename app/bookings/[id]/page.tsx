@@ -52,7 +52,7 @@ export default function BookingDetailsPage() {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await fetch(`/api/bookings/${params.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${params.id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

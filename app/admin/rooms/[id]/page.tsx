@@ -75,7 +75,7 @@ export default function RoomDetailPage() {
   const fetchHomestays = async (searchQuery = "") => {
     try {
       const response = await fetch(
-        `/api/admin/homestays?search=${searchQuery}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${searchQuery}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch homestays");
@@ -96,7 +96,7 @@ export default function RoomDetailPage() {
     // Simulate API call to fetch room details
     const fetchRoom = async () => {
       try {
-        const response = await fetch(`/api/rooms/${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch room");
         }
@@ -132,7 +132,7 @@ export default function RoomDetailPage() {
   const onSubmit = (data: RoomFormValues) => {
     const createOrUpdateRoom = async () => {
       try {
-        const url = isNewRoom ? "/api/rooms" : `/api/rooms/${id}`;
+        const url = isNewRoom ? `${process.env.NEXT_PUBLIC_API_URL}/api/rooms` : `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${id}`;
         const method = isNewRoom ? "POST" : "PUT";
 
         // Chuẩn hóa dữ liệu images

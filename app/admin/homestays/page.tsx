@@ -125,7 +125,7 @@ export default function HomestaysPage() {
   const handleDelete = async (homestayId: string) => {
     try {
       setIsDeleting(true);
-      const response = await fetch(`/api/homestays/${homestayId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${homestayId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

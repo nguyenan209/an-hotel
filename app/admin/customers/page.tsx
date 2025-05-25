@@ -66,7 +66,7 @@ export default function CustomersPage() {
       }
 
       const response = await fetch(
-        `/api/admin/customers?search=${searchQuery}&status=${statusFilter}&page=${currentPage}&limit=10`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/customers?search=${searchQuery}&status=${statusFilter}&page=${currentPage}&limit=10`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch customers");

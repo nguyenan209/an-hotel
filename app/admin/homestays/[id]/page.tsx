@@ -153,7 +153,7 @@ export default function HomestayDetailPage() {
           throw new Error("User is not authenticated");
         }
 
-        const response = await fetch(`/api/homestays/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
