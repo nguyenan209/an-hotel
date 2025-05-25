@@ -77,22 +77,6 @@ export default function CartPage() {
               <CartItem key={item.homestayId} item={item} />
             ))}
           </div>
-
-          {items.length > 0 && (
-            <div className="mt-6 border rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-medium mb-2">Ghi chú đặc biệt</h3>
-              <textarea
-                className="w-full min-h-[100px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Thêm ghi chú về yêu cầu đặc biệt của bạn (ví dụ: phòng tầng cao, giường thêm, thời gian nhận phòng...)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Chúng tôi sẽ cố gắng đáp ứng các yêu cầu của bạn tùy thuộc vào
-                tình trạng sẵn có.
-              </p>
-            </div>
-          )}
         </div>
 
         <div className="lg:col-span-1">
