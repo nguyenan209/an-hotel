@@ -23,6 +23,7 @@ import {
   CreditCard,
   MessageSquare,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
@@ -37,6 +38,7 @@ import { BookingWithHomestay } from "@/lib/types";
 import { calculateNights, CANCELLATION_POLICIES } from "@/lib/utils";
 import moment from "moment";
 import { BookingStatus } from "@prisma/client";
+import { ReviewForm } from "@/components/review/review-form";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -45,6 +47,7 @@ export default function BookingDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -87,6 +90,11 @@ export default function BookingDetailsPage() {
       console.error("Failed to cancel booking:", error);
       setIsCancelling(false);
     }
+  };
+
+  const handleReviewSuccess = () => {
+    setHasReviewed(true);
+    // In a real app, you would update the booking in the database
   };
 
   if (isLoading) {
@@ -311,6 +319,47 @@ export default function BookingDetailsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Review Section - Only show for completed bookings */}
+      {booking.status === BookingStatus.COMPLETED && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-6 flex items-center">
+            <Star className="h-6 w-6 mr-2 text-yellow-400" />
+            Share Your Experience
+          </h2>
+          {hasReviewed ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Thank You for Your Review!</CardTitle>
+                <CardDescription>
+                  Your feedback helps other travelers make better choices and
+                  provides valuable insights to the host.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>You've already submitted a review for this booking.</p>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(`/homestays/${booking.homestayId}`)
+                  }
+                >
+                  View Homestay
+                </Button>
+              </CardFooter>
+            </Card>
+          ) : (
+            <ReviewForm
+              bookingId={booking.id}
+              homestayId={booking.homestayId}
+              homestayName={booking.homestay.name}
+              onSuccess={handleReviewSuccess}
+            />
+          )}
+        </div>
+      )}
 
       {/* Cancel Booking Confirmation Dialog */}
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
