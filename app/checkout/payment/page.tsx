@@ -93,6 +93,7 @@ export default function PaymentPage() {
           guests: item.guests,
           nights: item.nights,
           bookingType: item.bookingType,
+          note: item.note || "",
           rooms:
             item.rooms?.map((room) => ({
               roomId: room.roomId,
@@ -106,7 +107,6 @@ export default function PaymentPage() {
               )
             : item.homestay.price * item.nights,
         })),
-        specialRequests: notes,
         status: BookingStatus.PENDING,
       };
 

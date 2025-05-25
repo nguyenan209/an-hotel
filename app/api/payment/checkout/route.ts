@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
             status: BookingStatus.PENDING,
             paymentStatus: PaymentStatus.PENDING,
             paymentMethod: paymentMethod,
-            specialRequests: bookingData.specialRequests,
+            specialRequests: item.note,
             bookingItems: {
               create: item.rooms.map((room: any) => ({
                 room: {
