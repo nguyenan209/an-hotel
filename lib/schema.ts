@@ -1,4 +1,12 @@
-import { BedType, HomestayStatus, RoomStatus } from "@prisma/client";
+import {
+  BedType,
+  BookingStatus,
+  BookingType,
+  HomestayStatus,
+  PaymentMethod,
+  PaymentStatus,
+  RoomStatus,
+} from "@prisma/client";
 import { z } from "zod";
 
 export const homestaySchema = z.object({
@@ -48,3 +56,24 @@ export const customerSchema = z.object({
 });
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;
+
+export const bookingSchema = z.object({
+  homestayId: z.string().min(1, "Homestay is required"),
+  customerId: z.string().min(1, "Customer is required"),
+  checkIn: z.string().min(1, "Check-in date is required"),
+  checkOut: z.string().min(1, "Check-out date is required"),
+  guests: z.coerce.number().min(1, "Number of guests must be at least 1"),
+  status: z.nativeEnum(BookingStatus, {
+    errorMap: () => ({ message: "Booking status is required" }),
+  }),
+  paymentStatus: z.nativeEnum(PaymentStatus, {
+    errorMap: () => ({ message: "Payment status is required" }),
+  }),
+  paymentMethod: z.nativeEnum(PaymentMethod, {
+    errorMap: () => ({ message: "Payment method is required" }),
+  }),
+  bookingType: z.enum([BookingType.ROOMS, BookingType.WHOLE]),
+  selectedRooms: z.array(z.string()).optional(),
+});
+
+export type BookingFormValues = z.infer<typeof bookingSchema>;
