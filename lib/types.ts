@@ -22,6 +22,7 @@ export interface CartItem {
     roomName: string;
     price: number;
   }[];
+  note: string | null;
 }
 
 export interface Cart {

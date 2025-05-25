@@ -24,6 +24,7 @@ interface CartState {
   setNotes: (notes: string) => void;
   getTotalPrice: () => number;
   getItemCount: () => number;
+  updateItemNote: (homestayId: string, note: string) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -155,6 +156,11 @@ export const useCartStore = create<CartState>()(
       },
 
       getItemCount: () => get().items.length,
+      updateItemNote: (homestayId: string, note: string) => {
+        set((state) => ({
+          items: state.items.map((item) => (item.homestayId === homestayId ? { ...item, note } : item)),
+        }))
+      },
     }),
     {
       name: "cart-storage",

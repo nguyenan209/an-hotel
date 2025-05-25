@@ -3,9 +3,11 @@
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
-import { Hotel, Home } from "lucide-react";
+import { Hotel, Home, MessageSquare } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { BookingType } from "@prisma/client";
+import { useState } from "react";
+import { Button } from "../ui/button";
 
 interface BookingSummaryProps {
   items: CartItem[];
@@ -14,6 +16,7 @@ interface BookingSummaryProps {
 
 export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
   const { notes } = useCartStore();
+  const [showNote, setShowNote] = useState<string | null>(null);
 
   return (
     <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 sticky top-24">
@@ -59,7 +62,29 @@ export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
                   phòng
                 </>
               )}
+              {item.note && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-6 px-2 text-xs"
+                  onClick={() =>
+                    setShowNote(
+                      showNote === item.homestayId ? null : item.homestayId
+                    )
+                  }
+                >
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  Ghi chú
+                </Button>
+              )}
             </div>
+
+            {showNote === item.homestayId && item.note && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                <div className="text-blue-800 font-medium mb-1">Ghi chú:</div>
+                <div className="text-blue-700">{item.note}</div>
+              </div>
+            )}
             <div className="text-sm">
               {item.nights} đêm × {item.guests} khách
             </div>
@@ -82,28 +107,6 @@ export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
           </div>
         ))}
       </div>
-
-      {notes && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-          <h3 className="font-semibold text-sm text-blue-800 flex items-center">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Ghi chú đặc biệt:
-          </h3>
-          <div className="text-sm text-blue-700 bg-white p-3 rounded-md border border-blue-100">
-            {notes}
-          </div>
-        </div>
-      )}
 
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         <div className="flex justify-between">
