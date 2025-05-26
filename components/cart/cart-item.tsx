@@ -2,7 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2, Hotel, Home, MessageSquare, X } from "lucide-react";
+import {
+  Trash2,
+  Hotel,
+  Home,
+  MessageSquare,
+  X,
+  Check,
+  Edit,
+} from "lucide-react";
 
 import type { CartItem as CartItemType } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -19,12 +27,13 @@ export function CartItem({ item }: CartItemProps) {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateItemNote = useCartStore((state) => state.updateItemNote);
 
+  const [showNoteInput, setShowNoteInput] = useState(!!item.note)
+  const [itemNote, setItemNote] = useState(item.note || "");
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleRemove = () => {
     removeFromCart(item.homestayId);
   };
-
-  const [showNoteInput, setShowNoteInput] = useState(false);
-  const [itemNote, setItemNote] = useState("");
 
   const calculateTotalPrice = () => {
     if (item.bookingType === BookingType.WHOLE) {
@@ -41,6 +50,17 @@ export function CartItem({ item }: CartItemProps) {
 
   const handleSaveNote = () => {
     updateItemNote(item.homestayId, itemNote);
+  };
+
+  const handleToggleNote = () => {
+    setShowNoteInput(!showNoteInput);
+    if (!showNoteInput) {
+      // Khi mở note input, auto vào chế độ edit
+      setIsEditing(true);
+    } else {
+      // Khi đóng note input, reset về chế độ view
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -114,7 +134,7 @@ export function CartItem({ item }: CartItemProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowNoteInput(!showNoteInput)}
+            onClick={handleToggleNote}
             className="h-8 px-2 text-muted-foreground hover:text-primary"
           >
             <MessageSquare className="h-4 w-4 mr-1" />
@@ -128,23 +148,42 @@ export function CartItem({ item }: CartItemProps) {
               <label className="text-sm font-medium">
                 Ghi chú cho booking này:
               </label>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowNoteInput(false)}
-                className="h-6 w-6"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (isEditing) {
+                      handleSaveNote();
+                      setIsEditing(false);
+                    } else {
+                      setIsEditing(true);
+                    }
+                  }}
+                  className="h-6 w-6 text-primary hover:text-primary/80"
+                >
+                  {isEditing ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Edit className="h-3 w-3" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowNoteInput(false)}
+                  className="h-6 w-6"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <textarea
-              className="w-full min-h-[80px] p-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              className="w-full min-h-[80px] p-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="Ví dụ: Phòng tầng cao, giường thêm, thời gian nhận phòng đặc biệt..."
               value={itemNote}
-              onChange={(e) => {
-                setItemNote(e.target.value);
-                updateItemNote(item.homestayId, e.target.value);
-              }}
+              onChange={(e) => setItemNote(e.target.value)}
+              disabled={!isEditing}
             />
             <p className="text-xs text-muted-foreground mt-1">
               Ghi chú sẽ được gửi đến chủ homestay

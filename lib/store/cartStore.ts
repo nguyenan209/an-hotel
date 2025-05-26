@@ -1,168 +1,268 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem } from "../types";
-import { BookingType, Homestay, Room } from "@prisma/client";
+import { BookingType, CartItem, Homestay, Room } from "@prisma/client";
+import { cartAPI } from "../services/cart-service";
 
 interface CartState {
-  items: CartItem[];
+  items: Partial<CartItem>[]; // Sử dụng CartItem từ Prisma
+  isLoading: boolean;
+  isLoggedIn: boolean;
+  customerId: string | null;
   addWholeHomestayToCart: (
     homestay: Homestay,
     checkIn: string,
     checkOut: string,
     guests: number
-  ) => void;
+  ) => Promise<void>;
   addRoomsToCart: (
     homestay: Homestay,
     rooms: Room[],
     checkIn: string,
     checkOut: string,
     guests: number
-  ) => void;
-  removeFromCart: (homestayId: string) => void;
-  clearCart: () => void;
+  ) => Promise<void>;
+  removeFromCart: (homestayId: string) => Promise<void>;
+  clearCart: () => Promise<void>;
   getTotalPrice: () => number;
   getItemCount: () => number;
-  updateItemNote: (homestayId: string, note: string) => void;
+  updateItemNote: (homestayId: string, note: string) => Promise<void>;
+  setAuthState: (isLoggedIn: boolean, customerId: string | null) => void;
+  syncCartWithServer: () => Promise<void>;
+  loadCartFromServer: () => Promise<void>;
+  setItems: () => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      isLoading: false,
+      isLoggedIn: false,
+      customerId: null,
 
-      addWholeHomestayToCart: (homestay, checkIn, checkOut, guests) => {
-        const checkInDate = new Date(checkIn);
-        const checkOutDate = new Date(checkOut);
-        const nights = Math.ceil(
-          (checkOutDate.getTime() - checkInDate.getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-
-        set((state) => {
-          const existingItemIndex = state.items.findIndex(
-            (item) =>
-              item.homestayId === homestay.id &&
-              item.bookingType === BookingType.WHOLE
-          );
-
-          if (existingItemIndex >= 0) {
-            // Update existing item
-            const updatedItems = [...state.items];
-            updatedItems[existingItemIndex] = {
-              ...updatedItems[existingItemIndex],
-              checkIn,
-              checkOut,
-              guests,
-              nights,
-            };
-            return { items: updatedItems };
-          } else {
-            // Add new item
-            return {
-              items: [
-                ...state.items,
-                {
-                  homestayId: homestay.id,
-                  homestay,
-                  checkIn,
-                  checkOut,
-                  guests,
-                  nights,
-                  bookingType: BookingType.WHOLE,
-                },
-              ],
-            };
-          }
-        });
+      setAuthState: (isLoggedIn, customerId) => {
+        set({ isLoggedIn, customerId });
+        if (isLoggedIn && customerId) {
+          get().syncCartWithServer();
+        }
       },
 
-      addRoomsToCart: (homestay, rooms, checkIn, checkOut, guests) => {
-        const checkInDate = new Date(checkIn);
-        const checkOutDate = new Date(checkOut);
-        const nights = Math.ceil(
-          (checkOutDate.getTime() - checkInDate.getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
+      syncCartWithServer: async () => {
+        const { items, isLoggedIn, customerId } = get();
+        if (!isLoggedIn || !customerId || items.length === 0) return;
 
-        set((state) => {
-          // Check if item already exists
-          const existingItemIndex = state.items.findIndex(
-            (item) =>
-              item.homestayId === homestay.id &&
-              item.bookingType === BookingType.ROOMS
-          );
+        set({ isLoading: true });
+        try {
+          for (const item of items) {
+            await cartAPI.addToCart(customerId, item);
+          }
+          set({ items: [] });
+          await get().loadCartFromServer();
+        } catch (error) {
+          console.error("Failed to sync cart with server:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
-          const roomsData = rooms.map((room) => ({
-            roomId: room.id,
-            roomName: room.name,
-            price: room.price,
+      loadCartFromServer: async () => {
+        const { isLoggedIn, customerId } = get();
+        if (!isLoggedIn || !customerId) return;
+
+        set({ isLoading: true });
+        try {
+          const serverCart = await cartAPI.getCart(customerId);
+          const parsedItems = serverCart.items.map((item: any) => ({
+            ...item,
+            rooms: item.rooms ? JSON.parse(item.rooms) : null, // Parse JSON
           }));
+          set({ items: parsedItems });
+        } catch (error) {
+          console.error("Failed to load cart from server:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
-          if (existingItemIndex >= 0) {
-            // Update existing item
-            const updatedItems = [...state.items];
-            updatedItems[existingItemIndex] = {
-              ...updatedItems[existingItemIndex],
-              checkIn,
-              checkOut,
-              guests,
-              nights,
-              rooms: roomsData,
-            };
-            return { items: updatedItems };
-          } else {
-            // Add new item
-            return {
-              items: [
-                ...state.items,
-                {
-                  homestayId: homestay.id,
-                  homestay,
-                  checkIn,
-                  checkOut,
-                  guests,
-                  nights,
-                  bookingType: BookingType.ROOMS,
-                  rooms: roomsData,
-                },
-              ],
-            };
+      addWholeHomestayToCart: async (homestay, checkIn, checkOut, guests) => {
+        const { isLoggedIn, customerId } = get();
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+        const nights = Math.ceil(
+          (checkOutDate.getTime() - checkInDate.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+
+        const newItem: Partial<CartItem> = {
+          homestayId: homestay.id,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          guests,
+          nights,
+          bookingType: BookingType.WHOLE,
+          rooms: [],
+          totalPrice: homestay.price * nights,
+        };
+
+        if (isLoggedIn && customerId) {
+          set({ isLoading: true });
+          try {
+            await cartAPI.addToCart(customerId, newItem);
+            await get().loadCartFromServer();
+          } catch (error) {
+            console.error("Failed to add to cart on server:", error);
+          } finally {
+            set({ isLoading: false });
           }
-        });
+        } else {
+          set((state) => ({
+            items: [...state.items, newItem],
+          }));
+        }
       },
 
-      removeFromCart: (homestayId) => {
-        set((state) => ({
-          items: state.items.filter((item) => item.homestayId !== homestayId),
+      addRoomsToCart: async (homestay, rooms, checkIn, checkOut, guests) => {
+        const { isLoggedIn, customerId } = get();
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+        const nights = Math.ceil(
+          (checkOutDate.getTime() - checkInDate.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+
+        const roomsData = rooms.map((room) => ({
+          roomId: room.id,
+          roomName: room.name,
+          price: room.price,
         }));
+
+        const newItem: Partial<CartItem> = {
+
+          homestayId: homestay.id,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          guests,
+          nights,
+          bookingType: BookingType.ROOMS,
+          rooms: JSON.stringify(roomsData),
+          totalPrice:
+            roomsData.reduce((sum, room) => sum + room.price, 0) * nights,
+        };
+
+        if (isLoggedIn && customerId) {
+          set({ isLoading: true });
+          try {
+            await cartAPI.addToCart(customerId, newItem);
+            await get().loadCartFromServer();
+          } catch (error) {
+            console.error("Failed to add to cart on server:", error);
+          } finally {
+            set({ isLoading: false });
+          }
+        } else {
+          set((state) => ({
+            items: [...state.items, newItem],
+          }));
+        }
       },
 
-      clearCart: () => set({ items: [] }),
+      removeFromCart: async (homestayId) => {
+        const { isLoggedIn, customerId } = get();
+
+        if (isLoggedIn && customerId) {
+          set({ isLoading: true });
+          try {
+            await cartAPI.removeFromCart(customerId, homestayId);
+            await get().loadCartFromServer();
+          } catch (error) {
+            console.error("Failed to remove from cart on server:", error);
+            set((state) => ({
+              items: state.items.filter(
+                (item) => item.homestayId !== homestayId
+              ),
+            }));
+          } finally {
+            set({ isLoading: false });
+          }
+        } else {
+          set((state) => ({
+            items: state.items.filter((item) => item.homestayId !== homestayId),
+          }));
+        }
+      },
+
+      clearCart: async () => {
+        const { isLoggedIn, customerId } = get();
+
+        if (isLoggedIn && customerId) {
+          set({ isLoading: true });
+          try {
+            await cartAPI.clearCart(customerId);
+            set({ items: [] });
+          } catch (error) {
+            console.error("Failed to clear cart on server:", error);
+            set({ items: [] });
+          } finally {
+            set({ isLoading: false });
+          }
+        } else {
+          set({ items: [] });
+        }
+      },
 
       getTotalPrice: () => {
-        return get().items.reduce((total, item) => {
-          if (item.bookingType === BookingType.WHOLE) {
-            return total + item.homestay.price * item.nights;
-          } else {
-            // Sum up the prices of all rooms
-            const roomsTotal =
-              item.rooms?.reduce((sum, room) => sum + room.price, 0) || 0;
-            return total + roomsTotal * item.nights;
-          }
+        return get().items.reduce((total, item: Partial<CartItem>) => {
+          if (item.bookingType === BookingType.WHOLE) return total + (item.totalPrice || 0);
+          const roomsArray = typeof item.rooms === "string" ? JSON.parse(item.rooms) : item.rooms;
+          const roomsTotal = Array.isArray(roomsArray)
+            ? roomsArray.reduce((sum, room) => sum + (room.price || 0), 0)
+            : 0;
+          return total + roomsTotal * (item.nights || 1);
         }, 0);
       },
 
       getItemCount: () => get().items.length,
-      updateItemNote: (homestayId: string, note: string) => {
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.homestayId === homestayId ? { ...item, note } : item
-          ),
-        }));
+      updateItemNote: async (homestayId, note) => {
+        const { isLoggedIn, customerId } = get();
+
+        if (isLoggedIn && customerId) {
+          set({ isLoading: true });
+          try {
+            await cartAPI.updateItemNote(customerId, homestayId, note);
+            await get().loadCartFromServer();
+          } catch (error) {
+            console.error("Failed to update note on server:", error);
+            set((state) => ({
+              items: state.items.map((item) =>
+                item.homestayId === homestayId ? { ...item, note } : item
+              ),
+            }));
+          } finally {
+            set({ isLoading: false });
+          }
+        } else {
+          set((state) => ({
+            items: state.items.map((item) =>
+              item.homestayId === homestayId ? { ...item, note } : item
+            ),
+          }));
+        }
+      },
+      setItems: () => {
+        const localCart = localStorage.getItem("cart");
+        if (localCart) {
+          const parsedItems = JSON.parse(localCart);
+          set({ items: parsedItems });
+        } else {
+          set({ items: [] }); // Nếu không có dữ liệu trong localStorage, đặt items là mảng rỗng
+        }
       },
     }),
     {
       name: "cart-storage",
+      partialize: (state) => ({
+        items: state.isLoggedIn ? [] : state.items,
+      }),
     }
   )
 );

@@ -43,7 +43,7 @@ export interface SearchParams {
   roomsNeeded?: number;
 }
 
-export type Token = {
+export interface Token {
   id: string;
   name: string;
   email: string;
@@ -52,7 +52,7 @@ export type Token = {
   address?: string;
   avatar?: string;
   customerId: string;
-};
+}
 
 export enum QRPaymentStatus {
   PENDING = "pending",
@@ -152,7 +152,7 @@ export interface BookingPayload {
 }
 
 export interface PaymentDetails {
-  qrStatus: QRPaymentStatus; 
+  qrStatus: QRPaymentStatus;
   cardDetails?: {
     cardNumber: string;
     cardHolder: string;
