@@ -16,7 +16,7 @@ import type { CartItem as CartItemType } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cartStore";
-import { BookingType, Homestay } from "@prisma/client";
+import { BookingType } from "@prisma/client";
 import { useState } from "react";
 
 interface CartItemProps {
@@ -37,6 +37,7 @@ export function CartItem({ item }: CartItemProps) {
 
   const calculateTotalPrice = () => {
     if (item.bookingType === BookingType.WHOLE) {
+      console.log(item)
       return item.homestay.price * item.nights;
     } else {
       // Sum up the prices of all rooms
@@ -47,6 +48,7 @@ export function CartItem({ item }: CartItemProps) {
   };
 
   const totalPrice = calculateTotalPrice();
+  console.log("Total price for item:", totalPrice);
 
   const handleSaveNote = () => {
     updateItemNote(item.homestayId, itemNote);

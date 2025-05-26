@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { CartItem } from "@prisma/client";
+import { CartItem } from "@/lib/types";
 
 // Lấy giỏ hàng của người dùng
 export async function GET(
@@ -43,7 +43,7 @@ export async function POST(
   { params }: { params: Promise<{ customerId: string }> }
 ) {
   const { customerId } = await params;
-  const { item }: { item: CartItem } = await request.json();
+  const { item } = await request.json();
 
   try {
     // Tìm giỏ hàng của người dùng
@@ -78,11 +78,11 @@ export async function POST(
           checkIn: new Date(item.checkIn),
           checkOut: new Date(item.checkOut),
           guests: item.guests,
-          rooms: JSON.stringify(item.rooms),
+          rooms: JSON.stringify(item.rooms || []),
           note: item.note || null,
           totalPrice: item.totalPrice,
-          nights: item.nights,
           bookingType: item.bookingType,
+          nights: item.nights || 1, // Cập nhật số đêm nếu có
         },
       });
     } else {
@@ -99,7 +99,7 @@ export async function POST(
           rooms: JSON.stringify(item.rooms || []),
           note: item.note || null,
           totalPrice: item.totalPrice,
-          nights: item.nights,
+          nights: item.nights || 1, // Cập nhật số đêm nếu có
         },
       });
     }

@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { BookOpen, HelpCircle, LogOut, ShoppingCart, User, UserCircle } from "lucide-react";
+import {
+  BookOpen,
+  HelpCircle,
+  LogOut,
+  ShoppingCart,
+  User,
+  UserCircle,
+} from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -88,8 +95,12 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
           <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative border border-gray-200 bg-white hover:bg-gray-50">
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative border border-gray-200 bg-white hover:bg-gray-50"
+              >
                 <ShoppingCart className="h-5 w-5" />
                 {totalHomestays > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-white text-[10px]">
@@ -114,13 +125,23 @@ export function Header() {
                         key={item.homestayId}
                         className="flex items-center gap-3 p-2 rounded-lg bg-gray-50"
                       >
-                        <div className="w-12 h-12 bg-gray-200 rounded-md flex-shrink-0"></div>
+                        <img
+                          src={
+                            item.homestay.images[0] ||
+                            "/placeholder.svg?height=48&width=48"
+                          }
+                          alt={item.homestay.name}
+                          className="w-12 h-12 bg-gray-200 rounded-md flex-shrink-0 object-cover"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {item.homestay.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {item.homestay.id}
+                            {item.totalPrice.toLocaleString("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            })}
                           </p>
                         </div>
                       </div>

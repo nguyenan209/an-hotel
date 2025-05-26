@@ -542,7 +542,8 @@ model CartItem {
   checkIn     DateTime
   checkOut    DateTime
   guests      Int
-  rooms       Json[]
+  nights       Int // Số đêm
+  rooms       Json
   note        String? // Ghi chú của khách hàng
   totalPrice  Float // Tổng giá
   bookingType BookingType // Loại đặt phòng (toàn bộ homestay hoặc từng phòng)

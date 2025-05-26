@@ -17,15 +17,17 @@ export interface CartItem {
   checkIn: string;
   checkOut: string;
   guests: number;
-  nights: number;
+  nights: number; 
   bookingType: BookingType;
-  rooms?: {
-    roomId: string;
-    roomName: string;
-    price: number;
-  }[];
+  rooms?: RoomCart[];
   note?: string;
   totalPrice: number;
+}
+
+export interface RoomCart  {
+  roomId: string;
+  roomName: string;
+  price: number;
 }
 
 export interface Cart {
