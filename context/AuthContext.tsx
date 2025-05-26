@@ -2,46 +2,61 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  // Thêm các trường khác nếu cần
-}
+import { useCartStore } from "@/lib/store/cartStore";
+import { Token } from "@/lib/types";
 
 interface AuthContextType {
-  user: User | null;
-  login: (user: User) => void;
+  user: Token | null;
+  login: (user: Token, token: string) => void;
   logout: () => void;
+  isLoggedIn: boolean;
+  customerId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Token | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const setAuthState = useCartStore((state) => state.setAuthState);
+  const [customerId, setCustomerId] = useState<string | null>(null);
 
   // Kiểm tra token trong cookies khi ứng dụng khởi chạy
   useEffect(() => {
-    const storedUser = Cookies.get("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+    const token = Cookies.get("token");
 
-  const login = (user: User) => {
+    if (token) {
+      const customerId = Cookies.get("customerId");
+      setIsLoggedIn(true);
+      setUser(JSON.parse(Cookies.get("user") || "{}"));
+      setCustomerId(customerId || null);
+      setAuthState(true, customerId || null);
+    }
+  }, [setAuthState]);
+
+  const login = (user: Token, token: string) => {
     setUser(user);
+    setIsLoggedIn(true);
+    setCustomerId(user.id);
     Cookies.set("user", JSON.stringify(user), { expires: 7, path: "/" });
+    Cookies.set("token", token, { expires: 7, path: "/" });
+    Cookies.set("customerId", user.id, { expires: 7, path: "/" });
   };
 
   const logout = () => {
     setUser(null);
+    setIsLoggedIn(false);
+    setCustomerId(null);
     Cookies.remove("user");
     Cookies.remove("token");
+    Cookies.remove("customerId");
+    setAuthState(false, null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isLoggedIn, customerId }}
+    >
       {children}
     </AuthContext.Provider>
   );

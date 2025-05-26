@@ -39,7 +39,7 @@ export const getRooms = async (
 
   try {
     const response = await fetch(
-      `/api/rooms?search=${encodeURIComponent(search)}&status=${status}&homestayId=${homestayId}&skip=${skip}&limit=${limit}`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/rooms?search=${encodeURIComponent(search)}&status=${status}&homestayId=${homestayId}&skip=${skip}&limit=${limit}`
     );
 
     if (!response.ok) {

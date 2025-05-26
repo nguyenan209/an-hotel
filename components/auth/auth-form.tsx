@@ -6,7 +6,6 @@ import Link from "next/link";
 import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Cookies from "js-cookie";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { registerSchema, loginSchema } from "@/lib/validation";
 import { useAuth } from "@/context/AuthContext";
+import { Token } from "@/lib/types";
 
 interface AuthFormProps {
   type: "login" | "register";
@@ -49,7 +49,6 @@ export function AuthForm({ type }: AuthFormProps) {
 
     try {
       if (type === "login") {
-        // Gọi API đăng nhập thực tế
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,15 +62,9 @@ export function AuthForm({ type }: AuthFormProps) {
           setError(result.message || "Đăng nhập thất bại");
           return;
         }
-        // Lưu token và user vào cookies
-        Cookies.set("token", result.token, { expires: 7, path: "/" });
-        Cookies.set("user", JSON.stringify(result.user), {
-          expires: 7,
-          path: "/",
-        });
 
         // Cập nhật trạng thái người dùng trong AuthContext
-        login(result.user);
+        login(result.user, result.token);
 
         // Chuyển hướng về trang chủ hoặc trang trước đó
         router.push("/");

@@ -15,7 +15,7 @@ export async function fetchBookings({
     limit: limit.toString(),
   });
 
-  const response = await fetch(`/api/admin/bookings?${params}`);
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/bookings?${params}`);
   if (!response.ok) {
     throw new Error("Failed to fetch bookings");
   }

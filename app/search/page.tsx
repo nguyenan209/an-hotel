@@ -51,8 +51,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   if (params.location) {
     searchSummary = `Homestay tại ${params.location}`;
   }
-  
-  console.log("Search Params:", params);
 
   return (
     <div className="container py-8">

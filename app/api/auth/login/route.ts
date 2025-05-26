@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { comparePassword, generateToken } from "@/lib/auth";
+import { Token } from "@/lib/types";
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,8 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-    const token = generateToken({
+    
+    const userPayload: Token = {
       id: user.id,
       customerId: user.customer?.id ?? "",
       email: user.email,
@@ -51,19 +53,12 @@ export async function POST(req: Request) {
       phone: user.phone ?? "",
       address: user.address ?? "",
       avatar: user.avatar ?? "",
-    });
+    }
+    
+    const token = generateToken(userPayload);
     return NextResponse.json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        phone: user.phone,
-        address: user.address,
-        avatar: user.avatar,
-        customerId: user.customer?.id ?? null,
-      },
+      user: userPayload,
       token,
     });
   } catch (error) {

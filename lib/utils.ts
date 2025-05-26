@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { generateHash } from "./hash";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -71,3 +72,8 @@ export function calculateNights(checkIn: string, checkOut: string) {
 
 export const CANCELLATION_POLICIES =
   "Free cancellation up to 7 days before check-in. After that, 50% of the total amount will be charged.";
+
+export const generateBookingNumber = (payload: any): string => {
+  const bookingNumber = `AN-HOTEL-BK${generateHash(payload)}`;
+  return bookingNumber.toUpperCase();
+};

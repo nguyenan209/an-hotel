@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 
 export const fetchHomestayById = async (id: string) => {
   const token = Cookies.get("token");
-  const response = await fetch(`/api/homestays/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -20,7 +20,7 @@ export async function fetchAddressResults(
 ): Promise<{ id: string; address: string }[]> {
   try {
     const response = await fetch(
-      `/api/opencage?query=${encodeURIComponent(query)}`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/opencage?query=${encodeURIComponent(query)}`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch address results");
