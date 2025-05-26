@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   // Fetch homestays from API
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/homestays/search?${new URLSearchParams(filteredParams)}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/search?${new URLSearchParams(filteredParams)}`,
     { cache: "no-store" }
   );
 
