@@ -1,6 +1,6 @@
 import { SearchForm } from "@/components/search/search-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
-import Cookies from "js-cookie";
+import { CartLoader } from "@/components/cart/cart-loader";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +30,7 @@ export default async function Home() {
 
   return (
     <div className="container py-8">
+      <CartLoader />
       <section className="mb-12">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">
