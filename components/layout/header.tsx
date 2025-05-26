@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatCurrency } from "@/lib/utils";
 
 export function Header() {
   const pathname = usePathname();
@@ -130,18 +131,20 @@ export function Header() {
                             item.homestay.images[0] ||
                             "/placeholder.svg?height=48&width=48"
                           }
-                          alt={item.homestay.name}
+                          alt={item.homestay.name || "Homestay"}
                           className="w-12 h-12 bg-gray-200 rounded-md flex-shrink-0 object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {item.homestay.name}
+                          <p className="text-sm font-medium truncate text-gray-900">
+                            {item.homestay.name || "Homestay"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {item.totalPrice.toLocaleString("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            })}
+                            {item.nights} đêm
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-primary font-medium">
+                            {formatCurrency(item.totalPrice * item.nights)}
                           </p>
                         </div>
                       </div>
