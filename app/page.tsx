@@ -14,13 +14,9 @@ export default async function Home() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`, // Sử dụng token từ biến môi trường
         },
       }
     );
-    console.log(response);
-
-    console.log("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
     if (!response.ok) {
       throw new Error("Failed to fetch featured homestays");
