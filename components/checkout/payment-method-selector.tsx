@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StripeCheckoutForm } from "@/components/checkout/stripe-checkout-form";
 import { QRPaymentPopup } from "@/components/checkout/qr-payment-popup";
 import { PaymentMethod } from "@prisma/client";
+import { BookingPayload } from "@/lib/types";
 
 // Khởi tạo Stripe với public key
 const stripePromise = loadStripe(
@@ -21,17 +22,17 @@ const stripePromise = loadStripe(
 interface PaymentMethodSelectorProps {
   paymentMethod: PaymentMethod;
   onPaymentMethodChange: (method: PaymentMethod) => void;
-  totalPrice: number;
   onCreditCardSuccess: (paymentDetails: any) => void;
   onQRSuccess: () => void;
+  bookingPayload: BookingPayload;
 }
 
 export function PaymentMethodSelector({
   paymentMethod,
   onPaymentMethodChange,
-  totalPrice,
   onCreditCardSuccess,
   onQRSuccess,
+  bookingPayload,
 }: PaymentMethodSelectorProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [amountInUSD, setAmountInUSD] = useState<number>(0);
@@ -49,13 +50,13 @@ export function PaymentMethodSelector({
         setIsLoadingClientSecret(true);
         try {
           // Gọi API để tạo payment intent
-          const response = await fetch("/api/payment/create-payment-intent", {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-payment-intent`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: totalPrice,
+              amount: bookingPayload?.totalAmount,
             }),
           });
 
@@ -85,7 +86,13 @@ export function PaymentMethodSelector({
 
       createPaymentIntent();
     }
-  }, [paymentMethod, clientSecret, isLoadingClientSecret, totalPrice, toast]);
+  }, [
+    paymentMethod,
+    clientSecret,
+    isLoadingClientSecret,
+    bookingPayload?.totalAmount,
+    toast,
+  ]);
 
   const handlePaymentMethodChange = (value: string) => {
     const method = value as PaymentMethod;
@@ -129,7 +136,7 @@ export function PaymentMethodSelector({
 
               {paymentMethod === PaymentMethod.BANK_TRANSFER && (
                 <QRPaymentPopup
-                  amount={totalPrice}
+                  bookingPayload={bookingPayload}
                   onPaymentSuccess={onQRSuccess}
                 />
               )}
@@ -209,7 +216,11 @@ export function PaymentMethodSelector({
           }`}
         >
           <div className="flex items-start">
-            <RadioGroupItem value={PaymentMethod.CASH} id="reception" className="mt-1" />
+            <RadioGroupItem
+              value={PaymentMethod.CASH}
+              id="reception"
+              className="mt-1"
+            />
             <div className="ml-3">
               <Label
                 htmlFor="reception"
@@ -228,8 +239,8 @@ export function PaymentMethodSelector({
                   <AlertTitle className="text-blue-600">Lưu ý</AlertTitle>
                   <AlertDescription className="text-blue-600">
                     Bạn sẽ cần thanh toán đầy đủ số tiền{" "}
-                    {totalPrice.toLocaleString("vi-VN")} đ khi nhận phòng. Đặt
-                    phòng của bạn sẽ được giữ trong 24 giờ.
+                    {bookingPayload?.totalAmount.toLocaleString("vi-VN")} đ khi
+                    nhận phòng. Đặt phòng của bạn sẽ được giữ trong 24 giờ.
                   </AlertDescription>
                 </Alert>
               )}

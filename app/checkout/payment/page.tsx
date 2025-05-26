@@ -3,7 +3,7 @@
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 import { BookingSummary } from "@/components/checkout/booking-summary";
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
@@ -19,7 +19,14 @@ export default function PaymentPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [bookingPayload, setBookingPayload] = useState<any>(null);
 
+  useEffect(() => {
+    if (user !== undefined) {
+      setIsLoggedIn(true);
+    }
+  }, [user]);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     PaymentMethod.BANK_TRANSFER
@@ -30,7 +37,40 @@ export default function PaymentPage() {
   );
   const [creditCardPaymentDetails, setCreditCardPaymentDetails] =
     useState<any>(null);
-  const { items, getTotalPrice, clearCart, notes } = useCartStore();
+  const { items, getTotalPrice, clearCart } = useCartStore();
+
+  const totalPrice = getTotalPrice();
+
+  useEffect(() => {
+    const bookingData = {
+      totalAmount: totalPrice,
+      currency: "VND",
+      items: items.map((item) => ({
+        homestayId: item.homestayId,
+        homestayName: item.homestay?.name || "Unknown Homestay", // Đảm bảo có giá trị mặc định
+        checkIn: item.checkIn,
+        checkOut: item.checkOut,
+        guests: item.guests,
+        nights: item.nights,
+        bookingType: item.bookingType,
+        note: item.note || "",
+        rooms:
+          item.rooms?.map((room) => ({
+            roomId: room.roomId,
+            roomName: room.roomName || "Unknown Room", // Đảm bảo có giá trị mặc định
+            pricePerNight: room.price || 0, // Đặt giá trị mặc định nếu không có giá
+          })) || [],
+        totalPrice: item.rooms
+          ? item.rooms.reduce(
+              (total, room) => total + room.price * item.nights,
+              0
+            )
+          : item.homestay.price * item.nights,
+      })),
+      status: BookingStatus.PENDING,
+    };
+    setBookingPayload(bookingData);
+  }, [items, totalPrice]);
 
   // Fix hydration issues
   useEffect(() => {
@@ -48,8 +88,6 @@ export default function PaymentPage() {
     }
     return null;
   }
-
-  const totalPrice = getTotalPrice();
 
   // Xử lý khi thanh toán thẻ thành công
   const handleCreditCardSuccess = (paymentDetails: any) => {
@@ -80,45 +118,15 @@ export default function PaymentPage() {
     setIsProcessing(true);
 
     try {
-      // Tạo dữ liệu đặt phòng để gửi đến API
-      const bookingData = {
-        paymentMethod: method,
-        totalAmount: totalPrice,
-        currency: "VND",
-        items: items.map((item) => ({
-          homestayId: item.homestayId,
-          homestayName: item.homestay?.name || "Unknown Homestay", // Đảm bảo có giá trị mặc định
-          checkIn: item.checkIn,
-          checkOut: item.checkOut,
-          guests: item.guests,
-          nights: item.nights,
-          bookingType: item.bookingType,
-          note: item.note || "",
-          rooms:
-            item.rooms?.map((room) => ({
-              roomId: room.roomId,
-              roomName: room.roomName || "Unknown Room", // Đảm bảo có giá trị mặc định
-              pricePerNight: room.price || 0, // Đặt giá trị mặc định nếu không có giá
-            })) || [],
-          totalPrice: item.rooms
-            ? item.rooms.reduce(
-                (total, room) => total + room.price * item.nights,
-                0
-              )
-            : item.homestay.price * item.nights,
-        })),
-        status: BookingStatus.PENDING,
-      };
-
       // Gọi API checkout-payment
-      const response = await fetch("/api/payment/checkout", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           paymentMethod: method,
-          bookingData,
+          bookingData: bookingPayload,
           paymentDetails,
         }),
       });
@@ -195,6 +203,7 @@ export default function PaymentPage() {
       setQrPaymentStatus(QRPaymentStatus.PENDING);
     }
   };
+  console.log("Booking payload:", bookingPayload);
 
   return (
     <div className="container py-8">
@@ -205,9 +214,9 @@ export default function PaymentPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <PaymentMethodSelector
+            bookingPayload={bookingPayload}
             paymentMethod={paymentMethod}
             onPaymentMethodChange={handlePaymentMethodChange}
-            totalPrice={totalPrice}
             onCreditCardSuccess={handleCreditCardSuccess}
             onQRSuccess={handleQRSuccess}
           />

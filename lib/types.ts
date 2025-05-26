@@ -25,6 +25,7 @@ export interface CartItem {
     price: number;
   }[];
   note?: string;
+  totalPrice: number;
 }
 
 export interface Cart {

@@ -2,11 +2,14 @@ import Cookies from "js-cookie";
 
 export const fetchHomestayById = async (id: string) => {
   const token = Cookies.get("token");
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch homestay details");
@@ -66,14 +69,16 @@ export async function fetchHomestayData(
 export async function createHomestay(data: any): Promise<any> {
   try {
     const token = Cookies.get("token");
-    const response = await fetch("/api/homestays", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/homestays`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to create homestay");

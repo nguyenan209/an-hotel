@@ -1,11 +1,10 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
-import { Hotel, Home, MessageSquare } from "lucide-react";
-import { useCartStore } from "@/lib/store/cartStore";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { BookingType } from "@prisma/client";
+import { Home, Hotel, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 
@@ -15,7 +14,6 @@ interface BookingSummaryProps {
 }
 
 export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
-  const { notes } = useCartStore();
   const [showNote, setShowNote] = useState<string | null>(null);
 
   return (

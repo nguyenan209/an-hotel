@@ -73,7 +73,7 @@ export default function HomestayDetailPage() {
   useEffect(() => {
     const fetchHomestay = async () => {
       try {
-        const response = await fetch(`/api/homestays/${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin homestay");
         }
@@ -90,7 +90,7 @@ export default function HomestayDetailPage() {
 
     const fetchRooms = async () => {
       try {
-        const response = await fetch(`/api/rooms?homestayId=${id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`);
         if (!response.ok) {
           throw new Error("Không thể tải thông tin phòng");
         }
@@ -132,7 +132,7 @@ export default function HomestayDetailPage() {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!homestay) return;
 
     setBookingError("");
@@ -165,7 +165,8 @@ export default function HomestayDetailPage() {
         const selectedRoomsData = rooms.filter((room) =>
           selectedRooms.includes(room.id)
         );
-        addRoomsToCart(
+        
+        await addRoomsToCart(
           homestay,
           selectedRoomsData,
           checkIn!.toISOString(),
@@ -174,7 +175,8 @@ export default function HomestayDetailPage() {
         );
       } else {
         // Add whole homestay to cart
-        addWholeHomestayToCart(
+        console.log("Adding whole homestay to cart");
+        await addWholeHomestayToCart(
           homestay,
           checkIn!.toISOString(),
           checkOut!.toISOString(),
@@ -319,7 +321,7 @@ export default function HomestayDetailPage() {
                 onRetry={() => {
                   setIsLoadingReviews(true);
                   setReviewsError("");
-                  fetch(`/api/reviews?homestayId=${id}`)
+                  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews?homestayId=${id}`)
                     .then((res) => {
                       if (!res.ok) throw new Error("Không thể tải đánh giá");
                       return res.json();

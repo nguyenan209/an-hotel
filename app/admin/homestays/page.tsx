@@ -81,7 +81,7 @@ export default function HomestaysPage() {
       const query = new URLSearchParams(params).toString();
 
       // Call the API
-      const response = await fetch("/api/admin/homestays?" + query, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?` + query, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

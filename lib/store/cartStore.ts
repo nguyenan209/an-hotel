@@ -1,10 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { BookingType, CartItem, Homestay, Room } from "@prisma/client";
+import { BookingType, Homestay, Room } from "@prisma/client";
 import { cartAPI } from "../services/cart-service";
+import { CartItem } from "../types";
 
 interface CartState {
-  items: Partial<CartItem>[]; // Sử dụng CartItem từ Prisma
+  items: CartItem[]; // Sử dụng CartItem từ Prisma
   isLoading: boolean;
   isLoggedIn: boolean;
   customerId: string | null;
@@ -93,10 +94,11 @@ export const useCartStore = create<CartState>()(
             (1000 * 60 * 60 * 24)
         );
 
-        const newItem: Partial<CartItem> = {
+        const newItem: CartItem = {
+          homestay: homestay,
           homestayId: homestay.id,
-          checkIn: checkInDate,
-          checkOut: checkOutDate,
+          checkIn,
+          checkOut,
           guests,
           nights,
           bookingType: BookingType.WHOLE,
@@ -136,15 +138,15 @@ export const useCartStore = create<CartState>()(
           price: room.price,
         }));
 
-        const newItem: Partial<CartItem> = {
-
+        const newItem: CartItem = {
+          homestay: homestay,
           homestayId: homestay.id,
-          checkIn: checkInDate,
-          checkOut: checkOutDate,
+          checkIn,
+          checkOut,
           guests,
           nights,
           bookingType: BookingType.ROOMS,
-          rooms: JSON.stringify(roomsData),
+          rooms: roomsData,
           totalPrice:
             roomsData.reduce((sum, room) => sum + room.price, 0) * nights,
         };
@@ -211,11 +213,11 @@ export const useCartStore = create<CartState>()(
       },
 
       getTotalPrice: () => {
-        return get().items.reduce((total, item: Partial<CartItem>) => {
-          if (item.bookingType === BookingType.WHOLE) return total + (item.totalPrice || 0);
-          const roomsArray = typeof item.rooms === "string" ? JSON.parse(item.rooms) : item.rooms;
-          const roomsTotal = Array.isArray(roomsArray)
-            ? roomsArray.reduce((sum, room) => sum + (room.price || 0), 0)
+        return get().items.reduce((total, item: CartItem) => {
+          if (item.bookingType === BookingType.WHOLE)
+            return total + (item.totalPrice || 0);
+          const roomsTotal = Array.isArray(item.rooms)
+            ? item.rooms.reduce((sum, room) => sum + (room.price || 0), 0)
             : 0;
           return total + roomsTotal * (item.nights || 1);
         }, 0);

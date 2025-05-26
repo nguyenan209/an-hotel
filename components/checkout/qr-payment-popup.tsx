@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { QrCodePayment } from "@/components/checkout/qr-code-payment";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { BookingPayload } from "@/lib/types";
+import { generateBookingNumber } from "@/lib/utils";
+import { PaymentMethod } from "@prisma/client";
 
 // Khởi tạo Pusher client
 let pusher: Pusher | null = null;
@@ -22,12 +25,12 @@ if (typeof window !== "undefined") {
 }
 
 interface QRPaymentPopupProps {
-  amount: number;
+  bookingPayload: BookingPayload;
   onPaymentSuccess: () => void;
 }
 
 export function QRPaymentPopup({
-  amount,
+  bookingPayload,
   onPaymentSuccess,
 }: QRPaymentPopupProps) {
   const [open, setOpen] = useState(false);
@@ -52,10 +55,9 @@ export function QRPaymentPopup({
         setPaymentStatus("pending");
 
         // Tạo payment session ID
-        const sessionId = `payment_${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 9)}`;
-        setPaymentSessionId(sessionId);
+        const bookingNumber = generateBookingNumber(bookingPayload);
+        console.log('Generated booking number:', bookingNumber);
+        setPaymentSessionId(bookingNumber);
 
         // Khởi tạo đếm ngược
         timerRef.current = setInterval(() => {
@@ -69,28 +71,28 @@ export function QRPaymentPopup({
           });
         }, 1000);
 
+        console.log('bookingPayload:', bookingPayload);
         // Gọi API để tạo phiên thanh toán
         const createPaymentSession = async () => {
           try {
-            const response = await fetch("/api/payment/create-session", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-session`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${Cookies.get("token")}`,
               },
               body: JSON.stringify({
-                amount,
-                sessionId,
-                type: "qr_code",
+                bookingPayload: bookingPayload,
+                paymentSessionId: bookingNumber,
+                type: PaymentMethod.BANK_TRANSFER,
               }),
             });
 
             if (!response.ok) {
               throw new Error("Failed to create payment session");
             }
-            
+
             const data = await response.json();
-            
+
             if (!data.success) {
               throw new Error(data.error || "Failed to create payment session");
             }
@@ -98,7 +100,7 @@ export function QRPaymentPopup({
 
             // Đăng ký kênh Pusher cho phiên thanh toán này
             if (pusher) {
-              const channel = pusher.subscribe(`payment-${sessionId}`);
+              const channel = pusher.subscribe(`payment-${bookingNumber}`);
               channelRef.current = channel;
 
               channel.bind("payment-status", (data: any) => {
@@ -141,7 +143,7 @@ export function QRPaymentPopup({
 
           // Hủy đăng ký kênh Pusher
           if (channelRef.current && pusher) {
-            pusher.unsubscribe(`payment-${sessionId}`);
+            pusher.unsubscribe(`payment-${bookingNumber}`);
             channelRef.current = null;
           }
         };
@@ -158,7 +160,7 @@ export function QRPaymentPopup({
         }
       }
     },
-    [amount, onPaymentSuccess, paymentSessionId, toast]
+    [bookingPayload, onPaymentSuccess, paymentSessionId, toast]
   );
 
   // Format time as MM:SS
@@ -190,7 +192,6 @@ export function QRPaymentPopup({
                 {/* Phần 1: QR Code */}
                 <div className="bg-gray-100 p-4 rounded-lg flex items-center justify-center w-full max-w-[300px]">
                   <QrCodePayment
-                    amount={amount}
                     className="w-[250px] h-[250px]"
                     sessionId={paymentSessionId}
                     sessionUrl={sessionUrl}
@@ -200,7 +201,7 @@ export function QRPaymentPopup({
                 {/* Số tiền và hướng dẫn */}
                 <div className="text-center">
                   <p className="text-lg font-semibold text-gray-800">
-                    Số tiền: {amount.toLocaleString()} ₫
+                    Số tiền: {bookingPayload?.totalAmount.toLocaleString()} ₫
                   </p>
                   <p className="text-sm text-gray-500">
                     Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để thanh

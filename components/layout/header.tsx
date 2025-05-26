@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { BookOpen, LogOut, ShoppingCart, User, UserCircle } from "lucide-react";
+import { BookOpen, HelpCircle, LogOut, ShoppingCart, User, UserCircle } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function Header() {
   const pathname = usePathname();
   const cartItems = useCartStore((state) => state.items);
+  const totalHomestays = cartItems.length;
   const totalItems = cartItems.reduce(
     (acc: any, item: any) => acc + (item.quantity || 0),
     0
@@ -73,17 +74,77 @@ export function Header() {
             >
               Liên hệ
             </Link>
+            <Link
+              href="/support"
+              className={`text-sm font-medium ${
+                pathname === "/support"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Hỗ trợ
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative">
+          <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative border border-gray-200 bg-white hover:bg-gray-50">
+                <ShoppingCart className="h-5 w-5" />
+                {totalHomestays > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-white text-[10px]">
+                    {totalHomestays}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <div className="p-4">
+                <h3 className="font-semibold mb-3">
+                  Giỏ hàng ({totalHomestays})
+                </h3>
+                {cartItems.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    Giỏ hàng trống
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {cartItems.slice(0, 3).map((item) => (
+                      <div
+                        key={item.homestayId}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-gray-50"
+                      >
+                        <div className="w-12 h-12 bg-gray-200 rounded-md flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {item.homestay.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.homestay.id}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {cartItems.length > 3 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        và {cartItems.length - 3} homestay khác...
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className="mt-4 pt-3 border-t">
+                  <Link href="/cart" className="w-full">
+                    <Button className="w-full" size="sm">
+                      Xem giỏ hàng ({totalHomestays} homestay)
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link href="/support" className="md:hidden">
             <Button variant="ghost" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
-                  {totalItems}
-                </span>
-              )}
+              <HelpCircle className="h-5 w-5" />
             </Button>
           </Link>
           {isLoggedIn ? (

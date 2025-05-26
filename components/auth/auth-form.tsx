@@ -49,7 +49,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
     try {
       if (type === "login") {
-        const res = await fetch("/api/auth/login", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -70,7 +70,7 @@ export function AuthForm({ type }: AuthFormProps) {
         router.push("/");
       } else {
         // Gọi API đăng ký thực tế
-        const res = await fetch("/api/auth/register", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

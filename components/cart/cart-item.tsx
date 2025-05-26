@@ -16,7 +16,7 @@ import type { CartItem as CartItemType } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cartStore";
-import { BookingType } from "@prisma/client";
+import { BookingType, Homestay } from "@prisma/client";
 import { useState } from "react";
 
 interface CartItemProps {
@@ -27,7 +27,7 @@ export function CartItem({ item }: CartItemProps) {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateItemNote = useCartStore((state) => state.updateItemNote);
 
-  const [showNoteInput, setShowNoteInput] = useState(!!item.note)
+  const [showNoteInput, setShowNoteInput] = useState(!!item.note);
   const [itemNote, setItemNote] = useState(item.note || "");
   const [isEditing, setIsEditing] = useState(false);
 

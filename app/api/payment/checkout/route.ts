@@ -2,6 +2,7 @@ import { PaymentMethod, BookingStatus, PaymentStatus } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
+import { generateBookingNumber } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +18,7 @@ export async function POST(request: NextRequest) {
     console.log("Request Body:", JSON.stringify(body, null, 2));
 
     // Tạo một bookingNumber chung cho tất cả các booking trong lần đặt phòng này
-    const bookingNumber = `AN-HOTEL-BK${Math.floor(
-      100000 + Math.random() * 900000
-    )}`;
+    const bookingNumber = generateBookingNumber(bookingData);
 
     // Kiểm tra xem khách hàng đã tồn tại hay chưa
     let customer = await prisma.customer.findUnique({

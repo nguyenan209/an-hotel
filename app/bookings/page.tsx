@@ -49,11 +49,10 @@ export default function BookingsPage() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await fetch("/api/bookings/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/me`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`, // Thêm token từ localStorage
           },
         });
 

@@ -10,18 +10,31 @@ import { CartItem } from "@/components/cart/cart-item";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatCurrency } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/context/AuthContext";
 
 export default function CartPage() {
   const [mounted, setMounted] = useState(false);
-  const { items, notes, getTotalPrice, clearCart, setNotes } = useCartStore();
-  const { user } = useAuth(); // Lấy thông tin người dùng từ authStore
-  const router = useRouter(); // Dùng để điều hướng
+  const { items, getTotalPrice, clearCart, loadCartFromServer } =
+    useCartStore();
+  const { isLoggedIn } = useAuth(); 
+  const router = useRouter();
 
   // Fix hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      // Nếu đã đăng nhập, tải giỏ hàng từ server
+      loadCartFromServer();
+      
+    } else {
+      // Nếu chưa đăng nhập, lấy giỏ hàng từ localStorage
+    }
+  }, [mounted, isLoggedIn, loadCartFromServer]);
 
   if (!mounted) {
     return null;
@@ -51,7 +64,7 @@ export default function CartPage() {
 
   // Hàm xử lý khi nhấn "Tiến hành thanh toán"
   const handleCheckout = () => {
-    if (!user) {
+    if (!isLoggedIn) {
       // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
       router.push("/login");
       return;

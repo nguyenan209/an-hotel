@@ -44,7 +44,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }, 300);
 
       // Make API call to upload to S3
-      const response = await fetch("/api/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
         method: "POST",
         body: formData,
       });

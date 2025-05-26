@@ -2,15 +2,12 @@ import { QRCodeCanvas } from "qrcode.react";
 import { useMemo } from "react";
 
 interface QrCodePaymentProps {
-  amount: number;
   sessionId: string;
   className?: string;
   sessionUrl?: string;
 }
 
 export function QrCodePayment({
-  amount,
-  sessionId,
   className = "",
   sessionUrl = "",
 }: QrCodePaymentProps) {

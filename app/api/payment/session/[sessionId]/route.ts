@@ -20,8 +20,6 @@ export async function GET(
     const paymentSession = await prisma.paymentSession.findUnique({
       where: { sessionId },
     });
-
-    // Nếu không tìm thấy session
     if (!paymentSession) {
       return NextResponse.json(
         { error: "Payment session not found" },

@@ -85,8 +85,6 @@ export async function GET(request: Request) {
         maxGuests: true,
       },
     });
-    
-    console.log("Fetched homestays:", homestays);
 
     return NextResponse.json(homestays);
   } catch (error) {
