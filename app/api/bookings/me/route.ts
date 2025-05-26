@@ -1,17 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { verifyToken } from "@/lib/auth";
+import { getTokenData } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get("Authorization")?.split(" ")[1];
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const decoded = verifyToken(token);
+    const decoded = getTokenData(req);
     if (!decoded || !decoded.id) {
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
