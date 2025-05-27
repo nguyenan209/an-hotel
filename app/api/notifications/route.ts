@@ -9,34 +9,55 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Lấy query parameters từ request
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1", 10); // Trang hiện tại
-    const limit = parseInt(searchParams.get("limit") || "10", 10); // Số lượng thông báo mỗi trang
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const type = searchParams.get("type") || "all";
+    const status = searchParams.get("status") || "all";
+    const query = searchParams.get("query") || "";
 
-    // Tính toán offset
     const offset = (page - 1) * limit;
 
-    // Lấy tổng số thông báo
+    // Xây dựng điều kiện lọc
+    const where: any = {
+      userId: decoded.id,
+    };
+
+    if (type !== "all") {
+      where.type = type;
+    }
+
+    if (status === "read") {
+      where.isRead = true;
+    } else if (status === "unread") {
+      where.isRead = false;
+    }
+
+    if (query) {
+      where.OR = [
+        { title: { contains: query, mode: "insensitive" } },
+        { message: { contains: query, mode: "insensitive" } },
+      ];
+    }
+
+    // Lấy tổng số thông báo (không phụ thuộc vào bộ lọc)
     const totalNotifications = await prisma.notification.count({
-      where: {
-        userId: decoded.id,
-      },
+      where: { userId: decoded.id },
+    });
+
+    // Lấy tổng số thông báo chưa đọc (không phụ thuộc vào bộ lọc)
+    const unreadCount = await prisma.notification.count({
+      where: { userId: decoded.id, isRead: false },
     });
 
     // Lấy danh sách thông báo với phân trang
     const notifications = await prisma.notification.findMany({
-      where: {
-        userId: decoded.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      where,
+      orderBy: { createdAt: "desc" },
       skip: offset,
       take: limit,
     });
 
-    // Tính tổng số trang
     const totalPages = Math.ceil(totalNotifications / limit);
 
     return NextResponse.json(
@@ -44,6 +65,7 @@ export async function GET(request: NextRequest) {
         notifications,
         pagination: {
           total: totalNotifications,
+          unreadCount,
           page,
           limit,
           totalPages,
@@ -79,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     const newNotification = await prisma.notification.create({
       data: {
-        userId: decoded.customerId,
+        userId: decoded.id,
         title,
         message,
         type,
@@ -90,70 +112,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newNotification, { status: 201 });
   } catch (error) {
     console.error("Error creating notification:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const decoded = getTokenData(request);
-    if (!decoded) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id } = params;
-    const body = await request.json();
-    const { isRead } = body;
-
-    const updatedNotification = await prisma.notification.update({
-      where: {
-        id,
-      },
-      data: {
-        isRead,
-      },
-    });
-
-    return NextResponse.json(updatedNotification, { status: 200 });
-  } catch (error) {
-    console.error("Error updating notification:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const decoded = getTokenData(request);
-    if (!decoded) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id } = params;
-
-    await prisma.notification.delete({
-      where: {
-        id,
-      },
-    });
-
-    return NextResponse.json(
-      { message: "Notification deleted successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error deleting notification:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

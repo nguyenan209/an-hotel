@@ -1,6 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { getNotificationIcon } from "@/components/notification/get-notification-icon";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { Notification } from "@/lib/types";
+import {
+  getNotificationTypeColor,
+  getNotificationTypeLabel,
+  getTimeAgo,
+} from "@/lib/utils";
+import { NotificationType } from "@prisma/client";
 import {
   Bell,
   CheckCircle2,
@@ -10,45 +44,14 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { getNotificationIcon } from "@/components/notification/get-notification-icon";
-import { getNotificationTypeColor, getNotificationTypeLabel, getTimeAgo } from "@/lib/utils";
-import { NotificationType } from "@prisma/client";
-import { Notification } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<
+    Notification[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,21 +60,24 @@ export default function AdminNotificationsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const itemsPerPage = 10;
   const [totalPages, setTotalPages] = useState(0);
+  const [totalNotifications, setTotalNotifications] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/notifications?page=${currentPage}&limit=${itemsPerPage}`
+          `/api/notifications?page=${currentPage}&limit=${itemsPerPage}&type=${filterType}&status=${filterStatus}&query=${searchQuery}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch notifications");
         }
         const data = await response.json();
         setNotifications(data.notifications);
-        setFilteredNotifications(data.notifications);
         setTotalPages(data.pagination.totalPages);
+        setTotalNotifications(data.pagination.total); // Tổng số thông báo
+        setUnreadNotifications(data.pagination.unreadCount); // Tổng số chưa đọc
       } catch (error) {
         console.error("Error fetching notifications:", error);
         toast({
@@ -85,90 +91,180 @@ export default function AdminNotificationsPage() {
     };
 
     fetchNotifications();
-  }, [currentPage, itemsPerPage, toast]);
+  }, [currentPage, itemsPerPage, filterType, filterStatus, searchQuery, toast]);
 
-  useEffect(() => {
-    let filtered = [...notifications];
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isRead: true }),
+      });
 
-    // Filter by tab
-    if (activeTab !== "all") {
-      if (activeTab === "unread") {
-        filtered = filtered.filter((notif) => !notif.read);
-      } else {
-        filtered = filtered.filter((notif) => notif.type === activeTab);
+      if (!response.ok) {
+        throw new Error("Failed to mark notification as read");
       }
-    }
 
-    // Filter by type
-    if (filterType !== "all") {
-      filtered = filtered.filter((notif) => notif.type === filterType);
-    }
-
-    // Filter by status
-    if (filterStatus !== "all") {
-      filtered = filtered.filter(
-        (notif) =>
-          (filterStatus === "read" && notif.read) ||
-          (filterStatus === "unread" && !notif.read)
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: true } : notif
+        )
       );
-    }
 
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (notif) =>
-          notif.title.toLowerCase().includes(query) ||
-          notif.message.toLowerCase().includes(query)
+      // Giảm số lượng chưa đọc nếu thông báo trước đó chưa được đọc
+      const updatedNotification = notifications.find(
+        (notif) => notif.id === id
       );
+      if (updatedNotification && !updatedNotification.isRead) {
+        setUnreadNotifications((prev) => prev - 1);
+      }
+
+      toast({
+        title: "Thông báo đã được đánh dấu là đã đọc",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    setFilteredNotifications(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [notifications, activeTab, filterType, filterStatus, searchQuery]);
-
-  const currentNotifications = filteredNotifications.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
-    toast({
-      title: "Thông báo đã được đánh dấu là đã đọc",
-      duration: 2000,
-    });
   };
 
-  const markAsUnread = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: false } : notif))
-    );
-    toast({
-      title: "Thông báo đã được đánh dấu là chưa đọc",
-      duration: 2000,
-    });
+  const markAsUnread = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isRead: false }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark notification as unread");
+      }
+
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: false } : notif
+        )
+      );
+
+      // Tăng số lượng chưa đọc nếu thông báo trước đó đã được đọc
+      const updatedNotification = notifications.find(
+        (notif) => notif.id === id
+      );
+      if (updatedNotification && updatedNotification.isRead) {
+        setUnreadNotifications((prev) => prev + 1);
+      }
+
+      toast({
+        title: "Thông báo đã được đánh dấu là chưa đọc",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error marking notification as unread:", error);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as unread. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-    toast({
-      title: "Thông báo đã được xóa",
-      duration: 2000,
-    });
+  const deleteNotification = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete notification");
+      }
+
+      // Lấy thông báo bị xóa để kiểm tra trạng thái `isRead`
+      const deletedNotification = notifications.find(
+        (notif) => notif.id === id
+      );
+
+      // Cập nhật danh sách thông báo
+      setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+
+      // Giảm tổng số thông báo
+      setTotalNotifications((prev) => prev - 1);
+
+      // Nếu thông báo bị xóa chưa được đọc, giảm số lượng chưa đọc
+      if (deletedNotification && !deletedNotification.isRead) {
+        setUnreadNotifications((prev) => prev - 1);
+      }
+
+      toast({
+        title: "Thông báo đã được xóa",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notification. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
-    toast({
-      title: "Tất cả thông báo đã được đánh dấu là đã đọc",
-      duration: 2000,
-    });
+  const markAllAsRead = async () => {
+    try {
+      const response = await fetch(`/api/notifications/mark-all-read`, {
+        method: "PUT",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark all notifications as read");
+      }
+
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+      setUnreadNotifications(0); // Cập nhật số lượng chưa đọc về 0
+
+      toast({
+        title: "Tất cả thông báo đã được đánh dấu là đã đọc",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      toast({
+        title: "Error",
+        description:
+          "Failed to mark all notifications as read. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const unreadCount = notifications.filter((notif) => !notif.read).length;
+
+  const handleFilterChange = () => {
+    setCurrentPage(1); // Reset về trang đầu tiên
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentPage(1); // Reset về trang đầu tiên
+
+    if (value === "all") {
+      setFilterType("all");
+    } else if (value === "unread") {
+      setFilterStatus("unread");
+    } else {
+      setFilterType(value as NotificationType);
+    }
+  };
 
   return (
     <div className="container py-6">
@@ -203,32 +299,59 @@ export default function AdminNotificationsPage() {
                     placeholder="Tìm kiếm thông báo..."
                     className="pl-8"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Loại thông báo</label>
-                <Select value={filterType} onValueChange={(value) => setFilterType(value as NotificationType | "all")}>
+                <Select
+                  value={filterType}
+                  onValueChange={(value) => {
+                    setFilterType(value as NotificationType | "all");
+                    handleFilterChange();
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Tất cả loại" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả loại</SelectItem>
-                    <SelectItem value={NotificationType.BOOKING}>Đặt phòng</SelectItem>
-                    <SelectItem value={NotificationType.REVIEW}>Đánh giá</SelectItem>
-                    <SelectItem value={NotificationType.CANCELLED}>Hủy đặt phòng</SelectItem>
-                    <SelectItem value={NotificationType.APPROVAL}>Phê duyệt</SelectItem>
-                    <SelectItem value={NotificationType.COMPLAINT}>Khiếu nại</SelectItem>
-                    <SelectItem value={NotificationType.SYSTEM}>Hệ thống</SelectItem>
+                    <SelectItem value={NotificationType.BOOKING}>
+                      Đặt phòng
+                    </SelectItem>
+                    <SelectItem value={NotificationType.REVIEW}>
+                      Đánh giá
+                    </SelectItem>
+                    <SelectItem value={NotificationType.CANCELLED}>
+                      Hủy đặt phòng
+                    </SelectItem>
+                    <SelectItem value={NotificationType.APPROVAL}>
+                      Phê duyệt
+                    </SelectItem>
+                    <SelectItem value={NotificationType.COMPLAINT}>
+                      Khiếu nại
+                    </SelectItem>
+                    <SelectItem value={NotificationType.SYSTEM}>
+                      Hệ thống
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Trạng thái</label>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <Select
+                  value={filterStatus}
+                  onValueChange={(value) => {
+                    setFilterStatus(value);
+                    setCurrentPage(1);
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Tất cả trạng thái" />
                   </SelectTrigger>
@@ -264,26 +387,34 @@ export default function AdminNotificationsPage() {
             <CardHeader className="pb-2">
               <Tabs
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={(value) => handleTabChange(value)}
                 className="w-full"
               >
                 <TabsList className="grid grid-cols-4 md:grid-cols-6">
                   <TabsTrigger value="all">
                     Tất cả
                     <Badge variant="secondary" className="ml-2">
-                      {notifications.length}
+                      {totalNotifications}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger value="unread">
                     Chưa đọc
                     <Badge variant="secondary" className="ml-2">
-                      {unreadCount}
+                      {unreadNotifications}
                     </Badge>
                   </TabsTrigger>
-                  <TabsTrigger value="booking">Đặt phòng</TabsTrigger>
-                  <TabsTrigger value="review">Đánh giá</TabsTrigger>
-                  <TabsTrigger value="complaint">Khiếu nại</TabsTrigger>
-                  <TabsTrigger value="system">Hệ thống</TabsTrigger>
+                  <TabsTrigger value={NotificationType.BOOKING}>
+                    Đặt phòng
+                  </TabsTrigger>
+                  <TabsTrigger value={NotificationType.REVIEW}>
+                    Đánh giá
+                  </TabsTrigger>
+                  <TabsTrigger value={NotificationType.COMPLAINT}>
+                    Khiếu nại
+                  </TabsTrigger>
+                  <TabsTrigger value={NotificationType.SYSTEM}>
+                    Hệ thống
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </CardHeader>
@@ -292,7 +423,7 @@ export default function AdminNotificationsPage() {
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
-              ) : currentNotifications.length === 0 ? (
+              ) : notifications.length === 0 ? (
                 <div className="text-center py-12">
                   <Bell className="h-12 w-12 mx-auto text-muted-foreground" />
                   <h3 className="mt-4 text-lg font-medium">
@@ -304,7 +435,7 @@ export default function AdminNotificationsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {currentNotifications.map((notification) => (
+                  {notifications.map((notification) => (
                     <div
                       key={notification.id}
                       className={`p-4 rounded-lg border ${
@@ -348,9 +479,11 @@ export default function AdminNotificationsPage() {
                                   variant="link"
                                   size="sm"
                                   className="p-0 h-auto text-xs text-blue-600"
-                                  onClick={() =>
-                                    {notification.link && (window.location.href = notification.link)}
-                                  }
+                                  onClick={() => {
+                                    notification.link &&
+                                      (window.location.href =
+                                        notification.link);
+                                  }}
                                 >
                                   Xem chi tiết
                                 </Button>
@@ -428,7 +561,7 @@ export default function AdminNotificationsPage() {
                                 e.preventDefault();
                                 setCurrentPage(i + 1);
                               }}
-                              isActive={currentPage === i + 1}
+                              isActive={currentPage === i + 1} // Đánh dấu trang hiện tại
                             >
                               {i + 1}
                             </PaginationLink>
