@@ -43,11 +43,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { getNotificationIcon } from "@/components/notification/get-notification-icon";
 import { getNotificationTypeColor, getNotificationTypeLabel, getTimeAgo } from "@/lib/utils";
 import { NotificationType } from "@prisma/client";
+import { Notification } from "@/lib/types";
 
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<any[]>([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -307,7 +308,7 @@ export default function AdminNotificationsPage() {
                     <div
                       key={notification.id}
                       className={`p-4 rounded-lg border ${
-                        notification.read ? "bg-white" : "bg-blue-50"
+                        notification.isRead ? "bg-white" : "bg-blue-50"
                       } transition-colors`}
                     >
                       <div className="flex items-start gap-4">
@@ -331,7 +332,7 @@ export default function AdminNotificationsPage() {
                                 >
                                   {getNotificationTypeLabel(notification.type)}
                                 </Badge>
-                                {!notification.read && (
+                                {!notification.isRead && (
                                   <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
                                 )}
                               </h4>
@@ -341,14 +342,14 @@ export default function AdminNotificationsPage() {
                               <div className="flex items-center gap-4 mt-2">
                                 <span className="text-xs text-gray-500 flex items-center">
                                   <Clock className="h-3 w-3 mr-1" />
-                                  {getTimeAgo(notification.date)}
+                                  {getTimeAgo(new Date(notification.createdAt))}
                                 </span>
                                 <Button
                                   variant="link"
                                   size="sm"
                                   className="p-0 h-auto text-xs text-blue-600"
                                   onClick={() =>
-                                    (window.location.href = notification.link)
+                                    {notification.link && (window.location.href = notification.link)}
                                   }
                                 >
                                   Xem chi tiết
@@ -366,7 +367,7 @@ export default function AdminNotificationsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {notification.read ? (
+                                {notification.isRead ? (
                                   <DropdownMenuItem
                                     onClick={() =>
                                       markAsUnread(notification.id)

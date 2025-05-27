@@ -20,14 +20,14 @@ export async function GET(request: NextRequest) {
     // Lấy tổng số thông báo
     const totalNotifications = await prisma.notification.count({
       where: {
-        userId: decoded.customerId,
+        userId: decoded.id,
       },
     });
 
     // Lấy danh sách thông báo với phân trang
     const notifications = await prisma.notification.findMany({
       where: {
-        userId: decoded.customerId,
+        userId: decoded.id,
       },
       orderBy: {
         createdAt: "desc",

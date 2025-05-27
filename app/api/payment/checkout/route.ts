@@ -1,4 +1,4 @@
-import { PaymentMethod, BookingStatus, PaymentStatus } from "@prisma/client";
+import { PaymentMethod, BookingStatus, PaymentStatus, NotificationType } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
@@ -99,6 +99,17 @@ export async function POST(request: NextRequest) {
                 : paymentMethod === PaymentMethod.BANK_TRANSFER
                   ? `Bank: ${paymentDetails?.bankName}, Account: ${paymentDetails?.accountNumber}`
                   : null,
+          },
+        });
+        
+        // Tạo notification tới người dùng về booking mới
+        await prisma.notification.create({
+          data: {
+            userId: decoded.id,
+            type: NotificationType.BOOKING,
+            title: "Booking Confirmation",
+            message: `Your booking #${createdBooking.bookingNumber} has been created successfully.`,
+            isRead: false,
           },
         });
 

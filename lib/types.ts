@@ -4,6 +4,7 @@ import {
   BookingStatus,
   BookingType,
   Homestay,
+  NotificationType,
   PaymentMethod,
   Prisma,
   Room,
@@ -170,3 +171,27 @@ export interface CheckoutPayload {
   bookingData: BookingPayload;
   paymentDetails?: PaymentDetails;
 }
+
+export type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType; // Nếu chỉ có 'BOOKING' thì dùng literal, nếu có thêm thì mở rộng
+  isRead: boolean;
+  relatedId: string | null;
+  createdAt: string; // ISO date string
+  link: string | null;
+};
+
+export type Pagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type NotificationResponse = {
+  notifications: Notification[];
+  pagination: Pagination;
+};
