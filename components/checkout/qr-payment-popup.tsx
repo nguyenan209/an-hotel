@@ -13,13 +13,14 @@ import { BookingPayload } from "@/lib/types";
 import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
 import { useCartStore } from "@/lib/store/cartStore";
+import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
 
 // Khởi tạo Pusher client
 let pusher: Pusher | null = null;
 
 // Chỉ khởi tạo Pusher ở phía client
 if (typeof window !== "undefined") {
-  pusher = new Pusher("6c6b0b954c74063bd9e6", {
+  pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
     cluster: "ap1",
     forceTLS: true,
   });
@@ -103,7 +104,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
               const channel = pusher.subscribe(`payment-${bookingNumber}`);
               channelRef.current = channel;
 
-              channel.bind("payment-status", (data: any) => {
+              channel.bind(CHANNEL_PAYMENT_CONFIRM, (data: any) => {
                 console.log("Received payment status update:", data);
 
                 if (data.status === "confirmed") {

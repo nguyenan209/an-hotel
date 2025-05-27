@@ -4,6 +4,18 @@ import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
 import { generateBookingNumber } from "@/lib/utils";
 
+import Pusher from "pusher";
+import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
+
+// Cấu hình Pusher
+const pusher = new Pusher({
+  appId: process.env.NEXT_PUBLIC_PUSHER_APP_ID!,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+  secret: process.env.NEXT_PUBLIC_PUSHER_SECRET!,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  useTLS: true,
+});
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -198,6 +210,13 @@ export async function POST(request: NextRequest) {
         isDeleted: true, // Đánh dấu các cart item là đã xóa
         updatedAt: new Date(),
       },
+    });
+    
+    await pusher.trigger(`payment-${sessionId}`, CHANNEL_PAYMENT_CONFIRM, {
+      status: "confirmed",
+      sessionId,
+      amount: payload.totalAmount,
+      message: "Payment confirmed successfully",
     });
 
     // Trả về danh sách các booking và thanh toán đã tạo

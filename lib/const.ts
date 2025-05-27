@@ -1,0 +1,1 @@
+export const CHANNEL_PAYMENT_CONFIRM="payment-process"
