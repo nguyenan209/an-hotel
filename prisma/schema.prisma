@@ -500,6 +500,7 @@ model Notification {
   isRead    Boolean          @default(false)
   relatedId String? // ID của đối tượng liên quan (booking, review, etc.)
   createdAt DateTime         @default(now())
+  link      String? // Liên kết đến trang chi tiết thông báo
 }
 
 enum NotificationType {
