@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { generateBookingNumber } from "./utils";
 
 /**
  * Tạo hash từ một object hoặc chuỗi
@@ -18,7 +19,10 @@ export function generateHash(
     .slice(0, length);
 }
 
-export function compareHashes(bookingPayload: object, hash: string): boolean {
-  const generatedHash = generateHash(bookingPayload);
+export function compareHashes(
+  cartPayload: { cartItemIds: { id: string }[] },
+  hash: string
+): boolean {
+  const generatedHash = generateBookingNumber(cartPayload);
   return generatedHash === hash;
 }

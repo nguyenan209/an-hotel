@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { CreditCard, QrCode, User, Loader2, AlertCircle } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -13,6 +13,8 @@ import { StripeCheckoutForm } from "@/components/checkout/stripe-checkout-form";
 import { QRPaymentPopup } from "@/components/checkout/qr-payment-popup";
 import { PaymentMethod } from "@prisma/client";
 import { BookingPayload } from "@/lib/types";
+import { useCartStore } from "@/lib/store/cartStore";
+import { calculateCartTotal } from "@/lib/utils";
 
 // Khởi tạo Stripe với public key
 const stripePromise = loadStripe(
@@ -24,7 +26,6 @@ interface PaymentMethodSelectorProps {
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onCreditCardSuccess: (paymentDetails: any) => void;
   onQRSuccess: () => void;
-  bookingPayload: BookingPayload;
 }
 
 export function PaymentMethodSelector({
@@ -32,12 +33,14 @@ export function PaymentMethodSelector({
   onPaymentMethodChange,
   onCreditCardSuccess,
   onQRSuccess,
-  bookingPayload,
 }: PaymentMethodSelectorProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [amountInUSD, setAmountInUSD] = useState<number>(0);
   const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(false);
   const { toast } = useToast();
+  const cartItems = useCartStore((state) => state.items);
+
+  const totalPrice = calculateCartTotal(cartItems);
 
   // Tạo payment intent khi chọn phương thức thanh toán thẻ
   useEffect(() => {
@@ -50,15 +53,18 @@ export function PaymentMethodSelector({
         setIsLoadingClientSecret(true);
         try {
           // Gọi API để tạo payment intent
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-payment-intent`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              amount: bookingPayload?.totalAmount,
-            }),
-          });
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-payment-intent`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                amount: totalPrice,
+              }),
+            }
+          );
 
           if (!response.ok) {
             const errorData = await response.json();
@@ -86,13 +92,7 @@ export function PaymentMethodSelector({
 
       createPaymentIntent();
     }
-  }, [
-    paymentMethod,
-    clientSecret,
-    isLoadingClientSecret,
-    bookingPayload?.totalAmount,
-    toast,
-  ]);
+  }, [paymentMethod, clientSecret, isLoadingClientSecret, toast]);
 
   const handlePaymentMethodChange = (value: string) => {
     const method = value as PaymentMethod;
@@ -135,10 +135,7 @@ export function PaymentMethodSelector({
               </p>
 
               {paymentMethod === PaymentMethod.BANK_TRANSFER && (
-                <QRPaymentPopup
-                  bookingPayload={bookingPayload}
-                  onPaymentSuccess={onQRSuccess}
-                />
+                <QRPaymentPopup onPaymentSuccess={onQRSuccess} />
               )}
             </div>
           </div>
@@ -239,8 +236,8 @@ export function PaymentMethodSelector({
                   <AlertTitle className="text-blue-600">Lưu ý</AlertTitle>
                   <AlertDescription className="text-blue-600">
                     Bạn sẽ cần thanh toán đầy đủ số tiền{" "}
-                    {bookingPayload?.totalAmount.toLocaleString("vi-VN")} đ khi
-                    nhận phòng. Đặt phòng của bạn sẽ được giữ trong 24 giờ.
+                    {totalPrice.toLocaleString("vi-VN")} đ khi nhận phòng. Đặt
+                    phòng của bạn sẽ được giữ trong 24 giờ.
                   </AlertDescription>
                 </Alert>
               )}

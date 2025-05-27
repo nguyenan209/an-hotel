@@ -12,6 +12,7 @@ import {
 } from "@prisma/client";
 
 export interface CartItem {
+  id?: string;
   homestayId: string;
   homestay: Homestay;
   checkIn: string;

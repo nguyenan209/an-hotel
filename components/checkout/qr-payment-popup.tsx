@@ -10,8 +10,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { QrCodePayment } from "@/components/checkout/qr-code-payment";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { BookingPayload } from "@/lib/types";
-import { generateBookingNumber } from "@/lib/utils";
+import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
+import { useCartStore } from "@/lib/store/cartStore";
 
 // Khởi tạo Pusher client
 let pusher: Pusher | null = null;
@@ -25,14 +26,10 @@ if (typeof window !== "undefined") {
 }
 
 interface QRPaymentPopupProps {
-  bookingPayload: BookingPayload;
   onPaymentSuccess: () => void;
 }
 
-export function QRPaymentPopup({
-  bookingPayload,
-  onPaymentSuccess,
-}: QRPaymentPopupProps) {
+export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
   const [open, setOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
   const [paymentStatus, setPaymentStatus] = useState<
@@ -43,6 +40,8 @@ export function QRPaymentPopup({
   const channelRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  const cartItems = useCartStore((state) => state.items);
+  console.log("Cart items:", cartItems);
 
   // Xử lý khi mở/đóng popup
   const handleOpenChange = useCallback(
@@ -53,12 +52,11 @@ export function QRPaymentPopup({
         // Reset state
         setTimeLeft(120);
         setPaymentStatus("pending");
-
-        // Tạo payment session ID
-        const bookingNumber = generateBookingNumber(bookingPayload);
-        console.log('Generated booking number:', bookingNumber);
+        const cartItemIds = cartItems.map((item) => item.id);
+        const bookingNumber = generateBookingNumber({
+          cartItemIds,
+        });
         setPaymentSessionId(bookingNumber);
-
         // Khởi tạo đếm ngược
         timerRef.current = setInterval(() => {
           setTimeLeft((prev) => {
@@ -71,21 +69,23 @@ export function QRPaymentPopup({
           });
         }, 1000);
 
-        console.log('bookingPayload:', bookingPayload);
         // Gọi API để tạo phiên thanh toán
         const createPaymentSession = async () => {
           try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-session`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                bookingPayload: bookingPayload,
-                paymentSessionId: bookingNumber,
-                type: PaymentMethod.BANK_TRANSFER,
-              }),
-            });
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-session`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  cartItemIds,
+                  type: PaymentMethod.BANK_TRANSFER,
+                  paymentSessionId: bookingNumber,
+                }),
+              }
+            );
 
             if (!response.ok) {
               throw new Error("Failed to create payment session");
@@ -160,7 +160,7 @@ export function QRPaymentPopup({
         }
       }
     },
-    [bookingPayload, onPaymentSuccess, paymentSessionId, toast]
+    [onPaymentSuccess, paymentSessionId, toast, cartItems]
   );
 
   // Format time as MM:SS
@@ -201,7 +201,7 @@ export function QRPaymentPopup({
                 {/* Số tiền và hướng dẫn */}
                 <div className="text-center">
                   <p className="text-lg font-semibold text-gray-800">
-                    Số tiền: {bookingPayload?.totalAmount.toLocaleString()} ₫
+                    Số tiền: {calculateCartTotal(cartItems).toLocaleString()} ₫
                   </p>
                   <p className="text-sm text-gray-500">
                     Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để thanh

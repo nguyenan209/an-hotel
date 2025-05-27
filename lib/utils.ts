@@ -77,3 +77,22 @@ export const generateBookingNumber = (payload: any): string => {
   const bookingNumber = `AN-HOTEL-BK${generateHash(payload)}`;
   return bookingNumber.toUpperCase();
 };
+
+export function calculateCartTotal(
+  cartItems: Array<{
+    rooms?: Array<{ price: number }>;
+    homestay: { price: number };
+    nights: number;
+  }>
+): number {
+  return cartItems.reduce((total, cartItem) => {
+    const itemTotal = cartItem.rooms
+      ? cartItem.rooms.reduce(
+          (roomTotal, room) => roomTotal + room.price * cartItem.nights,
+          0
+        )
+      : cartItem.homestay.price * cartItem.nights;
+
+    return total + itemTotal;
+  }, 0);
+}

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { PaymentSessionStatus } from "@prisma/client";
 import { getTokenData } from "@/lib/auth";
 import { compareHashes } from "@/lib/hash";
+import { calculateCartTotal } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,17 +14,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { bookingPayload, paymentSessionId, type } = body;
+    const { cartItemIds, paymentSessionId, type } = body;
 
     // Kiểm tra các trường bắt buộc
-    if (!decodedToken.id || !paymentSessionId || !type) {
+    if (!decodedToken.id || !paymentSessionId || !type || !cartItemIds.length) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const validPayload = compareHashes(bookingPayload, paymentSessionId);
+    const validPayload = compareHashes({ cartItemIds }, paymentSessionId);
 
     if (!validPayload) {
       return NextResponse.json(
@@ -31,12 +32,42 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    const carts = await prisma.cartItem.findMany({
+      where: {
+        isDeleted: false,
+        id: {
+          in: cartItemIds,
+        },
+      },
+      include: {
+        homestay: true,
+      }
+    });
+    
+    console.log("Carts found:", carts);
+    
+    if (carts.length !== cartItemIds.length) {
+      return NextResponse.json(
+        { error: "Some carts not found" },
+        { status: 404 }
+      );
+    }
+    
+    const totalAmount = carts.map(item => item.totalPrice)
 
     // Lưu session vào cơ sở dữ liệu
     const paymentSession = await prisma.paymentSession.create({
       data: {
         userId: decodedToken.id,
-        payload: bookingPayload,
+        payload: {
+          totalAmount,
+          ownerName: "AN-HOMESTAY",
+          content: "Payment for booking: " + totalAmount.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }),
+        },
         sessionId: paymentSessionId,
         status: PaymentSessionStatus.SUCCESS,
       },
@@ -47,7 +78,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         sessionId: paymentSession.sessionId,
-        paymentUrl: `${process.env.NEXT_PUBLIC_API_URL}/payment/${paymentSession.sessionId}`, // URL thanh toán
+        paymentUrl: `${process.env.NEXT_PUBLIC_API_URL}/payment/session/${paymentSession.sessionId}`,
       },
       { status: 201 }
     );
