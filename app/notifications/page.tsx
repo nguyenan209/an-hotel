@@ -40,6 +40,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { getNotificationIcon } from "@/components/notification/get-notification-icon";
+import { getNotificationTypeColor, getNotificationTypeLabel, getTimeAgo } from "@/lib/utils";
+import { NotificationType } from "@prisma/client";
 
 // Mock data for notifications
 const generateMockNotifications = () => {
@@ -96,7 +99,9 @@ const generateMockNotifications = () => {
 
   // Generate 50 random notifications
   for (let i = 0; i < 50; i++) {
-    const type = types[Math.floor(Math.random() * types.length)] as keyof typeof messages;
+    const type = types[
+      Math.floor(Math.random() * types.length)
+    ] as keyof typeof messages;
     const message =
       messages[type][Math.floor(Math.random() * messages[type].length)];
     const daysAgo = Math.floor(Math.random() * 30);
@@ -119,64 +124,19 @@ const generateMockNotifications = () => {
         type === "booking"
           ? "/admin/bookings"
           : type === "review"
-          ? "/admin/reviews"
-          : type === "cancellation"
-          ? "/admin/bookings"
-          : type === "approval"
-          ? "/admin/approvals"
-          : type === "complaint"
-          ? "/admin/complaints"
-          : "/admin",
+            ? "/admin/reviews"
+            : type === "cancellation"
+              ? "/admin/bookings"
+              : type === "approval"
+                ? "/admin/approvals"
+                : type === "complaint"
+                  ? "/admin/complaints"
+                  : "/admin",
     });
   }
 
   // Sort by date (newest first)
   return notifications.sort((a, b) => b.date.getTime() - a.date.getTime());
-};
-
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case "booking":
-      return <span className="text-xl">🏠</span>;
-    case "review":
-      return <span className="text-xl">⭐</span>;
-    case "cancellation":
-      return <span className="text-xl">❌</span>;
-    case "approval":
-      return <span className="text-xl">✅</span>;
-    case "complaint":
-      return <span className="text-xl">⚠️</span>;
-    case "system":
-      return <span className="text-xl">🔔</span>;
-    default:
-      return <Bell className="h-5 w-5" />;
-  }
-};
-
-const getTimeAgo = (date: Date) => {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 60) {
-    return "Vừa xong";
-  }
-
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} phút trước`;
-  }
-
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} giờ trước`;
-  }
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) {
-    return `${diffInDays} ngày trước`;
-  }
-
-  return format(date, "dd/MM/yyyy", { locale: vi });
 };
 
 export default function AdminNotificationsPage() {
@@ -186,20 +146,26 @@ export default function AdminNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("all");
+  const [filterType, setFilterType] = useState<NotificationType | "all">("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const itemsPerPage = 10;
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    // Simulate API call to fetch notifications
     const fetchNotifications = async () => {
       setLoading(true);
       try {
-        // In a real app, this would be an API call
-        const data = generateMockNotifications();
-        setNotifications(data);
-        setFilteredNotifications(data);
+        const response = await fetch(
+          `/api/notifications?page=${currentPage}&limit=${itemsPerPage}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+        const data = await response.json();
+        setNotifications(data.notifications);
+        setFilteredNotifications(data.notifications);
+        setTotalPages(data.pagination.totalPages);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         toast({
@@ -213,7 +179,7 @@ export default function AdminNotificationsPage() {
     };
 
     fetchNotifications();
-  }, [toast]);
+  }, [currentPage, itemsPerPage, toast]);
 
   useEffect(() => {
     let filtered = [...notifications];
@@ -255,7 +221,6 @@ export default function AdminNotificationsPage() {
     setCurrentPage(1); // Reset to first page when filters change
   }, [notifications, activeTab, filterType, filterStatus, searchQuery]);
 
-  const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
   const currentNotifications = filteredNotifications.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -295,44 +260,6 @@ export default function AdminNotificationsPage() {
       title: "Tất cả thông báo đã được đánh dấu là đã đọc",
       duration: 2000,
     });
-  };
-
-  const getNotificationTypeLabel = (type: string) => {
-    switch (type) {
-      case "booking":
-        return "Đặt phòng";
-      case "review":
-        return "Đánh giá";
-      case "cancellation":
-        return "Hủy đặt phòng";
-      case "approval":
-        return "Phê duyệt";
-      case "complaint":
-        return "Khiếu nại";
-      case "system":
-        return "Hệ thống";
-      default:
-        return type;
-    }
-  };
-
-  const getNotificationTypeColor = (type: string) => {
-    switch (type) {
-      case "booking":
-        return "bg-blue-100 text-blue-800";
-      case "review":
-        return "bg-yellow-100 text-yellow-800";
-      case "cancellation":
-        return "bg-red-100 text-red-800";
-      case "approval":
-        return "bg-green-100 text-green-800";
-      case "complaint":
-        return "bg-orange-100 text-orange-800";
-      case "system":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   const unreadCount = notifications.filter((notif) => !notif.read).length;
@@ -377,18 +304,18 @@ export default function AdminNotificationsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Loại thông báo</label>
-                <Select value={filterType} onValueChange={setFilterType}>
+                <Select value={filterType} onValueChange={(value) => setFilterType(value as NotificationType | "all")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tất cả loại" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả loại</SelectItem>
-                    <SelectItem value="booking">Đặt phòng</SelectItem>
-                    <SelectItem value="review">Đánh giá</SelectItem>
-                    <SelectItem value="cancellation">Hủy đặt phòng</SelectItem>
-                    <SelectItem value="approval">Phê duyệt</SelectItem>
-                    <SelectItem value="complaint">Khiếu nại</SelectItem>
-                    <SelectItem value="system">Hệ thống</SelectItem>
+                    <SelectItem value={NotificationType.BOOKING}>Đặt phòng</SelectItem>
+                    <SelectItem value={NotificationType.REVIEW}>Đánh giá</SelectItem>
+                    <SelectItem value={NotificationType.CANCELLED}>Hủy đặt phòng</SelectItem>
+                    <SelectItem value={NotificationType.APPROVAL}>Phê duyệt</SelectItem>
+                    <SelectItem value={NotificationType.COMPLAINT}>Khiếu nại</SelectItem>
+                    <SelectItem value={NotificationType.SYSTEM}>Hệ thống</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -587,44 +514,20 @@ export default function AdminNotificationsPage() {
                           />
                         </PaginationItem>
 
-                        {Array.from({ length: totalPages }).map((_, i) => {
-                          // Show first page, last page, and pages around current page
-                          if (
-                            i === 0 ||
-                            i === totalPages - 1 ||
-                            (i >= currentPage - 2 && i <= currentPage + 2)
-                          ) {
-                            return (
-                              <PaginationItem key={i}>
-                                <PaginationLink
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    setCurrentPage(i + 1);
-                                  }}
-                                  isActive={currentPage === i + 1}
-                                >
-                                  {i + 1}
-                                </PaginationLink>
-                              </PaginationItem>
-                            );
-                          }
-
-                          // Show ellipsis if there's a gap
-                          if (
-                            (i === 1 && currentPage > 3) ||
-                            (i === totalPages - 2 &&
-                              currentPage < totalPages - 2)
-                          ) {
-                            return (
-                              <PaginationItem key={i}>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            );
-                          }
-
-                          return null;
-                        })}
+                        {Array.from({ length: totalPages }).map((_, i) => (
+                          <PaginationItem key={i}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(i + 1);
+                              }}
+                              isActive={currentPage === i + 1}
+                            >
+                              {i + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
 
                         <PaginationItem>
                           <PaginationNext

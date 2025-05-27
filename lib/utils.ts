@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { generateHash } from "./hash";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -96,3 +98,67 @@ export function calculateCartTotal(
     return total + itemTotal;
   }, 0);
 }
+
+export const getTimeAgo = (date: Date) => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return "Vừa xong";
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} phút trước`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} giờ trước`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) {
+    return `${diffInDays} ngày trước`;
+  }
+
+  return format(date, "dd/MM/yyyy", { locale: vi });
+};
+
+export const getNotificationTypeColor = (type: string) => {
+  switch (type) {
+    case "booking":
+      return "bg-blue-100 text-blue-800";
+    case "review":
+      return "bg-yellow-100 text-yellow-800";
+    case "cancellation":
+      return "bg-red-100 text-red-800";
+    case "approval":
+      return "bg-green-100 text-green-800";
+    case "complaint":
+      return "bg-orange-100 text-orange-800";
+    case "system":
+      return "bg-purple-100 text-purple-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const getNotificationTypeLabel = (type: string) => {
+  switch (type) {
+    case "booking":
+      return "Đặt phòng";
+    case "review":
+      return "Đánh giá";
+    case "cancellation":
+      return "Hủy đặt phòng";
+    case "approval":
+      return "Phê duyệt";
+    case "complaint":
+      return "Khiếu nại";
+    case "system":
+      return "Hệ thống";
+    default:
+      return type;
+  }
+};
