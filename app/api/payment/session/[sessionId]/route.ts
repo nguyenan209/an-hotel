@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Đảm bảo bạn đã cấu hình Prisma client
+import { PaymentSessionStatus } from "@prisma/client";
 
 export async function GET(
   request: Request,
@@ -18,7 +19,7 @@ export async function GET(
 
     // Tìm session thanh toán trong cơ sở dữ liệu
     const paymentSession = await prisma.paymentSession.findUnique({
-      where: { sessionId },
+      where: { sessionId, status: PaymentSessionStatus.PENDING },
     });
     if (!paymentSession) {
       return NextResponse.json(

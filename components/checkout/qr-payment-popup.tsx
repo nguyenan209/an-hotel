@@ -40,8 +40,8 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
   const channelRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
-  const cartItems = useCartStore((state) => state.items);
-  console.log("Cart items:", cartItems);
+  const { items } = useCartStore();
+  console.log("Cart items:", items);
 
   // Xử lý khi mở/đóng popup
   const handleOpenChange = useCallback(
@@ -52,7 +52,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         // Reset state
         setTimeLeft(120);
         setPaymentStatus("pending");
-        const cartItemIds = cartItems.map((item) => item.id);
+        const cartItemIds = items.map((item) => item.id);
         const bookingNumber = generateBookingNumber({
           cartItemIds,
         });
@@ -160,7 +160,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         }
       }
     },
-    [onPaymentSuccess, paymentSessionId, toast, cartItems]
+    [onPaymentSuccess, paymentSessionId, toast, items]
   );
 
   // Format time as MM:SS
@@ -201,7 +201,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
                 {/* Số tiền và hướng dẫn */}
                 <div className="text-center">
                   <p className="text-lg font-semibold text-gray-800">
-                    Số tiền: {calculateCartTotal(cartItems).toLocaleString()} ₫
+                    Số tiền: {calculateCartTotal(items).toLocaleString()} ₫
                   </p>
                   <p className="text-sm text-gray-500">
                     Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để thanh

@@ -54,11 +54,12 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const totalAmount = carts.map(item => item.totalPrice)
+    const totalAmount = carts.reduce((sum, item) => sum + item.totalPrice, 0);
 
     // Lưu session vào cơ sở dữ liệu
-    const paymentSession = await prisma.paymentSession.create({
-      data: {
+    const paymentSession = await prisma.paymentSession.upsert({
+      where: { sessionId: paymentSessionId },
+      create: {
         userId: decodedToken.id,
         payload: {
           totalAmount,
@@ -67,9 +68,23 @@ export async function POST(request: NextRequest) {
             style: "currency",
             currency: "VND",
           }),
+          cartItemIds: cartItemIds,
         },
         sessionId: paymentSessionId,
-        status: PaymentSessionStatus.SUCCESS,
+        status: PaymentSessionStatus.PENDING,
+      },
+      update: {
+        userId: decodedToken.id,
+        payload: {
+          totalAmount,
+          ownerName: "AN-HOMESTAY",
+          content: "Payment for booking: " + totalAmount.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }),
+          cartItemIds: cartItemIds,
+        },
+        status: PaymentSessionStatus.PENDING,
       },
     });
 

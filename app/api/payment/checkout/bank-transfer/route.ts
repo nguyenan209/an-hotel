@@ -1,4 +1,4 @@
-import { PaymentMethod, BookingStatus, PaymentStatus } from "@prisma/client";
+import { PaymentMethod, BookingStatus, PaymentStatus, PaymentSessionStatus } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
@@ -6,29 +6,101 @@ import { generateBookingNumber } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const decoded = getTokenData(request);
-    if (!decoded) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     const body = await request.json();
-    const { paymentMethod, bookingData, paymentDetails } = body;
+    const {
+      accountHolder,
+      bank,
+      accountNumber,
+      transferContent,
+      sessionId,
+    } = body;
+
+    const paymentSession = await prisma.paymentSession.findUnique({
+      where: { sessionId },
+    });
+    if (!paymentSession) {
+      return NextResponse.json(
+        { error: "Payment session not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!paymentSession.payload) {
+      return NextResponse.json(
+        { error: "Payment session payload is missing" },
+        { status: 400 }
+      );
+    }
+
+    const payload = paymentSession.payload as {
+      cartItemIds: string[];
+      totalAmount: number;
+    };
+    const cartItemIds = payload.cartItemIds;
+
+    if (!cartItemIds || cartItemIds.length === 0) {
+      return NextResponse.json(
+        { error: "No cart items found in session" },
+        { status: 400 }
+      );
+    }
+    const cartItems = await prisma.cartItem.findMany({
+      where: {
+        isDeleted: false,
+        id: {
+          in: cartItemIds,
+        },
+      },
+      include: {
+        homestay: true,
+      },
+    });
+
+    const totalPrice = payload.totalAmount;
+    const items = cartItems.map((cartItem) => ({
+      homestayId: cartItem.homestayId,
+      homestay: cartItem.homestay,
+      checkIn: cartItem.checkIn,
+      checkOut: cartItem.checkOut,
+      guests: cartItem.guests,
+      nights: cartItem.nights,
+      bookingType: cartItem.bookingType,
+      note: cartItem.note,
+      rooms: cartItem.rooms,
+      totalPrice,
+    }));
+
+
+
+    const bookingData = {
+      totalAmount: totalPrice,
+      currency: "VND",
+      items,
+      status: BookingStatus.PENDING,
+    };
 
     // Tạo một bookingNumber chung cho tất cả các booking trong lần đặt phòng này
     const bookingNumber = generateBookingNumber(bookingData);
-
-    // Kiểm tra xem khách hàng đã tồn tại hay chưa
-    let customer = await prisma.customer.findUnique({
+    
+    const user = await prisma.user.findUnique({
       where: {
-        id: decoded.customerId,
+        id: paymentSession.userId,
         isDeleted: false,
       },
+      include: {
+        customer: true, // Bao gồm thông tin khách hàng nếu cần
+      },
     });
+    
+
+    // Kiểm tra xem khách hàng đã tồn tại hay chưa
+    let customer = user?.customer;
 
     if (!customer) {
       // Nếu khách hàng không tồn tại, tạo mới khách hàng
       customer = await prisma.customer.create({
         data: {
-          userId: decoded.id,
+          userId: paymentSession.userId,
         },
       });
     }
@@ -53,10 +125,10 @@ export async function POST(request: NextRequest) {
             bookingType: item.bookingType,
             status: BookingStatus.PENDING,
             paymentStatus: PaymentStatus.PENDING,
-            paymentMethod: paymentMethod,
+            paymentMethod: PaymentMethod.BANK_TRANSFER,
             specialRequests: item.note,
             bookingItems: {
-              create: item.rooms.map((room: any) => ({
+              create: JSON.parse(item.rooms).map((room: any) => ({
                 room: {
                   connect: { id: room.roomId },
                 },
@@ -84,21 +156,19 @@ export async function POST(request: NextRequest) {
           data: {
             bookingId: createdBooking.id,
             amount: item.totalPrice,
-            method: paymentMethod,
-            status:
-              paymentMethod === PaymentMethod.CASH
-                ? PaymentStatus.PENDING
-                : PaymentStatus.PAID,
-            transactionId:
-              paymentMethod === PaymentMethod.CASH ? null : transactionId,
-            paymentDate:
-              paymentMethod === PaymentMethod.CASH ? undefined : new Date(),
-            notes:
-              paymentMethod === PaymentMethod.CREDIT_CARD
-                ? `Card Last 4: ${paymentDetails?.cardLast4}, Brand: ${paymentDetails?.cardBrand}`
-                : paymentMethod === PaymentMethod.BANK_TRANSFER
-                  ? `Bank: ${paymentDetails?.bankName}, Account: ${paymentDetails?.accountNumber}`
-                  : null,
+            method: PaymentMethod.BANK_TRANSFER,
+            status: PaymentStatus.PAID,
+            transactionId: transactionId,
+            paymentDate: new Date(),
+            notes: transferContent,
+            paymentDetails: JSON.stringify({
+              accountHolder,
+              bank,
+              accountNumber,
+              transferContent,
+              amount: item.totalPrice,
+              sessionId,
+            }),
           },
         });
 
@@ -108,6 +178,27 @@ export async function POST(request: NextRequest) {
         };
       })
     );
+    
+    await prisma.paymentSession.update({
+      where: { sessionId: paymentSession.sessionId },
+      data: {
+        status: PaymentSessionStatus.SUCCESS,
+        updatedAt: new Date(),
+      },
+    });
+    
+    await prisma.cartItem.updateMany({
+      where: {
+        id: {
+          in: cartItemIds,
+        },
+        isDeleted: false,
+      },
+      data: {
+        isDeleted: true, // Đánh dấu các cart item là đã xóa
+        updatedAt: new Date(),
+      },
+    });
 
     // Trả về danh sách các booking và thanh toán đã tạo
     return NextResponse.json({

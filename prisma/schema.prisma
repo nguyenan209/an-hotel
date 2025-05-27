@@ -299,6 +299,7 @@ model Payment {
   transactionId String? // ID giao dịch từ cổng thanh toán
   paymentDate   DateTime      @default(now())
   notes         String?
+  paymentDetails Json? // Chi tiết thanh toán (thông tin thẻ, ngân hàng, v.v.)
 }
 
 model PaymentSession {
