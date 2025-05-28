@@ -255,7 +255,8 @@ export default function AdminNotificationsPage() {
     setCurrentPage(1); // Reset về trang đầu tiên
 
     if (value === "all") {
-      setFilterType("all");
+      setFilterType(value);
+      setFilterStatus("all");
     } else if (value === "unread") {
       setFilterStatus("unread");
     } else {
