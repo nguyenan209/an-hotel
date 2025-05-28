@@ -48,7 +48,7 @@ export function NotificationDropdown({
         }
         const data = await response.json();
         setNotificationList(data.notifications);
-        setCount(data.unreadCount);
+        setCount(data.pagination.unreadCount);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -64,19 +64,18 @@ export function NotificationDropdown({
       (data: { notification: Notification }) => {
         console.log("New notification received:", data.notification);
         setNotificationList((prev) => [data.notification, ...prev]);
-        setCount((prev) => prev + 1);
+        if (!data.notification.isRead) {
+          setCount((prev) => prev + 1);
+        }
       }
     );
 
     return () => {
       pusherClient.unsubscribe(getNotificationChannel(user.id));
     };
-  }, [user.id]);
+  }, [user.id, count]);
 
   const handleNotificationClick = (notificationId: string) => {
-    // In a real app, you would call an API to mark the notification as read
-    console.log(`Marking notification ${notificationId} as read`);
-
     // Navigate to relevant page based on notification type
     const notification = notificationList.find((n) => n.id === notificationId);
     if (notification) {
@@ -97,7 +96,7 @@ export function NotificationDropdown({
       }
     }
   };
-
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -106,7 +105,7 @@ export function NotificationDropdown({
           <span className="sr-only">Toggle notification menu</span>
           {count > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-              {count > 9 ? "9+" : count}
+              {count}
             </span>
           )}
         </Button>
