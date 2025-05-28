@@ -1,31 +1,20 @@
-import { PaymentMethod, BookingStatus, PaymentStatus, PaymentSessionStatus } from "@prisma/client";
+import {
+  PaymentMethod,
+  BookingStatus,
+  PaymentStatus,
+  PaymentSessionStatus,
+} from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getTokenData } from "@/lib/auth";
 import { generateBookingNumber } from "@/lib/utils";
-
-import Pusher from "pusher";
 import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
-
-// Cấu hình Pusher
-const pusher = new Pusher({
-  appId: process.env.NEXT_PUBLIC_PUSHER_APP_ID!,
-  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  secret: process.env.NEXT_PUBLIC_PUSHER_SECRET!,
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  useTLS: true,
-});
+import { pusherServer } from "@/lib/pusher/pusher";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      accountHolder,
-      bank,
-      accountNumber,
-      transferContent,
-      sessionId,
-    } = body;
+    const { accountHolder, bank, accountNumber, transferContent, sessionId } =
+      body;
 
     const paymentSession = await prisma.paymentSession.findUnique({
       where: { sessionId },
@@ -82,8 +71,6 @@ export async function POST(request: NextRequest) {
       totalPrice,
     }));
 
-
-
     const bookingData = {
       totalAmount: totalPrice,
       currency: "VND",
@@ -93,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Tạo một bookingNumber chung cho tất cả các booking trong lần đặt phòng này
     const bookingNumber = generateBookingNumber(bookingData);
-    
+
     const user = await prisma.user.findUnique({
       where: {
         id: paymentSession.userId,
@@ -103,7 +90,6 @@ export async function POST(request: NextRequest) {
         customer: true, // Bao gồm thông tin khách hàng nếu cần
       },
     });
-    
 
     // Kiểm tra xem khách hàng đã tồn tại hay chưa
     let customer = user?.customer;
@@ -190,7 +176,7 @@ export async function POST(request: NextRequest) {
         };
       })
     );
-    
+
     await prisma.paymentSession.update({
       where: { sessionId: paymentSession.sessionId },
       data: {
@@ -198,7 +184,7 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       },
     });
-    
+
     await prisma.cartItem.updateMany({
       where: {
         id: {
@@ -211,13 +197,17 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       },
     });
-    
-    await pusher.trigger(`payment-${sessionId}`, CHANNEL_PAYMENT_CONFIRM, {
-      status: "confirmed",
-      sessionId,
-      amount: payload.totalAmount,
-      message: "Payment confirmed successfully",
-    });
+
+    await pusherServer.trigger(
+      `payment-${sessionId}`,
+      CHANNEL_PAYMENT_CONFIRM,
+      {
+        status: "confirmed",
+        sessionId,
+        amount: payload.totalAmount,
+        message: "Payment confirmed successfully",
+      }
+    );
 
     // Trả về danh sách các booking và thanh toán đã tạo
     return NextResponse.json({

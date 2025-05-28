@@ -14,17 +14,7 @@ import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
 import { useCartStore } from "@/lib/store/cartStore";
 import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
-
-// Khởi tạo Pusher client
-let pusher: Pusher | null = null;
-
-// Chỉ khởi tạo Pusher ở phía client
-if (typeof window !== "undefined") {
-  pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-    cluster: "ap1",
-    forceTLS: true,
-  });
-}
+import { pusherClient } from "@/lib/pusher/pusher-client";
 
 interface QRPaymentPopupProps {
   onPaymentSuccess: () => void;
@@ -100,8 +90,10 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
             setSessionUrl(data.paymentUrl);
 
             // Đăng ký kênh Pusher cho phiên thanh toán này
-            if (pusher) {
-              const channel = pusher.subscribe(`payment-${bookingNumber}`);
+            if (pusherClient) {
+              const channel = pusherClient.subscribe(
+                `payment-${bookingNumber}`
+              );
               channelRef.current = channel;
 
               channel.bind(CHANNEL_PAYMENT_CONFIRM, (data: any) => {
@@ -143,8 +135,8 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
           }
 
           // Hủy đăng ký kênh Pusher
-          if (channelRef.current && pusher) {
-            pusher.unsubscribe(`payment-${bookingNumber}`);
+          if (channelRef.current && pusherClient) {
+            pusherClient.unsubscribe(`payment-${bookingNumber}`);
             channelRef.current = null;
           }
         };
@@ -155,8 +147,8 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         }
 
         // Hủy đăng ký kênh Pusher
-        if (channelRef.current && pusher && paymentSessionId) {
-          pusher.unsubscribe(`payment-${paymentSessionId}`);
+        if (channelRef.current && pusherClient && paymentSessionId) {
+          pusherClient.unsubscribe(`payment-${paymentSessionId}`);
           channelRef.current = null;
         }
       }
