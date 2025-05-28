@@ -42,7 +42,7 @@ export function NotificationDropdown({
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch(`/api/notifications?limit=3`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications?limit=3`);
         if (!response.ok) {
           throw new Error("Failed to fetch notifications");
         }

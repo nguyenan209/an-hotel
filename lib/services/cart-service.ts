@@ -2,7 +2,7 @@ import { CartItem } from "../types";
 
 export const cartAPI = {
   async getCart(customerId: string) {
-    const response = await fetch(`/api/cart/${customerId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/${customerId}`);
     if (!response.ok) throw new Error("Failed to fetch cart");
     return response.json();
   },

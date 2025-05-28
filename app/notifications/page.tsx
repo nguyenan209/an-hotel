@@ -68,7 +68,7 @@ export default function AdminNotificationsPage() {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/notifications?page=${currentPage}&limit=${itemsPerPage}&type=${filterType}&status=${filterStatus}&query=${searchQuery}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/notifications?page=${currentPage}&limit=${itemsPerPage}&type=${filterType}&status=${filterStatus}&query=${searchQuery}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch notifications");
@@ -95,7 +95,7 @@ export default function AdminNotificationsPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -137,7 +137,7 @@ export default function AdminNotificationsPage() {
 
   const markAsUnread = async (id: string) => {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -179,7 +179,7 @@ export default function AdminNotificationsPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
         method: "DELETE",
       });
 
@@ -219,7 +219,7 @@ export default function AdminNotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch(`/api/notifications/mark-all-read`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/mark-all-read`, {
         method: "PUT",
       });
 
