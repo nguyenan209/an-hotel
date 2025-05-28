@@ -39,6 +39,7 @@ import { calculateNights, CANCELLATION_POLICIES } from "@/lib/utils";
 import moment from "moment";
 import { BookingStatus } from "@prisma/client";
 import { ReviewForm } from "@/components/review/review-form";
+import Loading from "@/components/loading";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -47,6 +48,7 @@ export default function BookingDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [userReview, setUserReview] = useState(null); // Lưu review của người dùng
   const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function BookingDetailsPage() {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${Cookies.get("token")}`, // Assuming you store the token in cookies
+              Authorization: `Bearer ${Cookies.get("token")}`,
             },
           }
         );
@@ -69,8 +71,28 @@ export default function BookingDetailsPage() {
 
         const data = await response.json();
         setBooking(data);
+
+        // Fetch review của người dùng cho homestay này
+        const reviewResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/reviews?homestayId=${data.homestayId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Review Response:", reviewResponse);
+        if (reviewResponse.ok) {
+          const reviewData = await reviewResponse.json();
+          if (reviewData && reviewData.status === "APPROVED") {
+            setUserReview(reviewData); // Lưu review nếu trạng thái là APPROVED
+            setHasReviewed(true);
+          }
+        }
       } catch (error) {
-        console.error("Failed to fetch booking details:", error);
+        console.error("Failed to fetch booking or review details:", error);
       } finally {
         setIsLoading(false);
       }
@@ -101,14 +123,7 @@ export default function BookingDetailsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-10">
-        <div className="flex flex-col items-center justify-center min-h-[50vh]">
-          <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 rounded-full animate-spin"></div>
-          <p className="mt-4 text-lg">Loading booking details...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!booking) {
@@ -329,7 +344,7 @@ export default function BookingDetailsPage() {
             <Star className="h-6 w-6 mr-2 text-yellow-400" />
             Share Your Experience
           </h2>
-          {hasReviewed ? (
+          {hasReviewed && userReview ? (
             <Card>
               <CardHeader>
                 <CardTitle>Thank You for Your Review!</CardTitle>

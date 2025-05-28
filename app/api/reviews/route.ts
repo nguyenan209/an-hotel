@@ -23,6 +23,21 @@ export async function GET(request: NextRequest) {
       where.homestayId = homestayId;
     }
 
+    console.log(JSON.stringify({
+      where,
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        customer: {
+          select: {
+            user: {
+              select: { name: true, avatar: true },
+            },
+          },
+        },
+      },
+    }))
     // Lấy danh sách đánh giá
     const reviews = await prisma.review.findMany({
       where,
@@ -39,6 +54,8 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+    
+    console.log(reviews);
 
     // Tổng số đánh giá
     const total = await prisma.review.count({ where });
