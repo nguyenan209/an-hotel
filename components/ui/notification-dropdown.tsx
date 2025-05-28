@@ -62,6 +62,7 @@ export function NotificationDropdown({
     channel.bind(
       NEW_NOTIFICATION_EVENT,
       (data: { notification: Notification }) => {
+        console.log("New notification received:", data.notification);
         setNotificationList((prev) => [data.notification, ...prev]);
         setCount((prev) => prev + 1);
       }
