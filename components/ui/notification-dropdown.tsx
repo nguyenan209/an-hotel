@@ -20,12 +20,10 @@ import { NEW_NOTIFICATION_EVENT } from "@/lib/notification/events";
 import { getNotificationIcon, getTimeAgo } from "@/lib/utils";
 
 interface NotificationDropdownProps {
-  unreadCount?: number;
   variant?: "admin" | "user";
 }
 
 export function NotificationDropdown({
-  unreadCount,
   variant = "user",
 }: NotificationDropdownProps) {
   const router = useRouter();
@@ -35,7 +33,7 @@ export function NotificationDropdown({
   // Sử dụng notificationStore
   const {
     notifications,
-    unreadCount: storeUnreadCount,
+    globalUnreadCount,
     fetchNotifications,
     markAsRead,
   } = useNotificationStore();
@@ -112,9 +110,9 @@ export function NotificationDropdown({
         <Button variant="outline" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Toggle notification menu</span>
-          {storeUnreadCount > 0 && (
+          {globalUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-              {storeUnreadCount}
+              {globalUnreadCount}
             </span>
           )}
         </Button>
@@ -122,9 +120,9 @@ export function NotificationDropdown({
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notifications</span>
-          {storeUnreadCount > 0 && (
+          {globalUnreadCount > 0 && (
             <span className="text-xs text-muted-foreground">
-              {storeUnreadCount} unread
+              {globalUnreadCount} unread
             </span>
           )}
         </DropdownMenuLabel>
