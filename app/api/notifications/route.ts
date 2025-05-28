@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const type = searchParams.get("type") || "all";
+    const type = searchParams.get("type") || "all"; // Mặc định là "all"
     const status = searchParams.get("status") || "all";
     const query = searchParams.get("query") || "";
 
@@ -40,13 +40,18 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    // Lấy tổng số bản ghi theo điều kiện lọc
+    const filteredTotal = await prisma.notification.count({
+      where,
+    });
+
     // Lấy tổng số thông báo (không phụ thuộc vào bộ lọc)
-    const totalNotifications = await prisma.notification.count({
+    const globalTotalNotifications = await prisma.notification.count({
       where: { userId: decoded.id },
     });
 
     // Lấy tổng số thông báo chưa đọc (không phụ thuộc vào bộ lọc)
-    const unreadCount = await prisma.notification.count({
+    const globalUnreadCount = await prisma.notification.count({
       where: { userId: decoded.id, isRead: false },
     });
 
@@ -58,14 +63,15 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
-    const totalPages = Math.ceil(totalNotifications / limit);
+    const totalPages = Math.ceil(filteredTotal / limit);
 
     return NextResponse.json(
       {
         notifications,
         pagination: {
-          total: totalNotifications,
-          unreadCount,
+          total: filteredTotal, // Tổng số bản ghi theo điều kiện lọc
+          globalTotalNotifications, // Tổng tất cả thông báo
+          globalUnreadCount, // Tổng thông báo chưa đọc
           page,
           limit,
           totalPages,
@@ -75,43 +81,6 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error fetching notifications:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const decoded = getTokenData(request);
-    if (!decoded) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { title, message, type, relatedId } = body;
-
-    if (!title || !message || !type) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const newNotification = await prisma.notification.create({
-      data: {
-        userId: decoded.id,
-        title,
-        message,
-        type,
-        relatedId,
-      },
-    });
-
-    return NextResponse.json(newNotification, { status: 201 });
-  } catch (error) {
-    console.error("Error creating notification:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

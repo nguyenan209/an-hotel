@@ -48,7 +48,6 @@ import { useEffect, useState } from "react";
 export default function AdminNotificationsPage() {
   const {
     notifications,
-    unreadCount,
     totalNotifications,
     totalPages,
     isLoading,
@@ -57,6 +56,8 @@ export default function AdminNotificationsPage() {
     markAsUnread,
     deleteNotification,
     markAllAsRead,
+    globalTotalNotifications,
+    globalUnreadCount,
   } = useNotificationStore();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,12 +86,14 @@ export default function AdminNotificationsPage() {
     setCurrentPage(1); // Reset về trang đầu tiên
 
     if (value === "all") {
-      setFilterType(value);
+      setFilterType("all");
       setFilterStatus("all");
     } else if (value === "unread") {
-      setFilterStatus("unread");
+      setFilterType("all"); // Giữ type là "all"
+      setFilterStatus("unread"); // Đặt trạng thái là "unread"
     } else {
-      setFilterType(value as NotificationType);
+      setFilterType(value as NotificationType); // Chỉ định type là NotificationType
+      setFilterStatus("all"); // Đặt trạng thái là "all"
     }
   };
 
@@ -103,7 +106,7 @@ export default function AdminNotificationsPage() {
             variant="outline"
             size="sm"
             onClick={markAllAsRead}
-            disabled={unreadCount === 0}
+            disabled={globalUnreadCount === 0}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             Đánh dấu tất cả là đã đọc
@@ -222,13 +225,13 @@ export default function AdminNotificationsPage() {
                   <TabsTrigger value="all">
                     Tất cả
                     <Badge variant="secondary" className="ml-2">
-                      {totalNotifications}
+                      {globalTotalNotifications}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger value="unread">
                     Chưa đọc
                     <Badge variant="secondary" className="ml-2">
-                      {unreadCount}
+                      {globalUnreadCount}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger value={NotificationType.BOOKING}>
@@ -362,7 +365,7 @@ export default function AdminNotificationsPage() {
                     </div>
                   ))}
 
-                  {totalPages > 1 && (
+                  {totalPages > 1 && totalNotifications > itemsPerPage && (
                     <Pagination className="mt-6">
                       <PaginationContent>
                         <PaginationItem>

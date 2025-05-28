@@ -3,10 +3,11 @@ import { Notification } from "@/lib/types";
 
 interface NotificationState {
   notifications: Notification[];
-  unreadCount: number;
   totalNotifications: number;
   totalPages: number;
   isLoading: boolean;
+  globalUnreadCount: number; // Tổng thông báo chưa đọc (toàn cục)
+  globalTotalNotifications: number;
   fetchNotifications: (params: {
     page: number;
     limit: number;
@@ -26,6 +27,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   totalNotifications: 0,
   totalPages: 0,
   isLoading: false,
+  globalUnreadCount: 0,
+  globalTotalNotifications: 0,
 
   fetchNotifications: async ({ page, limit, type, status, query }) => {
     set({ isLoading: true });
@@ -39,8 +42,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const data = await response.json();
       set({
         notifications: data.notifications,
-        unreadCount: data.pagination.unreadCount,
         totalNotifications: data.pagination.total,
+        globalUnreadCount: data.pagination.globalUnreadCount, // Cập nhật tổng chưa đọc toàn cục
+        globalTotalNotifications: data.pagination.globalTotalNotifications, // Cập nhật tổng thông báo toàn cục
         totalPages: data.pagination.totalPages,
       });
     } catch (error) {
@@ -71,7 +75,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         notifications: state.notifications.map((notif) =>
           notif.id === id ? { ...notif, isRead: true } : notif
         ),
-        unreadCount: state.unreadCount - 1,
+        globalUnreadCount: state.globalUnreadCount - 1,
       }));
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -99,7 +103,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         notifications: state.notifications.map((notif) =>
           notif.id === id ? { ...notif, isRead: false } : notif
         ),
-        unreadCount: state.unreadCount + 1,
+        globalUnreadCount: state.globalUnreadCount + 1,
       }));
     } catch (error) {
       console.error("Error marking notification as unread:", error);
@@ -127,8 +131,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           notifications: state.notifications.filter((notif) => notif.id !== id),
           unreadCount:
             deletedNotification && !deletedNotification.isRead
-              ? state.unreadCount - 1
-              : state.unreadCount,
+              ? state.globalUnreadCount - 1
+              : state.globalUnreadCount,
           totalNotifications: state.totalNotifications - 1,
         };
       });
