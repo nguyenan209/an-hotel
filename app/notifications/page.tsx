@@ -48,10 +48,7 @@ import { useEffect, useState } from "react";
 
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<
-    Notification[]
-  >([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -247,7 +244,7 @@ export default function AdminNotificationsPage() {
     }
   };
 
-  const unreadCount = notifications.filter((notif) => !notif.read).length;
+  const unreadCount = notifications.filter((notif) => !notif.isRead).length;
 
   const handleFilterChange = () => {
     setCurrentPage(1); // Reset về trang đầu tiên
