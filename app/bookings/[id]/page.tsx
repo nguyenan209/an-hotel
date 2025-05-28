@@ -52,13 +52,16 @@ export default function BookingDetailsPage() {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${params.id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`, // Assuming you store the token in cookies
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${params.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("token")}`, // Assuming you store the token in cookies
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch booking details");
@@ -319,7 +322,6 @@ export default function BookingDetailsPage() {
           </Card>
         </div>
       </div>
-
       {/* Review Section - Only show for completed bookings */}
       {booking.status === BookingStatus.COMPLETED && (
         <div className="mt-10">

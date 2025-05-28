@@ -21,6 +21,13 @@ interface ReviewFormProps {
   homestayId: string;
   homestayName: string;
   onSuccess?: () => void;
+  onReviewSubmitted?: (review: {
+    rating: number;
+    comment: string;
+    date: string;
+    userName: string;
+    userAvatar: string;
+  }) => void;
 }
 
 export function ReviewForm({
@@ -28,12 +35,19 @@ export function ReviewForm({
   homestayId,
   homestayName,
   onSuccess,
+  onReviewSubmitted,
 }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [review, setReview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showSubmittedReview, setShowSubmittedReview] = useState(false);
+  const [submittedReview, setSubmittedReview] = useState<{
+    rating: number;
+    comment: string;
+    date: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,13 +70,16 @@ export function ReviewForm({
       return;
     }
 
+    if (!showPreview) {
+      setShowPreview(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would be an API call to submit the review
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Mock review data to send to the server
       const reviewData = {
         bookingId,
         homestayId,
@@ -73,12 +90,30 @@ export function ReviewForm({
 
       console.log("Submitting review:", reviewData);
 
+      setSubmittedReview({
+        rating,
+        comment: review,
+        date: new Date().toISOString(),
+      });
+
       toast({
         title: "Review submitted",
         description: "Thank you for sharing your experience!",
       });
 
-      setHasSubmitted(true);
+      setShowSubmittedReview(true);
+      setShowPreview(false);
+
+      if (onReviewSubmitted) {
+        onReviewSubmitted({
+          rating,
+          comment: review,
+          date: new Date().toISOString(),
+          userName: "Bạn", // Current user name
+          userAvatar: "/placeholder.svg", // Current user avatar
+        });
+      }
+
       if (onSuccess) {
         onSuccess();
       }
@@ -95,27 +130,88 @@ export function ReviewForm({
     }
   };
 
-  if (hasSubmitted) {
+  const handleEditReview = () => {
+    setShowPreview(false);
+    setShowSubmittedReview(false);
+  };
+
+  if (showSubmittedReview && submittedReview) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Review Submitted</CardTitle>
-          <CardDescription>
-            Thank you for sharing your experience!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center mb-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`h-6 w-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-              />
-            ))}
-          </div>
-          <p className="text-gray-700">{review}</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Review</CardTitle>
+            <CardDescription>
+              Thank you for sharing your experience at {homestayName}!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center mb-3">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-6 w-6 ${star <= submittedReview.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                />
+              ))}
+              <span className="ml-2 text-sm text-gray-600">
+                {new Date(submittedReview.date).toLocaleDateString()}
+              </span>
+            </div>
+            <p className="text-gray-700">{submittedReview.comment}</p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              onClick={handleEditReview}
+              className="w-full"
+            >
+              Edit Review
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (showPreview) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Preview Your Review</CardTitle>
+            <CardDescription>
+              Please review your feedback before submitting
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center mb-3">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-6 w-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                />
+              ))}
+            </div>
+            <p className="text-gray-700">{review}</p>
+          </CardContent>
+          <CardFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPreview(false)}
+              className="flex-1"
+            >
+              Edit Review
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? "Submitting..." : "Confirm & Submit"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
@@ -168,7 +264,7 @@ export function ReviewForm({
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Submitting..." : "Submit Review"}
+            {isSubmitting ? "Submitting..." : "Preview Review"}
           </Button>
         </CardFooter>
       </form>
