@@ -9,6 +9,7 @@ import prisma from "@/lib/prisma";
 import { generateBookingNumber } from "@/lib/utils";
 import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
 import { pusherServer } from "@/lib/pusher/pusher";
+import { getPaymentChannel } from "@/lib/notification/channels";
 
 export async function POST(request: NextRequest) {
   try {
@@ -199,7 +200,7 @@ export async function POST(request: NextRequest) {
     });
 
     await pusherServer.trigger(
-      `payment-${sessionId}`,
+      getPaymentChannel(sessionId),
       CHANNEL_PAYMENT_CONFIRM,
       {
         status: "confirmed",

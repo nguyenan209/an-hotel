@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { generateHash } from "./hash";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { NotificationType } from "@prisma/client";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -160,5 +161,20 @@ export const getNotificationTypeLabel = (type: string) => {
       return "Hệ thống";
     default:
       return type;
+  }
+};
+
+export const getNotificationIcon = (type: NotificationType) => {
+  switch (type) {
+    case NotificationType.BOOKING:
+      return "📅";
+    case NotificationType.REVIEW:
+      return "⭐";
+    case NotificationType.PAYMENT:
+      return "💳";
+    case NotificationType.SYSTEM:
+      return "🔔";
+    default:
+      return "📢";
   }
 };

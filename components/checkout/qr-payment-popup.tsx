@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import Cookies from "js-cookie";
-import { QrCode, Check, AlertCircle } from "lucide-react";
-import Pusher from "pusher-js";
-
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { QrCodePayment } from "@/components/checkout/qr-code-payment";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { BookingPayload } from "@/lib/types";
+import { useToast } from "@/components/ui/use-toast";
+import { getPaymentChannel } from "@/lib/notification/channels";
+import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/notification/events";
+import { pusherClient } from "@/lib/pusher/pusher-client";
+import { useCartStore } from "@/lib/store/cartStore";
 import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
-import { useCartStore } from "@/lib/store/cartStore";
-import { CHANNEL_PAYMENT_CONFIRM } from "@/lib/const";
-import { pusherClient } from "@/lib/pusher/pusher-client";
+import { AlertCircle, Check, QrCode } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
 interface QRPaymentPopupProps {
   onPaymentSuccess: () => void;
@@ -92,7 +89,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
             // Đăng ký kênh Pusher cho phiên thanh toán này
             if (pusherClient) {
               const channel = pusherClient.subscribe(
-                `payment-${bookingNumber}`
+                getPaymentChannel(bookingNumber)
               );
               channelRef.current = channel;
 

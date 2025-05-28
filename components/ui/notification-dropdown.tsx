@@ -11,101 +11,66 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  type: "booking" | "review" | "payment" | "system";
-}
+import { pusherClient } from "@/lib/pusher/pusher-client";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { getNotificationChannel } from "@/lib/notification/channels";
+import { NEW_NOTIFICATION_EVENT } from "@/lib/notification/events";
+import { Notification, NotificationType } from "@prisma/client";
+import { getNotificationIcon, getTimeAgo } from "@/lib/utils";
 
 interface NotificationDropdownProps {
-  notifications?: Notification[];
   unreadCount?: number;
   variant?: "admin" | "user";
 }
 
-const defaultAdminNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "New booking",
-    message: "Sunset Beach Villa",
-    time: "5 minutes ago",
-    read: false,
-    type: "booking",
-  },
-  {
-    id: "2",
-    title: "New review",
-    message: "Mountain Retreat",
-    time: "1 hour ago",
-    read: false,
-    type: "review",
-  },
-  {
-    id: "3",
-    title: "Booking cancelled",
-    message: "Riverside Cottage",
-    time: "2 hours ago",
-    read: true,
-    type: "booking",
-  },
-];
-
-const defaultUserNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "Booking confirmed",
-    message: "Your booking at Sunset Beach Villa has been confirmed",
-    time: "10 minutes ago",
-    read: false,
-    type: "booking",
-  },
-  {
-    id: "2",
-    title: "Payment successful",
-    message: "Payment for Mountain Retreat completed",
-    time: "1 hour ago",
-    read: false,
-    type: "payment",
-  },
-  {
-    id: "3",
-    title: "Review reminder",
-    message: "Please review your stay at Riverside Cottage",
-    time: "1 day ago",
-    read: true,
-    type: "review",
-  },
-];
-
 export function NotificationDropdown({
-  notifications,
   unreadCount,
   variant = "user",
 }: NotificationDropdownProps) {
   const router = useRouter();
-  const defaultNotifications =
-    variant === "admin" ? defaultAdminNotifications : defaultUserNotifications;
-  const notificationList = notifications || defaultNotifications;
-  const count = unreadCount ?? notificationList.filter((n) => !n.read).length;
+  const [notificationList, setNotificationList] = useState<Notification[]>([]);
+  const [count, setCount] = useState(unreadCount ?? 0);
+  const { user } = useAuth();
 
-  const getNotificationIcon = (type: Notification["type"]) => {
-    switch (type) {
-      case "booking":
-        return "📅";
-      case "review":
-        return "⭐";
-      case "payment":
-        return "💳";
-      case "system":
-        return "🔔";
-      default:
-        return "📢";
-    }
-  };
+  if (!user) {
+    router.push("/login");
+    return;
+  }
+
+  // Gọi API để lấy danh sách thông báo
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`/api/notifications?limit=3`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+        const data = await response.json();
+        setNotificationList(data.notifications);
+        setCount(data.unreadCount);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [user.id]);
+
+  useEffect(() => {
+    const channel = pusherClient.subscribe(getNotificationChannel(user.id));
+    channel.bind(
+      NEW_NOTIFICATION_EVENT,
+      (data: { notification: Notification }) => {
+        setNotificationList((prev) => [data.notification, ...prev]);
+        setCount((prev) => prev + 1);
+      }
+    );
+
+    return () => {
+      pusherClient.unsubscribe(getNotificationChannel(user.id));
+    };
+  }, [user.id]);
 
   const handleNotificationClick = (notificationId: string) => {
     // In a real app, you would call an API to mark the notification as read
@@ -115,13 +80,13 @@ export function NotificationDropdown({
     const notification = notificationList.find((n) => n.id === notificationId);
     if (notification) {
       switch (notification.type) {
-        case "booking":
+        case NotificationType.BOOKING:
           router.push(variant === "admin" ? "/admin/bookings" : "/bookings");
           break;
-        case "review":
+        case NotificationType.REVIEW:
           router.push(variant === "admin" ? "/admin/reviews" : "/profile");
           break;
-        case "payment":
+        case NotificationType.PAYMENT:
           router.push(
             variant === "admin" ? "/admin/reports/revenue" : "/bookings"
           );
@@ -160,24 +125,24 @@ export function NotificationDropdown({
             <span className="text-muted-foreground">No notifications</span>
           </DropdownMenuItem>
         ) : (
-          notificationList.map((notification) => (
+          notificationList.slice(0, 3).map((notification) => (
             <DropdownMenuItem
               key={notification.id}
               className={`flex flex-col items-start p-3 cursor-pointer ${
-                !notification.read ? "bg-muted/50" : ""
+                !notification.isRead ? "bg-muted/50" : ""
               }`}
               onClick={() => handleNotificationClick(notification.id)}
             >
               <div className="flex items-start gap-2 w-full">
                 <span className="text-sm">
-                  {getNotificationIcon(notification.type)}
+                  {`${getNotificationIcon(notification.type)}`}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium truncate">
                       {notification.title}
                     </p>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 ml-2" />
                     )}
                   </div>
@@ -185,7 +150,7 @@ export function NotificationDropdown({
                     {notification.message}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {notification.time}
+                    {getTimeAgo(new Date(notification.createdAt))}
                   </p>
                 </div>
               </div>
