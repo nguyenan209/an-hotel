@@ -1,18 +1,19 @@
+import { NotificationType } from "@prisma/client";
 import { Bell } from "lucide-react";
 
 export const getNotificationIcon = (type: string) => {
   switch (type) {
-    case "booking":
+    case NotificationType.BOOKING:
       return <span className="text-xl">🏠</span>;
-    case "review":
+    case NotificationType.REVIEW:
       return <span className="text-xl">⭐</span>;
-    case "cancellation":
+    case NotificationType.CANCELLED:
       return <span className="text-xl">❌</span>;
-    case "approval":
+    case NotificationType.APPROVAL:
       return <span className="text-xl">✅</span>;
-    case "complaint":
+    case NotificationType.COMPLAINT:
       return <span className="text-xl">⚠️</span>;
-    case "system":
+    case NotificationType.SYSTEM:
       return <span className="text-xl">🔔</span>;
     default:
       return <Bell className="h-5 w-5" />;
