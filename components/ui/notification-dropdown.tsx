@@ -31,12 +31,8 @@ export function NotificationDropdown({
   const pathname = usePathname();
 
   // Sử dụng notificationStore
-  const {
-    notifications,
-    globalUnreadCount,
-    fetchNotifications,
-    markAsRead,
-  } = useNotificationStore();
+  const { notifications, globalUnreadCount, fetchNotifications, markAsRead } =
+    useNotificationStore();
 
   useEffect(() => {
     if (!user) {
@@ -80,12 +76,14 @@ export function NotificationDropdown({
   }, [user, fetchNotifications]);
 
   const handleNotificationClick = (notificationId: string) => {
-    // Đánh dấu thông báo là đã đọc
-    markAsRead(notificationId);
-
     // Điều hướng đến trang liên quan
     const notification = notifications.find((n) => n.id === notificationId);
+
     if (notification) {
+      if (!notification.isRead) {
+        markAsRead(notificationId);
+      }
+
       switch (notification.type) {
         case "BOOKING":
           router.push(variant === "admin" ? "/admin/bookings" : "/bookings");
