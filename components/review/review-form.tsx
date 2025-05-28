@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface ReviewFormProps {
   bookingId: string;
@@ -53,20 +52,12 @@ export function ReviewForm({
     e.preventDefault();
 
     if (rating === 0) {
-      toast({
-        title: "Rating required",
-        description: "Please select a rating before submitting your review.",
-        variant: "destructive",
-      });
+      toast.error('Please select a rating before submitting your review.')
       return;
     }
 
     if (review.trim().length < 10) {
-      toast({
-        title: "Review too short",
-        description: "Please write a review with at least 10 characters.",
-        variant: "destructive",
-      });
+      toast.error('Please write a review with at least 10 characters.')
       return;
     }
 
@@ -78,37 +69,45 @@ export function ReviewForm({
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Gửi dữ liệu đánh giá đến API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/reviews`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bookingId,
+            homestayId,
+            rating,
+            comment: review,
+          }),
+        }
+      );
 
-      const reviewData = {
-        bookingId,
-        homestayId,
-        rating,
-        comment: review,
-        createdAt: new Date().toISOString(),
-      };
+      if (!response.ok) {
+        throw new Error("Failed to submit review");
+      }
 
-      console.log("Submitting review:", reviewData);
+      const data = await response.json();
 
       setSubmittedReview({
-        rating,
-        comment: review,
-        date: new Date().toISOString(),
+        rating: data.rating,
+        comment: data.comment,
+        date: data.createdAt,
       });
 
-      toast({
-        title: "Review submitted",
-        description: "Thank you for sharing your experience!",
-      });
+      toast.success("Your review has been submitted successfully!");
 
       setShowSubmittedReview(true);
       setShowPreview(false);
 
       if (onReviewSubmitted) {
         onReviewSubmitted({
-          rating,
-          comment: review,
-          date: new Date().toISOString(),
+          rating: data.rating,
+          comment: data.comment,
+          date: data.createdAt,
           userName: "Bạn", // Current user name
           userAvatar: "/placeholder.svg", // Current user avatar
         });
@@ -119,12 +118,7 @@ export function ReviewForm({
       }
     } catch (error) {
       console.error("Error submitting review:", error);
-      toast({
-        title: "Submission failed",
-        description:
-          "There was an error submitting your review. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to submit your review. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +144,11 @@ export function ReviewForm({
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-6 w-6 ${star <= submittedReview.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                  className={`h-6 w-6 ${
+                    star <= submittedReview.rating
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
+                  }`}
                 />
               ))}
               <span className="ml-2 text-sm text-gray-600">
@@ -188,7 +186,11 @@ export function ReviewForm({
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-6 w-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                  className={`h-6 w-6 ${
+                    star <= rating
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
+                  }`}
                 />
               ))}
             </div>
