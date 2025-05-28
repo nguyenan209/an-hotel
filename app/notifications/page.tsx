@@ -27,8 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { Notification } from "@/lib/types";
+import { useNotificationStore } from "@/lib/store/notificationStore";
 import {
   getNotificationTypeColor,
   getNotificationTypeLabel,
@@ -47,204 +46,35 @@ import {
 import { useEffect, useState } from "react";
 
 export default function AdminNotificationsPage() {
-  const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    notifications,
+    unreadCount,
+    totalNotifications,
+    totalPages,
+    isLoading,
+    fetchNotifications,
+    markAsRead,
+    markAsUnread,
+    deleteNotification,
+    markAllAsRead,
+  } = useNotificationStore();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<NotificationType | "all">("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const itemsPerPage = 10;
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalNotifications, setTotalNotifications] = useState(0);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/notifications?page=${currentPage}&limit=${itemsPerPage}&type=${filterType}&status=${filterStatus}&query=${searchQuery}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch notifications");
-        }
-        const data = await response.json();
-        setNotifications(data.notifications);
-        setTotalPages(data.pagination.totalPages);
-        setTotalNotifications(data.pagination.total); // Tổng số thông báo
-        setUnreadNotifications(data.pagination.unreadCount); // Tổng số chưa đọc
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load notifications. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [currentPage, itemsPerPage, filterType, filterStatus, searchQuery, toast]);
-
-  const markAsRead = async (id: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isRead: true }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to mark notification as read");
-      }
-
-      setNotifications((prev) =>
-        prev.map((notif) =>
-          notif.id === id ? { ...notif, isRead: true } : notif
-        )
-      );
-
-      // Giảm số lượng chưa đọc nếu thông báo trước đó chưa được đọc
-      const updatedNotification = notifications.find(
-        (notif) => notif.id === id
-      );
-      if (updatedNotification && !updatedNotification.isRead) {
-        setUnreadNotifications((prev) => prev - 1);
-      }
-
-      toast({
-        title: "Thông báo đã được đánh dấu là đã đọc",
-        duration: 2000,
-      });
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      toast({
-        title: "Error",
-        description: "Failed to mark notification as read. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const markAsUnread = async (id: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isRead: false }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to mark notification as unread");
-      }
-
-      setNotifications((prev) =>
-        prev.map((notif) =>
-          notif.id === id ? { ...notif, isRead: false } : notif
-        )
-      );
-
-      // Tăng số lượng chưa đọc nếu thông báo trước đó đã được đọc
-      const updatedNotification = notifications.find(
-        (notif) => notif.id === id
-      );
-      if (updatedNotification && updatedNotification.isRead) {
-        setUnreadNotifications((prev) => prev + 1);
-      }
-
-      toast({
-        title: "Thông báo đã được đánh dấu là chưa đọc",
-        duration: 2000,
-      });
-    } catch (error) {
-      console.error("Error marking notification as unread:", error);
-      toast({
-        title: "Error",
-        description: "Failed to mark notification as unread. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteNotification = async (id: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete notification");
-      }
-
-      // Lấy thông báo bị xóa để kiểm tra trạng thái `isRead`
-      const deletedNotification = notifications.find(
-        (notif) => notif.id === id
-      );
-
-      // Cập nhật danh sách thông báo
-      setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-
-      // Giảm tổng số thông báo
-      setTotalNotifications((prev) => prev - 1);
-
-      // Nếu thông báo bị xóa chưa được đọc, giảm số lượng chưa đọc
-      if (deletedNotification && !deletedNotification.isRead) {
-        setUnreadNotifications((prev) => prev - 1);
-      }
-
-      toast({
-        title: "Thông báo đã được xóa",
-        duration: 2000,
-      });
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete notification. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/mark-all-read`, {
-        method: "PUT",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to mark all notifications as read");
-      }
-
-      setNotifications((prev) =>
-        prev.map((notif) => ({ ...notif, isRead: true }))
-      );
-      setUnreadNotifications(0); // Cập nhật số lượng chưa đọc về 0
-
-      toast({
-        title: "Tất cả thông báo đã được đánh dấu là đã đọc",
-        duration: 2000,
-      });
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-      toast({
-        title: "Error",
-        description:
-          "Failed to mark all notifications as read. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const unreadCount = notifications.filter((notif) => !notif.isRead).length;
+    fetchNotifications({
+      page: currentPage,
+      limit: itemsPerPage,
+      type: filterType,
+      status: filterStatus,
+      query: searchQuery,
+    });
+  }, [currentPage, itemsPerPage, filterType, filterStatus, searchQuery]);
 
   const handleFilterChange = () => {
     setCurrentPage(1); // Reset về trang đầu tiên
@@ -398,7 +228,7 @@ export default function AdminNotificationsPage() {
                   <TabsTrigger value="unread">
                     Chưa đọc
                     <Badge variant="secondary" className="ml-2">
-                      {unreadNotifications}
+                      {unreadCount}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger value={NotificationType.BOOKING}>
@@ -417,7 +247,7 @@ export default function AdminNotificationsPage() {
               </Tabs>
             </CardHeader>
             <CardContent>
-              {loading ? (
+              {isLoading ? (
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
