@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -47,6 +47,17 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import moment from "moment";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { debounce } from "lodash";
+import ReportForm from "@/components/review/review-report-form";
 
 export default function HomestayDetailPage() {
   const { id } = useParams();
@@ -321,6 +332,36 @@ export default function HomestayDetailPage() {
     setReportReason("inappropriate");
     setReportDetails("");
     setReportDialogOpen(true);
+  };
+
+  // Xử lý khi người dùng gửi báo cáo
+  const handleSubmitReport = async () => {
+    if (!reportingReview) return;
+
+    setIsSubmittingReport(true);
+
+    try {
+      // Giả lập gửi báo cáo đến server
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Đóng dialog và hiển thị thông báo thành công
+      setReportDialogOpen(false);
+      toast({
+        title: "Báo cáo đã được gửi",
+        description:
+          "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Lỗi khi gửi báo cáo:", error);
+      toast({
+        title: "Không thể gửi báo cáo",
+        description: "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingReport(false);
+    }
   };
 
   return (
@@ -792,6 +833,50 @@ export default function HomestayDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog báo cáo đánh giá */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Báo cáo đánh giá</DialogTitle>
+            <DialogDescription>
+              Vui lòng cho chúng tôi biết lý do bạn báo cáo đánh giá này. Chúng
+              tôi sẽ xem xét và có biện pháp xử lý phù hợp.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Lý do báo cáo</Label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger id="report-reason">
+                  <SelectValue placeholder="Chọn lý do báo cáo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inappropriate">
+                    Nội dung không phù hợp
+                  </SelectItem>
+                  <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
+                  <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
+                  <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
+                  <SelectItem value="other">Lý do khác</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="report-details">Chi tiết (không bắt buộc)</Label>
+              <ReportForm
+                onSubmit={(details) => {
+                  setReportDetails(details);
+                  handleSubmitReport();
+                }}
+                onCancel={() => setReportDialogOpen(false)}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
