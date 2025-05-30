@@ -39,11 +39,14 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { bookingSchema } from "@/lib/validation";
 import { RoomCard } from "@/components/homestay/room-card";
 import { AmenityList } from "@/components/homestay/amenity-list";
-import { BookingType, Homestay, Review, Room } from "@prisma/client";
+import { BookingType, Homestay, Review } from "@prisma/client";
 import Loading from "@/components/loading";
-import { Reviews } from "@/components/homestay/reviews";
-import { RoomWithBeds } from "@/lib/types";
+import { ReviewResponse, RoomWithBeds } from "@/lib/types";
 import { LeafletMap } from "@/components/map/leaflet-map";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
+import moment from "moment";
 
 export default function HomestayDetailPage() {
   const { id } = useParams();
@@ -66,14 +69,23 @@ export default function HomestayDetailPage() {
   );
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [bookingError, setBookingError] = useState("");
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [reviewsError, setReviewsError] = useState("");
+  const [helpfulReviews, setHelpfulReviews] = useState<string[]>([]);
+  // State cho dialog báo cáo
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportingReview, setReportingReview] = useState<Review | null>(null);
+  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportDetails, setReportDetails] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   useEffect(() => {
     const fetchHomestay = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`
+        );
         if (!response.ok) {
           throw new Error("Không thể tải thông tin homestay");
         }
@@ -90,7 +102,9 @@ export default function HomestayDetailPage() {
 
     const fetchRooms = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`
+        );
         if (!response.ok) {
           throw new Error("Không thể tải thông tin phòng");
         }
@@ -104,6 +118,30 @@ export default function HomestayDetailPage() {
 
     fetchHomestay();
     fetchRooms();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setIsLoadingReviews(true);
+      setReviewsError("");
+      try {
+        const response = await fetch(`/api/reviews?homestayId=${id}`);
+        if (!response.ok) {
+          throw new Error("Không thể tải đánh giá");
+        }
+        const data = await response.json();
+        setReviews(data.reviews);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+
+    if (id) {
+      fetchReviews();
+    }
   }, [id]);
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {
@@ -165,7 +203,7 @@ export default function HomestayDetailPage() {
         const selectedRoomsData = rooms.filter((room) =>
           selectedRooms.includes(room.id)
         );
-        
+
         await addRoomsToCart(
           homestay,
           selectedRoomsData,
@@ -225,6 +263,65 @@ export default function HomestayDetailPage() {
       </div>
     );
   }
+
+  // Thêm hàm xử lý khi người dùng bấm vào nút "Hữu ích"
+  const handleHelpfulClick = (review: ReviewResponse) => {
+    // Kiểm tra xem đánh giá đã được đánh dấu là hữu ích chưa
+    const isAlreadyHelpful = helpfulReviews.includes(review.id!);
+
+    if (isAlreadyHelpful) {
+      // Nếu đã đánh dấu là hữu ích, bỏ đánh dấu
+      setHelpfulReviews(helpfulReviews.filter((id) => id !== review.id));
+
+      // Cập nhật lại số lượng hữu ích (giảm 1)
+      setReviews(
+        reviews.map((r) =>
+          r.id === review.id
+            ? { ...r, helpfulCount: Math.max(0, r.helpfulCount! - 1) }
+            : r
+        )
+      );
+
+      // Giả lập gửi yêu cầu đến server
+      toast({
+        title: "Đã bỏ đánh dấu hữu ích",
+        description: "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
+        variant: "default",
+      });
+    } else {
+      // Nếu chưa đánh dấu là hữu ích, đánh dấu
+      setHelpfulReviews([...helpfulReviews, review.id!]);
+
+      // Cập nhật lại số lượng hữu ích (tăng 1)
+      setReviews(
+        reviews.map((r) =>
+          r.id === review.id ? { ...r, helpfulCount: r.helpfulCount! + 1 } : r
+        )
+      );
+
+      // Giả lập gửi yêu cầu đến server
+      toast({
+        title: "Đã đánh dấu hữu ích",
+        description: "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
+        variant: "default",
+      });
+    }
+
+    // Giả lập gửi yêu cầu đến server
+    setTimeout(() => {
+      console.log(
+        `Đã ${isAlreadyHelpful ? "bỏ đánh dấu" : "đánh dấu"} đánh giá ${review.id} là hữu ích`
+      );
+    }, 500);
+  };
+
+  // Xử lý khi người dùng bấm vào nút báo cáo
+  const handleReportClick = (review: Review) => {
+    setReportingReview(review);
+    setReportReason("inappropriate");
+    setReportDetails("");
+    setReportDialogOpen(true);
+  };
 
   return (
     <div className="container py-8">
@@ -314,26 +411,171 @@ export default function HomestayDetailPage() {
               />
             </TabsContent>
             <TabsContent value="reviews" className="mt-4">
-              <Reviews
-                reviews={reviews}
-                isLoading={isLoadingReviews}
-                error={reviewsError}
-                onRetry={() => {
-                  setIsLoadingReviews(true);
-                  setReviewsError("");
-                  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews?homestayId=${id}`)
-                    .then((res) => {
-                      if (!res.ok) throw new Error("Không thể tải đánh giá");
-                      return res.json();
-                    })
-                    .then((data) => setReviews(data))
-                    .catch((err) => {
-                      console.error(err);
-                      setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
-                    })
-                    .finally(() => setIsLoadingReviews(false));
-                }}
-              />
+              <div className="flex items-center mb-4">
+                <Star className="h-6 w-6 mr-2 fill-yellow-400 text-yellow-400" />
+                <span className="text-2xl font-bold">{homestay.rating}</span>
+                <span className="text-muted-foreground ml-2">
+                  ({reviews.length} đánh giá)
+                </span>
+              </div>
+
+              {isLoadingReviews ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="ml-3 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ))}
+                </div>
+              ) : reviewsError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500 mb-4">{reviewsError}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsLoadingReviews(true);
+                      setReviewsError("");
+                      fetch(`/api/reviews?homestayId=${id}`)
+                        .then((res) => {
+                          if (!res.ok)
+                            throw new Error("Không thể tải đánh giá");
+                          return res.json();
+                        })
+                        .then((data) => setReviews(data))
+                        .catch((err) => {
+                          console.error(err);
+                          setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
+                        })
+                        .finally(() => setIsLoadingReviews(false));
+                    }}
+                  >
+                    Thử lại
+                  </Button>
+                </div>
+              ) : reviews.length === 0 ? (
+                <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
+              ) : (
+                <div className="space-y-6">
+                  {reviews.slice(0, 3).map((review) => (
+                    <div
+                      key={review.id}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      {/* Phần đánh giá của khách */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                            <Image
+                              src={
+                                review.customer.user.avatar ||
+                                "/placeholder.svg"
+                              }
+                              alt={review.customer.user.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <h4 className="font-medium">
+                              {review.customer.user.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {moment(review.createdAt).format("DD/MM/YYYY")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex">
+                          {renderStars(review.rating!)}
+                        </div>
+                      </div>
+                      <p className="mb-4">{review.comment}</p>
+
+                      {/* Phần trả lời của chủ sở hữu - Hiển thị cho tất cả đánh giá */}
+                      <div className="mt-4 mb-4 ml-6 p-3 bg-gray-50 border-l-4 border-primary rounded-r-md">
+                        <div className="flex items-center mb-2">
+                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                            <Image
+                              src="/diverse-person-portrait.png"
+                              alt="Chủ sở hữu"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="ml-2">
+                            <div className="flex items-center">
+                              <h4 className="text-sm font-medium">
+                                Nguyễn Văn Chủ
+                              </h4>
+                              <span className="ml-2 text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+                                Chủ sở hữu
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Phản hồi:{" "}
+                              {formatDate(
+                                moment(review.createdAt)
+                                  .add(3, "days")
+                                  .toISOString()
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm">
+                          {review.rating! >= 4
+                            ? review.ownerReply
+                            : "Cảm ơn bạn đã chia sẻ phản hồi! Chúng tôi xin lỗi về những bất tiện bạn đã gặp phải. Chúng tôi sẽ cải thiện dịch vụ để mang đến trải nghiệm tốt hơn cho khách hàng trong tương lai. Rất mong được đón tiếp bạn lần sau!"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center text-muted-foreground">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-8 px-2 ${helpfulReviews.includes(review.id!) ? "text-primary" : ""}`}
+                            onClick={() => handleHelpfulClick(review)}
+                          >
+                            <ThumbsUp
+                              className={`h-4 w-4 mr-1 ${helpfulReviews.includes(review.id!) ? "fill-primary" : ""}`}
+                            />
+                            <span>Hữu ích ({review.helpfulCount})</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                            onClick={() =>
+                              review.id && handleReportClick(review as Review)
+                            }
+                          >
+                            <Flag className="h-4 w-4 mr-1" />
+                            <span>Báo cáo</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {reviews.length > 3 && (
+                    <div className="text-center pt-2">
+                      <Link href={`/homestays/${id}/reviews`}>
+                        <Button variant="outline" className="mt-2">
+                          Xem tất cả {reviews.length} đánh giá
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="location" className="mt-4">
               <div className="space-y-6">

@@ -154,6 +154,8 @@ export async function POST(request: NextRequest) {
         rating,
         comment,
         status: "PENDING",
+        helpfulCount: 0,
+        reportCount: 0,
       },
     });
 

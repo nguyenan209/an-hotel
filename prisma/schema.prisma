@@ -35,6 +35,8 @@ model User {
   reviews       Review[]
   complaints    Complaint[]
   notifications Notification[]
+  HelpfulReviews HelpfulReview[]
+  ReviewReports ReviewReport[]
 }
 
 enum UserRole {
@@ -371,11 +373,56 @@ model Review {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   isDeleted      Boolean      @default(false)
+  helpfulCount   Int          @default(0) // Tổng số lượt đánh dấu hữu ích
+  reportCount    Int          @default(0) // Tổng số lượt báo cáo
+  
+    // Relationships
+  helpfulReviews HelpfulReview[]
+  reviewReports  ReviewReport[]
 }
 
 enum ReviewStatus {
   PENDING
   APPROVED
+  REJECTED
+}
+
+model HelpfulReview {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  reviewId  String   @db.ObjectId
+  review    Review   @relation(fields: [reviewId], references: [id])
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId]) // Đảm bảo mỗi người dùng chỉ có thể đánh dấu một lần cho mỗi đánh giá
+}
+
+model ReviewReport {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  reviewId    String         @db.ObjectId
+  review      Review         @relation(fields: [reviewId], references: [id])
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id])
+  reason      ReportReason   // Lý do báo cáo
+  details     String?        // Chi tiết bổ sung từ người dùng
+  status      ReportStatus   @default(PENDING) // Trạng thái xử lý báo cáo
+  createdAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+
+  @@unique([reviewId, userId]) // Đảm bảo mỗi người dùng chỉ có thể báo cáo một lần cho mỗi đánh giá
+}
+
+enum ReportReason {
+  INAPPROPRIATE
+  SPAM
+  FAKE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
   REJECTED
 }
 

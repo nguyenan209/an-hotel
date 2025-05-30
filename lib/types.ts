@@ -7,6 +7,7 @@ import {
   NotificationType,
   PaymentMethod,
   Prisma,
+  Review,
   Room,
   User,
   UserRole,
@@ -195,3 +196,16 @@ export type NotificationResponse = {
   notifications: Notification[];
   pagination: Pagination;
 };
+
+export interface ReviewResponse extends Partial<Review> {
+  customer: {
+    user: {
+      id: string;
+      name: string;
+      avatar?: string;
+      email?: string;
+      phone?: string;
+    }
+  }
+}
+
