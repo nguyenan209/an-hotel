@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,13 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -39,9 +33,7 @@ export default function ReviewsPage() {
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [reviews, setReviews] = useState<AdminReviewsResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
@@ -60,13 +52,9 @@ export default function ReviewsPage() {
   };
 
   const fetchReviews = async (skip = 0, append = false) => {
-    setIsLoading(skip === 0);
-    setIsLoadingMore(skip > 0);
-    setError("");
-
     try {
       const response = await fetch(
-        `/api/admin/reviews?search=${searchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${skip}&limit=10`
+        `/api/admin/reviews?search=${debouncedSearchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${skip}&limit=10`
       );
 
       if (!response.ok) {
@@ -74,24 +62,48 @@ export default function ReviewsPage() {
       }
 
       const data = await response.json();
+      setReviews((prev) => {
+        if (!append) {
+          // Khi append = false, thay thế toàn bộ danh sách reviews
+          return data.reviews;
+        }
 
-      setReviews((prev) =>
-        append ? [...prev, ...data.reviews] : data.reviews
-      );
+        // Khi append = true, thêm các bản ghi mới vào danh sách hiện tại
+        const reviewIds = new Set(prev.map((review) => review.id));
+        const uniqueReviews = data.reviews.filter(
+          (review: AdminReviewsResponse) => !reviewIds.has(review.id)
+        );
+
+        return [...prev, ...uniqueReviews];
+      });
       setHasMore(data.hasMore);
     } catch (err) {
       console.error(err);
       setError("Failed to load reviews");
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchReviews();
+    const fetchWithDebounce = async () => {
+      console.log("Debounced Search Query:", debouncedSearchQuery);
+      // Xóa danh sách reviews trước khi gọi API mới
+      setReviews([]);
+      setHasMore(true);
+      await fetchReviews(0, false);
+    };
+
+    fetchWithDebounce();
   }, [debouncedSearchQuery, statusFilter, ratingFilter]);
 
+  const loadMoreReviews = async () => {
+    if (!hasMore) return;
+
+    const nextSkip = reviews.length;
+    await fetchReviews(nextSkip, true); // Gọi API với skip = reviews.length và append = true
+  };
+  useEffect(() => {
+    console.log("Reviews State:", reviews);
+  }, [reviews]);
 
   const handleApprove = async (id: string) => {
     // Call API to approve review
@@ -127,32 +139,6 @@ export default function ReviewsPage() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Select
-            value={statusFilter}
-            onValueChange={(value) =>
-              setStatusFilter(value as "all" | ReviewStatus)
-            }
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value={ReviewStatus.APPROVED}>Approved</SelectItem>
-              <SelectItem value={ReviewStatus.PENDING}>Pending</SelectItem>
-              <SelectItem value={ReviewStatus.REJECTED}>Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={ratingFilter} onValueChange={setRatingFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by rating" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="positive">Positive (4-5★)</SelectItem>
-              <SelectItem value="negative">Negative (1-2★)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -177,33 +163,31 @@ export default function ReviewsPage() {
           </div>
 
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Homestay</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Comment</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
+            <InfiniteScroll
+              dataLength={reviews.length}
+              next={loadMoreReviews}
+              hasMore={hasMore}
+              loader={<p className="text-center py-4">Loading...</p>}
+              endMessage={
+                <p className="text-center py-4 text-muted-foreground">
+                  No more reviews to load.
+                </p>
+              }
+            >
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      Loading...
-                    </TableCell>
+                    <TableHead>Homestay</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Comment</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : reviews.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      No reviews found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  reviews.map((review) => (
+                </TableHeader>
+                <TableBody>
+                  {reviews.map((review) => (
                     <TableRow key={review.id}>
                       <TableCell>
                         <Link
@@ -300,22 +284,11 @@ export default function ReviewsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            </InfiniteScroll>
           </div>
-          {hasMore && (
-            <div className="flex justify-center mt-4">
-              <Button
-                variant="outline"
-                onClick={() => fetchReviews(reviews.length, true)}
-                disabled={isLoadingMore}
-              >
-                {isLoadingMore ? "Loading..." : "Load More"}
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
