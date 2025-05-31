@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       rooms,
       totalItems,
-      hasMore: skip + limit < totalItems,
+      hasMore: skip + rooms.length < totalItems,
     });
   } catch (error) {
     console.error("Error fetching rooms:", error);

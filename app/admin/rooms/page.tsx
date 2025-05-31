@@ -101,7 +101,11 @@ export default function RoomsPage() {
         limit: 10,
       });
 
-      setRooms((prev) => [...prev, ...newRooms]);
+      setRooms((prev) => {
+        const roomIds = new Set(prev.map((room) => room.id));
+        const uniqueRooms = newRooms.filter((room) => !roomIds.has(room.id));
+        return [...prev, ...uniqueRooms];
+      });
       setHasMore(moreAvailable);
     } catch (error) {
       console.error("Error loading more rooms:", error);
