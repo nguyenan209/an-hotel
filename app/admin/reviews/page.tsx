@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react";
 
@@ -30,96 +30,54 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-
-// Mock data for reviews
-const mockReviews = [
-  {
-    id: "rev1",
-    homestayId: "hs1",
-    homestayName: "Sunset Beach Villa",
-    customerId: "cust1",
-    customerName: "Lê Minh",
-    rating: 5,
-    comment: "Tuyệt vời! Phòng sạch sẽ, view đẹp, chủ nhà thân thiện.",
-    status: "published",
-    createdAt: "2023-06-15T10:30:00Z",
-    hasResponse: true,
-  },
-  {
-    id: "rev2",
-    homestayId: "hs2",
-    homestayName: "Mountain Retreat Lodge",
-    customerId: "cust2",
-    customerName: "Trần Hoa",
-    rating: 4,
-    comment: "Phòng đẹp, view núi tuyệt vời. Chỉ tiếc là hơi xa trung tâm.",
-    status: "published",
-    createdAt: "2023-06-16T14:20:00Z",
-    hasResponse: false,
-  },
-  {
-    id: "rev3",
-    homestayId: "hs3",
-    homestayName: "Riverside Cottage",
-    customerId: "cust3",
-    customerName: "Nguyễn Thành",
-    rating: 2,
-    comment: "Phòng không được sạch lắm, dịch vụ chưa tốt.",
-    status: "pending",
-    createdAt: "2023-06-17T09:15:00Z",
-    hasResponse: false,
-  },
-  {
-    id: "rev4",
-    homestayId: "hs4",
-    homestayName: "City Center Apartment",
-    customerId: "cust4",
-    customerName: "Phạm Linh",
-    rating: 5,
-    comment: "Vị trí trung tâm, tiện nghi đầy đủ, giá cả hợp lý.",
-    status: "published",
-    createdAt: "2023-06-18T11:45:00Z",
-    hasResponse: true,
-  },
-  {
-    id: "rev5",
-    homestayId: "hs5",
-    homestayName: "Lakeside Villa",
-    customerId: "cust5",
-    customerName: "Hoàng Nam",
-    rating: 1,
-    comment: "Thất vọng với dịch vụ, phòng không như hình ảnh quảng cáo.",
-    status: "flagged",
-    createdAt: "2023-06-19T16:30:00Z",
-    hasResponse: true,
-  },
-];
+import { AdminReviewsResponse } from "@/lib/types";
+import { ReviewStatus } from "@prisma/client";
 
 export default function ReviewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [ratingFilter, setRatingFilter] = useState("all");
-  const [reviews, setReviews] = useState(mockReviews);
+  const [reviews, setReviews] = useState<AdminReviewsResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState("");
 
-  // Filter reviews based on search query, status filter, and rating filter
-  const filteredReviews = reviews.filter((review) => {
-    const matchesSearch =
-      review.homestayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.comment.toLowerCase().includes(searchQuery.toLowerCase());
+  const fetchReviews = async (skip = 0, append = false) => {
+    setIsLoading(skip === 0);
+    setIsLoadingMore(skip > 0);
+    setError("");
 
-    const matchesStatus =
-      statusFilter === "all" || review.status === statusFilter;
-    const matchesRating =
-      ratingFilter === "all" ||
-      (ratingFilter === "positive" && review.rating >= 4) ||
-      (ratingFilter === "negative" && review.rating <= 2);
+    try {
+      const response = await fetch(
+        `/api/admin/reviews?search=${searchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${skip}&limit=10`
+      );
 
-    return matchesSearch && matchesStatus && matchesRating;
-  });
+      if (!response.ok) {
+        throw new Error("Failed to fetch reviews");
+      }
 
-  const handleApprove = (id: string) => {
-    // In a real app, you would call an API to approve the review
+      const data = await response.json();
+
+      setReviews((prev) =>
+        append ? [...prev, ...data.reviews] : data.reviews
+      );
+      setHasMore(data.hasMore);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load reviews");
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [searchQuery, statusFilter, ratingFilter]);
+
+  const handleApprove = async (id: string) => {
+    // Call API to approve review
     setReviews(
       reviews.map((review) =>
         review.id === id ? { ...review, status: "published" } : review
@@ -127,8 +85,8 @@ export default function ReviewsPage() {
     );
   };
 
-  const handleFlag = (id: string) => {
-    // In a real app, you would call an API to flag the review
+  const handleFlag = async (id: string) => {
+    // Call API to flag review
     setReviews(
       reviews.map((review) =>
         review.id === id ? { ...review, status: "flagged" } : review
@@ -136,9 +94,9 @@ export default function ReviewsPage() {
     );
   };
 
-  const handleRemove = (id: string) => {
-    // In a real app, you would call an API to remove the review
+  const handleRemove = async (id: string) => {
     if (confirm("Are you sure you want to remove this review?")) {
+      // Call API to remove review
       setReviews(reviews.filter((review) => review.id !== id));
     }
   };
@@ -152,15 +110,18 @@ export default function ReviewsPage() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value as "all" | ReviewStatus)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="flagged">Flagged</SelectItem>
+              <SelectItem value={ReviewStatus.APPROVED}>Approved</SelectItem>
+              <SelectItem value={ReviewStatus.PENDING}>Pending</SelectItem>
+              <SelectItem value={ReviewStatus.REJECTED}>Rejected</SelectItem>
             </SelectContent>
           </Select>
           <Select value={ratingFilter} onValueChange={setRatingFilter}>
@@ -170,7 +131,6 @@ export default function ReviewsPage() {
             <SelectContent>
               <SelectItem value="all">All Ratings</SelectItem>
               <SelectItem value="positive">Positive (4-5★)</SelectItem>
-              <SelectItem value="neutral">Neutral (3★)</SelectItem>
               <SelectItem value="negative">Negative (1-2★)</SelectItem>
             </SelectContent>
           </Select>
@@ -195,26 +155,6 @@ export default function ReviewsPage() {
                 className="pl-8 max-w-sm"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-sm font-normal">
-                {filteredReviews.filter((r) => r.status === "pending").length}{" "}
-                Pending
-              </Badge>
-              <Badge
-                variant="outline"
-                className="bg-green-50 text-green-700 text-sm font-normal"
-              >
-                {filteredReviews.filter((r) => r.status === "published").length}{" "}
-                Published
-              </Badge>
-              <Badge
-                variant="outline"
-                className="bg-red-50 text-red-700 text-sm font-normal"
-              >
-                {filteredReviews.filter((r) => r.status === "flagged").length}{" "}
-                Flagged
-              </Badge>
-            </div>
           </div>
 
           <div className="rounded-md border">
@@ -231,21 +171,27 @@ export default function ReviewsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReviews.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : reviews.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
                       No reviews found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredReviews.map((review) => (
+                  reviews.map((review) => (
                     <TableRow key={review.id}>
                       <TableCell>
                         <Link
                           href={`/admin/homestays/${review.homestayId}`}
                           className="text-blue-600 hover:underline"
                         >
-                          {review.homestayName}
+                          {review.homestay.name}
                         </Link>
                       </TableCell>
                       <TableCell>
@@ -253,7 +199,8 @@ export default function ReviewsPage() {
                           href={`/admin/customers/${review.customerId}`}
                           className="text-blue-600 hover:underline"
                         >
-                          {review.customerName}
+                          {review.customer.user.name} (
+                          {review.customer.user.email})
                         </Link>
                       </TableCell>
                       <TableCell>
@@ -272,8 +219,8 @@ export default function ReviewsPage() {
                             review.status === "published"
                               ? "bg-green-100 text-green-800"
                               : review.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
                           }
                         >
                           {review.status.charAt(0).toUpperCase() +
@@ -339,6 +286,17 @@ export default function ReviewsPage() {
               </TableBody>
             </Table>
           </div>
+          {hasMore && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchReviews(reviews.length, true)}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? "Loading..." : "Load More"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

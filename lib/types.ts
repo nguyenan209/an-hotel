@@ -20,14 +20,14 @@ export interface CartItem {
   checkIn: string;
   checkOut: string;
   guests: number;
-  nights: number; 
+  nights: number;
   bookingType: BookingType;
   rooms?: RoomCart[];
   note?: string;
   totalPrice: number;
 }
 
-export interface RoomCart  {
+export interface RoomCart {
   roomId: string;
   roomName: string;
   price: number;
@@ -205,7 +205,32 @@ export interface ReviewResponse extends Partial<Review> {
       avatar?: string;
       email?: string;
       phone?: string;
-    }
-  }
+    };
+  };
+  id: string;
 }
 
+export interface AdminReviewsResponse {
+  id: string;
+  homestayId: string;
+  homestay: {
+    id: string;
+    name: string;
+    address: string;
+    images: string[];
+  };
+  customerId: string;
+  customer: {
+    id: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string | null;
+    };
+  };
+  rating: number;
+  comment: string;
+  status: string;
+  createdAt: string;
+}
