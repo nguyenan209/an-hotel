@@ -27,7 +27,7 @@ export function NotificationDropdown({
   variant = "user",
 }: NotificationDropdownProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { isLoggedIn, isLoading, user } = useAuth();
   const pathname = usePathname();
 
   // Sử dụng notificationStore
@@ -35,7 +35,10 @@ export function NotificationDropdown({
     useNotificationStore();
 
   useEffect(() => {
-    if (!user) {
+    console.log("User in NotificationDropdown:", isLoggedIn);
+    if (isLoading) return;
+
+    if (!isLoggedIn || !user?.id) {
       router.push("/login");
       return;
     }
@@ -50,29 +53,32 @@ export function NotificationDropdown({
         query: "",
       });
     }
-  }, [user, fetchNotifications]);
+  }, [isLoggedIn, isLoading, fetchNotifications]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!isLoggedIn) return;
 
-    const channel = pusherClient.subscribe(getNotificationChannel(user.id));
-    channel.bind(
-      NEW_NOTIFICATION_EVENT,
-      (data: { notification: Notification }) => {
-        console.log("New notification received:", data.notification);
-        fetchNotifications({
-          page: 1,
-          limit: 3,
-          type: "all",
-          status: "all",
-          query: "",
-        });
-      }
-    );
-
-    return () => {
-      pusherClient.unsubscribe(getNotificationChannel(user.id));
-    };
+    if (user?.id) {
+      const channel = pusherClient.subscribe(getNotificationChannel(user.id));
+      channel.bind(
+        NEW_NOTIFICATION_EVENT,
+        (data: { notification: Notification }) => {
+          console.log("New notification received:", data.notification);
+          fetchNotifications({
+            page: 1,
+            limit: 3,
+            type: "all",
+            status: "all",
+            query: "",
+          });
+        }
+      );
+      return () => {
+        if (user?.id) {
+          pusherClient.unsubscribe(getNotificationChannel(user.id));
+        }
+      };
+    }
   }, [user, fetchNotifications]);
 
   const handleNotificationClick = (notificationId: string) => {

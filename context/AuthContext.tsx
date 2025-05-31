@@ -11,6 +11,7 @@ interface AuthContextType {
   logout: () => void;
   isLoggedIn: boolean;
   customerId: string | null;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const setAuthState = useCartStore((state) => state.setAuthState);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Thêm state isLoading
 
   // Kiểm tra token trong cookies khi ứng dụng khởi chạy
   useEffect(() => {
@@ -32,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setCustomerId(customerId || null);
       setAuthState(true, customerId || null);
     }
+    setIsLoading(false);
   }, [setAuthState]);
 
   const login = (user: Token, token: string) => {
@@ -55,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isLoggedIn, customerId }}
+      value={{ user, login, logout, isLoggedIn, customerId, isLoading }}
     >
       {children}
     </AuthContext.Provider>
