@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react";
 
@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { AdminReviewsResponse } from "@/lib/types";
 import { ReviewStatus } from "@prisma/client";
+import { debounce } from "lodash";
 
 export default function ReviewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,6 +43,21 @@ export default function ReviewsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  // Debounce logic
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setDebouncedSearchQuery(query);
+      }, 300), // Delay 300ms
+    []
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    debouncedSearch(e.target.value);
+  };
 
   const fetchReviews = async (skip = 0, append = false) => {
     setIsLoading(skip === 0);
@@ -74,7 +90,8 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchReviews();
-  }, [searchQuery, statusFilter, ratingFilter]);
+  }, [debouncedSearchQuery, statusFilter, ratingFilter]);
+
 
   const handleApprove = async (id: string) => {
     // Call API to approve review
@@ -112,7 +129,9 @@ export default function ReviewsPage() {
           </Button>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as "all" | ReviewStatus)}
+            onValueChange={(value) =>
+              setStatusFilter(value as "all" | ReviewStatus)
+            }
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
@@ -151,7 +170,7 @@ export default function ReviewsPage() {
               <Input
                 placeholder="Search reviews..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-8 max-w-sm"
               />
             </div>
