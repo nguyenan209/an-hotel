@@ -55,8 +55,9 @@ export async function GET(request: Request) {
             rooms: {
               select: {
                 id: true,
+                name: true,
               },
-            },
+            }
           },
         },
         customer: {
@@ -78,7 +79,7 @@ export async function GET(request: Request) {
 
     // Đếm tổng số bookings để xác định `hasMore`
     const totalBookings = await prisma.booking.count({ where });
-    const hasMore = skip + limit < totalBookings;
+    const hasMore = skip + bookings.length < totalBookings;
 
     return NextResponse.json({ bookings, hasMore });
   } catch (error) {

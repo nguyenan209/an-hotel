@@ -94,7 +94,15 @@ export default function BookingsPage() {
           limit: 10,
         });
 
-      setBookings((prev) => [...prev, ...newBookings]);
+      // Loại bỏ các booking trùng lặp dựa trên id
+      setBookings((prev) => {
+        const bookingIds = new Set(prev.map((booking) => booking.id));
+        const uniqueBookings = newBookings.filter(
+          (booking: any) => !bookingIds.has(booking.id)
+        );
+        return [...prev, ...uniqueBookings];
+      });
+
       setHasMore(moreAvailable);
     } catch (error) {
       console.error("Error loading more bookings:", error);
@@ -161,9 +169,15 @@ export default function BookingsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value={BookingStatus.PENDING}>Pending</SelectItem>
-                  <SelectItem value={BookingStatus.CONFIRMED}>Confirmed</SelectItem>
-                  <SelectItem value={BookingStatus.COMPLETED}>Completed</SelectItem>
-                  <SelectItem value={BookingStatus.CANCELLED}>Cancelled</SelectItem>
+                  <SelectItem value={BookingStatus.CONFIRMED}>
+                    Confirmed
+                  </SelectItem>
+                  <SelectItem value={BookingStatus.COMPLETED}>
+                    Completed
+                  </SelectItem>
+                  <SelectItem value={BookingStatus.CANCELLED}>
+                    Cancelled
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -177,8 +191,12 @@ export default function BookingsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={BookingType.WHOLE}>Whole Homestay</SelectItem>
-                  <SelectItem value={BookingType.ROOMS}>Individual Rooms</SelectItem>
+                  <SelectItem value={BookingType.WHOLE}>
+                    Whole Homestay
+                  </SelectItem>
+                  <SelectItem value={BookingType.ROOMS}>
+                    Individual Rooms
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
