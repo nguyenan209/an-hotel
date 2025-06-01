@@ -428,6 +428,7 @@ export default function HomestayDetailPage() {
                     : "nhóm bạn bè hoặc gia đình lớn"}
                   .
                 </p>
+                Your Review
                 <p>
                   Tổng số phòng: {homestay.totalRooms} phòng
                   {homestay.allowsPartialBooking
@@ -542,7 +543,10 @@ export default function HomestayDetailPage() {
                           {renderStars(review.rating!)}
                         </div>
                       </div>
-                      <p className="mb-4">{review.comment}</p>
+                      <div
+                        className="mb-4"
+                        dangerouslySetInnerHTML={{ __html: review.comment || "" }}
+                      />
 
                       {/* Phần trả lời của chủ sở hữu - Hiển thị cho tất cả đánh giá */}
                       <div className="mt-4 mb-4 ml-6 p-3 bg-gray-50 border-l-4 border-primary rounded-r-md">

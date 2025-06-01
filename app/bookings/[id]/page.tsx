@@ -34,12 +34,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getStatusBadge } from "@/components/booking/status-badge";
-import { BookingWithHomestay } from "@/lib/types";
+import { AdminReviewsResponse, BookingWithHomestay } from "@/lib/types";
 import { calculateNights, CANCELLATION_POLICIES } from "@/lib/utils";
 import moment from "moment";
 import { BookingStatus } from "@prisma/client";
-import { ReviewForm } from "@/components/review/review-form";
 import Loading from "@/components/loading";
+import { ReviewSection } from "@/components/review/review-section";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -48,7 +48,9 @@ export default function BookingDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [userReview, setUserReview] = useState(null); // Lưu review của người dùng
+  const [userReview, setUserReview] = useState<AdminReviewsResponse | null>(
+    null
+  ); // Lưu review của người dùng
   const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function BookingDetailsPage() {
 
         // Fetch review của người dùng cho homestay này
         const reviewResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/reviews?homestayId=${data.homestayId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/review?homestayId=${data.homestayId}`,
           {
             method: "GET",
             headers: {
@@ -83,13 +85,11 @@ export default function BookingDetailsPage() {
           }
         );
 
-        console.log("Review Response:", reviewResponse);
         if (reviewResponse.ok) {
           const reviewData = await reviewResponse.json();
-          if (reviewData && reviewData.status === "APPROVED") {
-            setUserReview(reviewData); // Lưu review nếu trạng thái là APPROVED
-            setHasReviewed(true);
-          }
+
+          setUserReview(reviewData); // Lưu review nếu trạng thái là APPROVED
+          setHasReviewed(true);
         }
       } catch (error) {
         console.error("Failed to fetch booking or review details:", error);
@@ -344,37 +344,11 @@ export default function BookingDetailsPage() {
             <Star className="h-6 w-6 mr-2 text-yellow-400" />
             Share Your Experience
           </h2>
-          {hasReviewed && userReview ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Thank You for Your Review!</CardTitle>
-                <CardDescription>
-                  Your feedback helps other travelers make better choices and
-                  provides valuable insights to the host.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>You've already submitted a review for this booking.</p>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(`/homestays/${booking.homestayId}`)
-                  }
-                >
-                  View Homestay
-                </Button>
-              </CardFooter>
-            </Card>
-          ) : (
-            <ReviewForm
-              bookingId={booking.id}
-              homestayId={booking.homestayId}
-              homestayName={booking.homestay.name}
-              onSuccess={handleReviewSuccess}
-            />
-          )}
+          <ReviewSection
+            bookingId={booking.id}
+            homestayId={booking.homestayId}
+            homestayName={booking.homestay.name}
+          />
         </div>
       )}
 
