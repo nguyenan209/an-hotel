@@ -55,12 +55,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { debounce } from "lodash";
 import ReportForm from "@/components/review/review-report-form";
 
 export default function HomestayDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const addWholeHomestayToCart = useCartStore(
     (state) => state.addWholeHomestayToCart
@@ -131,27 +129,33 @@ export default function HomestayDetailPage() {
     fetchRooms();
   }, [id]);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      setIsLoadingReviews(true);
-      setReviewsError("");
-      try {
-        const response = await fetch(`/api/reviews?homestayId=${id}`);
-        if (!response.ok) {
-          throw new Error("Không thể tải đánh giá");
-        }
-        const data = await response.json();
-        setReviews(data.reviews);
-      } catch (err) {
-        console.error("Error fetching reviews:", err);
-        setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
-      } finally {
-        setIsLoadingReviews(false);
-      }
-    };
+  async function fetchReviews(
+    homestayId: string,
+    setReviews: Function,
+    setReviewsError: Function,
+    setIsLoadingReviews: Function
+  ) {
+    setIsLoadingReviews(true);
+    setReviewsError("");
 
-    if (id) {
-      fetchReviews();
+    try {
+      const response = await fetch(`/api/reviews?homestayId=${homestayId}`);
+      if (!response.ok) {
+        throw new Error("Không thể tải đánh giá");
+      }
+      const data = await response.json();
+      setReviews(data.reviews);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+      setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  }
+
+  useEffect(() => {
+    if (id && typeof id === "string") {
+      fetchReviews(id, setReviews, setReviewsError, setIsLoadingReviews);
     }
   }, [id]);
 
@@ -487,22 +491,14 @@ export default function HomestayDetailPage() {
                   <p className="text-red-500 mb-4">{reviewsError}</p>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setIsLoadingReviews(true);
-                      setReviewsError("");
-                      fetch(`/api/reviews?homestayId=${id}`)
-                        .then((res) => {
-                          if (!res.ok)
-                            throw new Error("Không thể tải đánh giá");
-                          return res.json();
-                        })
-                        .then((data) => setReviews(data))
-                        .catch((err) => {
-                          console.error(err);
-                          setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
-                        })
-                        .finally(() => setIsLoadingReviews(false));
-                    }}
+                    onClick={() =>
+                      fetchReviews(
+                        id,
+                        setReviews,
+                        setReviewsError,
+                        setIsLoadingReviews
+                      )
+                    }
                   >
                     Thử lại
                   </Button>
@@ -545,7 +541,9 @@ export default function HomestayDetailPage() {
                       </div>
                       <div
                         className="mb-4"
-                        dangerouslySetInnerHTML={{ __html: review.comment || "" }}
+                        dangerouslySetInnerHTML={{
+                          __html: review.comment || "",
+                        }}
                       />
 
                       {/* Phần trả lời của chủ sở hữu - Hiển thị cho tất cả đánh giá */}
