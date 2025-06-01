@@ -22,6 +22,8 @@ import { AdminReviewsResponse } from "@/lib/types";
 import moment from "moment";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { toast } from "sonner";
+import { Editor } from "@tinymce/tinymce-react";
+import TinyMCEEditor from "@/components/tinymce-editor";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -226,8 +228,8 @@ export default function ReviewDetailPage() {
               status === "published"
                 ? "bg-green-100 text-green-800"
                 : status === "pending"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-red-100 text-red-800"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800"
             }
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -314,7 +316,12 @@ export default function ReviewDetailPage() {
                                 "MMMM DD, YYYY hh:mm A"
                               )}
                             </p>
-                            <p className="text-base">{ownerResponse}</p>
+                            <div
+                              className="text-base"
+                              dangerouslySetInnerHTML={{
+                                __html: ownerResponse,
+                              }}
+                            />
                           </div>
                         </div>
                       </div>
@@ -352,14 +359,16 @@ export default function ReviewDetailPage() {
                                 "MMMM DD, YYYY"
                               )}
                             </p>
-                            <Textarea
-                              value={tempOwnerResponse} // Sử dụng state tạm thời
-                              onChange={(e) =>
-                                setTempOwnerResponse(e.target.value)
-                              } // Cập nhật state tạm thời
-                              rows={4}
-                              className="mt-2"
-                              placeholder="Enter owner's response..."
+                            <TinyMCEEditor
+                              apiKey={
+                                process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ""
+                              }
+                              value={tempOwnerResponse}
+                              onChange={(content) =>
+                                setTempOwnerResponse(content)
+                              }
+                              height={500}
+                              folder="reviews"
                             />
                           </div>
                         </div>
@@ -410,11 +419,12 @@ export default function ReviewDetailPage() {
                       <h3 className="text-sm font-medium">
                         Add Owner Response
                       </h3>
-                      <Textarea
-                        placeholder="Enter owner's response..."
-                        value={tempOwnerResponse} // Sử dụng state tạm thời
-                        onChange={(e) => setTempOwnerResponse(e.target.value)} // Cập nhật state tạm thời
-                        rows={4}
+                      <TinyMCEEditor
+                        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ""}
+                        value={tempOwnerResponse}
+                        onChange={(content) => setTempOwnerResponse(content)}
+                        height={300}
+                        folder="reviews"
                       />
                       <div className="flex justify-end gap-2">
                         <Button

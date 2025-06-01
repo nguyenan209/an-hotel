@@ -107,6 +107,12 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.76.1
         version: 5.77.0(react@19.1.0)
+      '@tinymce/miniature':
+        specifier: ^6.0.0
+        version: 6.0.0(tinymce@7.9.1)
+      '@tinymce/tinymce-react':
+        specifier: ^6.2.0
+        version: 6.2.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tinymce@7.9.1)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.3)
@@ -140,6 +146,9 @@ importers:
       input-otp:
         specifier: 1.4.1
         version: 1.4.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      install:
+        specifier: ^0.13.0
+        version: 0.13.0
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -271,6 +280,35 @@ packages:
 
   '@emnapi/runtime@1.4.3':
     resolution: {integrity: sha512-pBPWdu6MLKROBX05wSNKcNb++m5Er+KQ9QkB+WVM+pW2Kx9hoSrVTnu3BdkI5eBLZoKu/J6mW/B6i6bJB2ytXQ==}
+
+  '@ephox/agar@8.0.1':
+    resolution: {integrity: sha512-2LR/u0oos9GadRoLFDVE6NRDV8Tl9+DYQyouVYn0+7afAYdouyw+nXaoTVG5nnvMG+ofsmldKOC82nJWu0a4kQ==}
+
+  '@ephox/bedrock-client@13.0.0':
+    resolution: {integrity: sha512-Zah4+o7wFmYO6x3AHiQ1fIYdWIKMAlgszFqKp+JYrmkmqQG9h25wk2izPvTvJ+UGrORU6W90PrDWuksE1XhcUw==}
+
+  '@ephox/bedrock-common@13.0.0':
+    resolution: {integrity: sha512-aJ3gtezZ0duGJAniT/+uWi0fFCJRqNdJjumxhCwOVTc2MSsXcyqn70s6FIlrp/Fw2QuyiEqxgormgrmBUbWNWA==}
+
+  '@ephox/dispute@1.0.16':
+    resolution: {integrity: sha512-qHy0c+TX4FZx6xI2EBoBqOjGlbtGqQlvK7uWMNCVkfXveJ/dWhjFKfxRR2fsIN/xOYDQ7uJ/GcD+oDpryxl1dA==}
+
+  '@ephox/jax@7.0.10':
+    resolution: {integrity: sha512-iDqR2M45ketsSdfQmrjy8xyqVGPiLUTs/FOYBmwUdbBNYifQx9sT2eKQrOmsVYuH6voZaoiXdA0EK8aqHcKGQg==}
+
+  '@ephox/katamari@9.1.6':
+    resolution: {integrity: sha512-7R7hcpiIWaDk4t731ppdr3X/hjLZkHTDjJCEgGgTS3ylddodGKtSMS91tISicYjKQXnB06GT+gJoOk3/McazIg==}
+
+  '@ephox/mcagar@9.0.1':
+    resolution: {integrity: sha512-iNMP8mkz8AtgiRceU4TAnstQje3RG8yxM/QoWKkriCeh6n5fe1sSfexFRVW3fwZ0bUrjTlyawSqoH0yhESqJjQ==}
+    peerDependencies:
+      tinymce: '>=4.0.0'
+
+  '@ephox/sand@6.0.10':
+    resolution: {integrity: sha512-q/2Xcjl1O5c9/HHxQiEKGZkGsC68WUjVP5ciDNKqrZd1s1BhA3VWbaubQxxBRt3SwKyBCukfS5gL53qkqTfbkg==}
+
+  '@ephox/sugar@9.3.1':
+    resolution: {integrity: sha512-NQMqDN0zC+IZGuhBuz/7RxncfJsmTBhCHgaqkHOJ5d1E0CIL9afIizBYQ0JSHS3osAb9woGGtwPobjCx3/Srpw==}
 
   '@floating-ui/core@1.7.0':
     resolution: {integrity: sha512-FRdBLykrPPA6P76GGGqlex/e7fbe0F1ykgxHYNXQsH/iTEtjMj/f9bpY5oQqbjt5VgZvgz/uKXbGuROijh3VLA==}
@@ -1215,6 +1253,19 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
+  '@tinymce/miniature@6.0.0':
+    resolution: {integrity: sha512-bLpaTTgbyMHP3V8bucSxvCTVTUjRRk05zDgnlD5Hj2eo6hEyHT1FCqpuhdVLHx9mbCydrlAIhhsY8Ex6Hp8Qqg==}
+
+  '@tinymce/tinymce-react@6.2.0':
+    resolution: {integrity: sha512-uJtoZPZ89YoBlxPUpmyJXGU1VHzISwMiwDlr1mkYe9ESUfpH2DROLFTqk5GvB+SoFjmXsqyiTce4FBuv9T4bUQ==}
+    peerDependencies:
+      react: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      react-dom: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      tinymce: ^7.0.0 || ^6.0.0 || ^5.5.1
+    peerDependenciesMeta:
+      tinymce:
+        optional: true
+
   '@types/d3-array@3.2.1':
     resolution: {integrity: sha512-Y2Jn2idRrLzUfAKV2LyRImR+y4oa2AntrgID95SHJxuMUrkNXmanDSed71sRNZysveJVt1hLLemQZIady0FpEg==}
 
@@ -1267,6 +1318,9 @@ packages:
 
   '@types/react@19.1.5':
     resolution: {integrity: sha512-piErsCVVbpMMT2r7wbawdZsq4xMvIAhQuac2gedQHysu1TZYEigE6pnFfgZT+/jQnrRuF5r+SHzuehFjfRjr4g==}
+
+  '@types/sizzle@2.3.9':
+    resolution: {integrity: sha512-xzLEyKB50yqCUPUJkIsrVvoWNfFUbIZI+RspLWt8u+tIW/BetMBZtgV2LY/2o+tYH8dRvQ+eoPf3NdhQCcLE2w==}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -1520,6 +1574,10 @@ packages:
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
 
+  diff@5.2.0:
+    resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
+
   dlv@1.1.3:
     resolution: {integrity: sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==}
 
@@ -1612,6 +1670,10 @@ packages:
 
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
+
+  fast-check@2.25.0:
+    resolution: {integrity: sha512-wRUT2KD2lAmT75WNIJIHECawoUUMHM0I5jrlLXGtGeqmPL8jl/EldUDjY1VCp6fDY8yflyfUeIOsOBrIbIiArg==}
+    engines: {node: '>=8.0.0'}
 
   fast-deep-equal@2.0.1:
     resolution: {integrity: sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==}
@@ -1742,6 +1804,10 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
       react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+
+  install@0.13.0:
+    resolution: {integrity: sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==}
+    engines: {node: '>= 0.10'}
 
   internmap@2.0.3:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
@@ -2118,6 +2184,9 @@ packages:
   punycode@1.3.2:
     resolution: {integrity: sha512-RofWgt/7fL5wP1Y7fxE7/EmTLzQVnB0ycyibJ0OOHIlJqTNzglYFxVwETOcIoJqJmpDXJ9xImDv+Fq34F/d4Dw==}
 
+  pure-rand@5.0.5:
+    resolution: {integrity: sha512-BwQpbqxSCBJVpamI6ydzcKqyFmnd5msMWUGvzXLm1aXvusbbgkbOto/EUPM00hjveJEaJtdbhUjKSzWRhQVkaw==}
+
   pusher-js@8.4.0:
     resolution: {integrity: sha512-wp3HqIIUc1GRyu1XrP6m2dgyE9MoCsXVsWNlohj0rjSkLf+a0jLvEyVubdg58oMk7bhjBWnFClgp8jfAa6Ak4Q==}
 
@@ -2318,6 +2387,9 @@ packages:
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
+  sizzle@2.3.10:
+    resolution: {integrity: sha512-kPGev+SiByuzi/YPDTqCwdKLWCaN9+14ve86yH0gP6Efue04xjLYWJrcLC6y1buFyIVXkwHNXPsOTEd1MYVPbQ==}
+
   sonner@1.7.4:
     resolution: {integrity: sha512-DIS8z4PfJRbIyfVFDVnK9rO3eYDtse4Omcm6bt0oEr5/jtLgysmjuBl1frJ9E/EQZrFmKx2A8m/s5s9CRXIzhw==}
     peerDependencies:
@@ -2405,6 +2477,9 @@ packages:
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
+
+  tinymce@7.9.1:
+    resolution: {integrity: sha512-zaOHwmiP1EqTeLRXAvVriDb00JYnfEjWGPdKEuac7MiZJ5aiDMZ4Unc98Gmajn+PBljOmO1GKV6G0KwWn3+k8A==}
 
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
@@ -2561,6 +2636,56 @@ snapshots:
     dependencies:
       tslib: 2.8.1
     optional: true
+
+  '@ephox/agar@8.0.1':
+    dependencies:
+      '@ephox/bedrock-client': 13.0.0
+      '@ephox/bedrock-common': 13.0.0
+      '@ephox/jax': 7.0.10
+      '@ephox/sand': 6.0.10
+      '@ephox/sugar': 9.3.1
+      '@types/sizzle': 2.3.9
+      fast-check: 2.25.0
+      sizzle: 2.3.10
+
+  '@ephox/bedrock-client@13.0.0':
+    dependencies:
+      '@ephox/bedrock-common': 13.0.0
+      '@ephox/dispute': 1.0.16
+
+  '@ephox/bedrock-common@13.0.0':
+    dependencies:
+      diff: 5.2.0
+
+  '@ephox/dispute@1.0.16':
+    dependencies:
+      tslib: 2.8.1
+
+  '@ephox/jax@7.0.10':
+    dependencies:
+      '@ephox/katamari': 9.1.6
+
+  '@ephox/katamari@9.1.6':
+    dependencies:
+      '@ephox/dispute': 1.0.16
+
+  '@ephox/mcagar@9.0.1(tinymce@7.9.1)':
+    dependencies:
+      '@ephox/agar': 8.0.1
+      '@ephox/katamari': 9.1.6
+      '@ephox/sand': 6.0.10
+      '@ephox/sugar': 9.3.1
+      fast-check: 2.25.0
+      tinymce: 7.9.1
+
+  '@ephox/sand@6.0.10':
+    dependencies:
+      '@ephox/katamari': 9.1.6
+
+  '@ephox/sugar@9.3.1':
+    dependencies:
+      '@ephox/katamari': 9.1.6
+      '@ephox/sand': 6.0.10
 
   '@floating-ui/core@1.7.0':
     dependencies:
@@ -3493,6 +3618,23 @@ snapshots:
       '@tanstack/query-core': 5.77.0
       react: 19.1.0
 
+  '@tinymce/miniature@6.0.0(tinymce@7.9.1)':
+    dependencies:
+      '@ephox/agar': 8.0.1
+      '@ephox/katamari': 9.1.6
+      '@ephox/mcagar': 9.0.1(tinymce@7.9.1)
+      '@ephox/sugar': 9.3.1
+    transitivePeerDependencies:
+      - tinymce
+
+  '@tinymce/tinymce-react@6.2.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tinymce@7.9.1)':
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+    optionalDependencies:
+      tinymce: 7.9.1
+
   '@types/d3-array@3.2.1': {}
 
   '@types/d3-color@3.1.3': {}
@@ -3544,6 +3686,8 @@ snapshots:
   '@types/react@19.1.5':
     dependencies:
       csstype: 3.1.3
+
+  '@types/sizzle@2.3.9': {}
 
   abort-controller@3.0.0:
     dependencies:
@@ -3796,6 +3940,8 @@ snapshots:
 
   didyoumean@1.2.2: {}
 
+  diff@5.2.0: {}
+
   dlv@1.1.3: {}
 
   dom-helpers@5.2.1:
@@ -3879,6 +4025,10 @@ snapshots:
   events@1.1.1: {}
 
   extend@3.0.2: {}
+
+  fast-check@2.25.0:
+    dependencies:
+      pure-rand: 5.0.5
 
   fast-deep-equal@2.0.1: {}
 
@@ -4050,6 +4200,8 @@ snapshots:
     dependencies:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
+
+  install@0.13.0: {}
 
   internmap@2.0.3: {}
 
@@ -4379,6 +4531,8 @@ snapshots:
 
   punycode@1.3.2: {}
 
+  pure-rand@5.0.5: {}
+
   pusher-js@8.4.0:
     dependencies:
       tweetnacl: 1.0.3
@@ -4623,6 +4777,8 @@ snapshots:
       is-arrayish: 0.3.2
     optional: true
 
+  sizzle@2.3.10: {}
+
   sonner@1.7.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
@@ -4719,6 +4875,8 @@ snapshots:
   throttle-debounce@2.3.0: {}
 
   tiny-invariant@1.3.3: {}
+
+  tinymce@7.9.1: {}
 
   to-regex-range@5.0.1:
     dependencies:
