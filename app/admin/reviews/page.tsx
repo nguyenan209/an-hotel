@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { CheckCircle, Eye, Filter, Search, Star, X } from "lucide-react";
+import { CheckCircle, Eye, Filter, Search, Star, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,14 @@ import { formatDate } from "@/lib/utils";
 import { AdminReviewsResponse } from "@/lib/types";
 import { ReviewStatus } from "@prisma/client";
 import { debounce } from "lodash";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 
 export default function ReviewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,6 +44,8 @@ export default function ReviewsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
 
   // Debounce logic
   const debouncedSearch = useMemo(
@@ -106,27 +116,79 @@ export default function ReviewsPage() {
   }, [reviews]);
 
   const handleApprove = async (id: string) => {
-    // Call API to approve review
-    setReviews(
-      reviews.map((review) =>
-        review.id === id ? { ...review, status: "published" } : review
-      )
-    );
+    try {
+      const response = await fetch(`/api/admin/reviews/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "APPROVED" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to approve review");
+      }
+
+      const data = await response.json();
+
+      // Cập nhật trạng thái review trong state
+      setReviews(
+        reviews.map((review) =>
+          review.id === id ? { ...review, status: data.data.status } : review
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to approve review");
+    }
   };
 
   const handleFlag = async (id: string) => {
-    // Call API to flag review
-    setReviews(
-      reviews.map((review) =>
-        review.id === id ? { ...review, status: "flagged" } : review
-      )
-    );
+    try {
+      const response = await fetch(`/api/admin/reviews/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "REJECTED" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to flag review");
+      }
+
+      const data = await response.json();
+
+      // Cập nhật trạng thái review trong state
+      setReviews(
+        reviews.map((review) =>
+          review.id === id ? { ...review, status: data.data.status } : review
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to flag review");
+    }
   };
 
   const handleRemove = async (id: string) => {
-    if (confirm("Are you sure you want to remove this review?")) {
-      // Call API to remove review
+    try {
+      const response = await fetch(`/api/admin/reviews/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove review");
+      }
+
+      // Xóa review khỏi state
       setReviews(reviews.filter((review) => review.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to remove review");
+    } finally {
+      setDeleteDialogOpen(false);
+      setHomestayToDelete(null);
     }
   };
 
@@ -139,6 +201,32 @@ export default function ReviewsPage() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              setStatusFilter(value as "all" | ReviewStatus)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value={ReviewStatus.APPROVED}>Approved</SelectItem>
+              <SelectItem value={ReviewStatus.PENDING}>Pending</SelectItem>
+              <SelectItem value={ReviewStatus.REJECTED}>Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={ratingFilter} onValueChange={setRatingFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by rating" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Ratings</SelectItem>
+              <SelectItem value="positive">Positive (4-5★)</SelectItem>
+              <SelectItem value="negative">Negative (1-2★)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -219,9 +307,9 @@ export default function ReviewsPage() {
                       <TableCell>
                         <Badge
                           className={
-                            review.status === "published"
+                            review.status === ReviewStatus.APPROVED
                               ? "bg-green-100 text-green-800"
-                              : review.status === "pending"
+                              : review.status === ReviewStatus.PENDING
                                 ? "bg-yellow-100 text-yellow-800"
                                 : "bg-red-100 text-red-800"
                           }
@@ -238,7 +326,7 @@ export default function ReviewsPage() {
                               <span className="sr-only">View</span>
                             </Button>
                           </Link>
-                          {review.status === "pending" && (
+                          {review.status === ReviewStatus.PENDING && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -249,36 +337,27 @@ export default function ReviewsPage() {
                               <span className="sr-only">Approve</span>
                             </Button>
                           )}
-                          {review.status !== "flagged" && (
+                          {review.status !== ReviewStatus.REJECTED && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="text-yellow-600"
                               onClick={() => handleFlag(review.id)}
                             >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                              >
-                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                                <line x1="4" x2="4" y1="22" y2="15" />
-                              </svg>
-                              <span className="sr-only">Flag</span>
+                              <X className="h-4 w-4" />
+                              <span className="sr-only">Rejected</span>
                             </Button>
                           )}
                           <Button
                             variant="ghost"
                             size="icon"
                             className="text-red-600"
-                            onClick={() => handleRemove(review.id)}
+                            onClick={() => {
+                              setHomestayToDelete(review.id);
+                              setDeleteDialogOpen(true);
+                            }}
                           >
-                            <X className="h-4 w-4" />
+                            <Trash className="h-4 w-4" />
                             <span className="sr-only">Remove</span>
                           </Button>
                         </div>
@@ -291,6 +370,17 @@ export default function ReviewsPage() {
           </div>
         </CardContent>
       </Card>
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setHomestayToDelete(null);
+        }}
+        onConfirm={() => homestayToDelete && handleRemove(homestayToDelete)}
+        itemName="this homestay"
+        isDeleting={false}
+      />
     </div>
   );
 }
