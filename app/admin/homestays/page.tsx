@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
-import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -45,7 +44,19 @@ export default function HomestaysPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // State cho debounce
   const { toast } = useToast();
+
+  // Xử lý debounce cho searchQuery
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery); // Cập nhật giá trị debounce sau 300ms
+    }, 300);
+
+    return () => {
+      clearTimeout(handler); // Hủy timeout nếu searchQuery thay đổi trước khi timeout kết thúc
+    };
+  }, [searchQuery]);
 
   const fetchHomestays = async (reset = false) => {
     try {
@@ -88,8 +99,9 @@ export default function HomestaysPage() {
   };
 
   useEffect(() => {
-    fetchHomestays(true); // Load initial data
-  }, [searchQuery, statusFilter]);
+    fetchHomestays(true); // Gọi API khi debouncedSearchQuery hoặc statusFilter thay đổi
+  }, [debouncedSearchQuery, statusFilter]);
+
   const handleDelete = async (homestayId: string) => {
     try {
       const response = await fetch(
@@ -125,14 +137,6 @@ export default function HomestaysPage() {
       setHomestayToDelete(null);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <Loading />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
