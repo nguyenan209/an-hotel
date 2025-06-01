@@ -280,56 +280,63 @@ export default function HomestayDetailPage() {
   }
 
   // Thêm hàm xử lý khi người dùng bấm vào nút "Hữu ích"
-  const handleHelpfulClick = (review: ReviewResponse) => {
-    // Kiểm tra xem đánh giá đã được đánh dấu là hữu ích chưa
+  const handleHelpfulClick = async (review: ReviewResponse) => {
     const isAlreadyHelpful = helpfulReviews.includes(review.id!);
 
-    if (isAlreadyHelpful) {
-      // Nếu đã đánh dấu là hữu ích, bỏ đánh dấu
-      setHelpfulReviews(helpfulReviews.filter((id) => id !== review.id));
+    try {
+      // Gửi yêu cầu đến API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/reviews/${review.id}/helpful`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reviewId: review.id,
+            isHelpful: !isAlreadyHelpful,
+          }),
+        }
+      );
 
-      // Cập nhật lại số lượng hữu ích (giảm 1)
-      setReviews(
-        reviews.map((r) =>
+      if (!response.ok) {
+        throw new Error("Failed to update helpful status");
+      }
+
+      const updatedReview = await response.json();
+
+      // Cập nhật state trên client
+      setHelpfulReviews((prev) =>
+        isAlreadyHelpful
+          ? prev.filter((id) => id !== review.id)
+          : [...prev, review.id!]
+      );
+
+      setReviews((prevReviews) =>
+        prevReviews.map((r) =>
           r.id === review.id
-            ? { ...r, helpfulCount: Math.max(0, r.helpfulCount! - 1) }
+            ? { ...r, helpfulCount: updatedReview.review.helpfulCount }
             : r
         )
       );
 
-      // Giả lập gửi yêu cầu đến server
       toast({
-        title: "Đã bỏ đánh dấu hữu ích",
-        description: "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
+        title: isAlreadyHelpful
+          ? "Đã bỏ đánh dấu hữu ích"
+          : "Đã đánh dấu hữu ích",
+        description: isAlreadyHelpful
+          ? "Bạn đã bỏ đánh dấu đánh giá này là hữu ích."
+          : "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
         variant: "default",
       });
-    } else {
-      // Nếu chưa đánh dấu là hữu ích, đánh dấu
-      setHelpfulReviews([...helpfulReviews, review.id!]);
-
-      // Cập nhật lại số lượng hữu ích (tăng 1)
-      setReviews(
-        reviews.map((r) =>
-          r.id === review.id ? { ...r, helpfulCount: r.helpfulCount! + 1 } : r
-        )
-      );
-
-      // Giả lập gửi yêu cầu đến server
+    } catch (error) {
+      console.error("Error updating helpful status:", error);
       toast({
-        title: "Đã đánh dấu hữu ích",
-        description: "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
-        variant: "default",
+        title: "Không thể cập nhật trạng thái hữu ích",
+        description: "Đã xảy ra lỗi khi cập nhật trạng thái. Vui lòng thử lại.",
+        variant: "destructive",
       });
     }
-
-    // Giả lập gửi yêu cầu đến server
-    setTimeout(() => {
-      console.log(
-        `Đã ${isAlreadyHelpful ? "bỏ đánh dấu" : "đánh dấu"} đánh giá ${
-          review.id
-        } là hữu ích`
-      );
-    }, 500);
   };
 
   // Xử lý khi người dùng bấm vào nút báo cáo
