@@ -61,8 +61,39 @@ export async function GET(
 
   try {
     // Fetch the review from the database
-    const review = await prisma.review.findUnique({
+    const review = await prisma.review.findFirst({
       where: { id, isDeleted: false },
+      include: {
+        homestay: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            images: true,
+          },
+        },
+        booking: {
+          select: {
+            id: true,
+            checkIn: true,
+            checkOut: true,
+          },
+        },
+        customer: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                avatar: true, // Assuming avatar is a field in the user model
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!review) {
@@ -72,7 +103,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, data: review });
+    return NextResponse.json(review);
   } catch (error) {
     console.error("Error fetching review:", error);
     return NextResponse.json(

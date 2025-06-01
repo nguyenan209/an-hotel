@@ -212,7 +212,15 @@ export interface ReviewResponse extends Partial<Review> {
 
 export interface AdminReviewsResponse {
   id: string;
+  ownerReply: string | null;
+  ownerReplyDate: string | null;
   homestayId: string;
+  bookingId: string;
+  booking: {
+    id: string;
+    checkIn: string;
+    checkOut: string;
+  }
   homestay: {
     id: string;
     name: string;
