@@ -301,7 +301,9 @@ export default function ReviewsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {review.comment}
+                        <div
+                          dangerouslySetInnerHTML={{ __html: review.comment }}
+                        />
                       </TableCell>
                       <TableCell>{formatDate(review.createdAt)}</TableCell>
                       <TableCell>
@@ -310,8 +312,8 @@ export default function ReviewsPage() {
                             review.status === ReviewStatus.APPROVED
                               ? "bg-green-100 text-green-800"
                               : review.status === ReviewStatus.PENDING
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                           }
                         >
                           {review.status.charAt(0).toUpperCase() +
