@@ -3,11 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Check,
-  Search,
-} from "lucide-react";
+import { ArrowLeft, Check, Search } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,6 +59,7 @@ import {
 } from "@/lib/homestay";
 import Cookies from "js-cookie";
 import ImageUploader from "@/components/upload/ImageUploader";
+import TinyMCEEditor from "@/components/tinymce-editor";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
 
@@ -108,7 +105,10 @@ export default function HomestayDetailPage() {
     const fetchHomestay = async () => {
       try {
         if (id) {
-          const foundHomestay = await fetchHomestayData(id.toString(), form.reset);
+          const foundHomestay = await fetchHomestayData(
+            id.toString(),
+            form.reset
+          );
           setHomestay(foundHomestay);
           setUploadedImages(foundHomestay.images || []);
         }
@@ -153,14 +153,17 @@ export default function HomestayDetailPage() {
           throw new Error("User is not authenticated");
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to update homestay");
@@ -319,10 +322,14 @@ export default function HomestayDetailPage() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Enter a detailed description"
-                            className="min-h-32"
-                            {...field}
+                          <TinyMCEEditor
+                            apiKey={
+                              process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ""
+                            }
+                            value={field.value || ""}
+                            onChange={(content) => field.onChange(content)}
+                            height={300}
+                            folder="homestays" // Chỉ định folder cho ảnh upload
                           />
                         </FormControl>
                         <FormMessage />

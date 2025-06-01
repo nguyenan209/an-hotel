@@ -25,10 +25,22 @@ export default function TinyMCEEditor({
         height,
         menubar: true,
         plugins: [
-          "advlist autolink link image lists charmap preview anchor",
-          "searchreplace visualblocks code fullscreen",
-          "insertdatetime media table emoticons help",
-          "image", // Thêm plugin image
+          "autolink",
+          "link",
+          "image",
+          "lists",
+          "charmap",
+          "preview",
+          "anchor",
+          "searchreplace",
+          "visualblocks",
+          "code",
+          "fullscreen",
+          "insertdatetime",
+          "media",
+          "table",
+          "emoticons",
+          "help",
         ],
         toolbar:
           "undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | " +

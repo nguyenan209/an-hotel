@@ -321,7 +321,9 @@ export default function HomestayDetailPage() {
     // Giả lập gửi yêu cầu đến server
     setTimeout(() => {
       console.log(
-        `Đã ${isAlreadyHelpful ? "bỏ đánh dấu" : "đánh dấu"} đánh giá ${review.id} là hữu ích`
+        `Đã ${isAlreadyHelpful ? "bỏ đánh dấu" : "đánh dấu"} đánh giá ${
+          review.id
+        } là hữu ích`
       );
     }, 500);
   };
@@ -412,15 +414,18 @@ export default function HomestayDetailPage() {
             </TabsList>
             <TabsContent value="description" className="mt-4">
               <div className="prose max-w-none">
-                <p>{homestay.description}</p>
+                <div
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: homestay.description }}
+                />
                 <p>
                   Homestay này có thể phục vụ tối đa {homestay.maxGuests} khách,
                   là lựa chọn lý tưởng cho{" "}
                   {homestay.maxGuests <= 2
                     ? "cặp đôi"
                     : homestay.maxGuests <= 4
-                      ? "gia đình nhỏ"
-                      : "nhóm bạn bè hoặc gia đình lớn"}
+                    ? "gia đình nhỏ"
+                    : "nhóm bạn bè hoặc gia đình lớn"}
                   .
                 </p>
                 <p>
@@ -581,11 +586,19 @@ export default function HomestayDetailPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-2 ${helpfulReviews.includes(review.id!) ? "text-primary" : ""}`}
+                            className={`h-8 px-2 ${
+                              helpfulReviews.includes(review.id!)
+                                ? "text-primary"
+                                : ""
+                            }`}
                             onClick={() => handleHelpfulClick(review)}
                           >
                             <ThumbsUp
-                              className={`h-4 w-4 mr-1 ${helpfulReviews.includes(review.id!) ? "fill-primary" : ""}`}
+                              className={`h-4 w-4 mr-1 ${
+                                helpfulReviews.includes(review.id!)
+                                  ? "fill-primary"
+                                  : ""
+                              }`}
                             />
                             <span>Hữu ích ({review.helpfulCount})</span>
                           </Button>
