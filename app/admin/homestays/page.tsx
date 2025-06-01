@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
 import Cookies from "js-cookie";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,108 +29,78 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Homestay } from "@prisma/client";
 import Loading from "@/components/loading";
-
-type FilterParams = {
-  search?: string;
-  status?: string;
-  page?: string;
-  limit?: string;
-};
+import InfiniteScroll from "react-infinite-scroll-component";
+import { AdminHomestayRepsonse } from "@/lib/types";
 
 export default function HomestaysPage() {
-  const [homestays, setHomestays] = useState<Homestay[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [homestays, setHomestays] = useState<AdminHomestayRepsonse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [skip, setSkip] = useState(0);
+  const [itemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { toast } = useToast();
 
-  const getHomestays = async (resetPage = false) => {
+  const fetchHomestays = async (reset = false) => {
     try {
-      if (resetPage) {
-        setLoading(true);
-        setHomestays([]);
-        setPage(1);
-      } else {
-        setIsLoadingMore(true);
-      }
+      setLoading(true);
 
-      setError(null);
-
-      // Prepare filter params
-      const params: FilterParams = {
-        search: searchQuery,
-        status: statusFilter,
-        page: resetPage ? "1" : page.toString(),
-        limit: itemsPerPage.toString(),
-      };
-
-      const query = new URLSearchParams(params).toString();
-
-      // Call the API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?` + query, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${searchQuery}&status=${statusFilter}&skip=${
+          reset ? 0 : skip
+        }&limit=${itemsPerPage}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch homestays");
       }
+
       const data = await response.json();
 
-      // Update state with response data
       setHomestays((prev) =>
-        resetPage ? data.homestays : [...prev, ...data.homestays]
+        reset ? data.homestays : [...prev, ...data.homestays]
       );
       setHasMore(data.hasMore);
-      if (!resetPage) {
-        setPage((prev) => prev + 1);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+      setSkip((prev) =>
+        reset ? data.homestays.length : prev + data.homestays.length
       );
+    } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to load homestays",
+        description: "Failed to load homestays",
       });
     } finally {
       setLoading(false);
-      setIsLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    getHomestays(true); // Load initial data
+    fetchHomestays(true); // Load initial data
   }, [searchQuery, statusFilter]);
-
   const handleDelete = async (homestayId: string) => {
     try {
-      setIsDeleting(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${homestayId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${homestayId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete homestay");
@@ -139,26 +108,19 @@ export default function HomestaysPage() {
 
       const result = await response.json();
 
-      // Remove the deleted homestay from the local state
-      setHomestays((prevHomestays) =>
-        prevHomestays.filter((h) => h.id !== homestayId)
-      );
+      setHomestays((prev) => prev.filter((h) => h.id !== homestayId));
 
-      // Show success message
       toast({
         title: "Success",
         description: result.message,
       });
     } catch (err) {
-      // Show error message
       toast({
         variant: "destructive",
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to delete homestay",
+        description: "Failed to delete homestay",
       });
     } finally {
-      setIsDeleting(false);
       setDeleteDialogOpen(false);
       setHomestayToDelete(null);
     }
@@ -199,11 +161,6 @@ export default function HomestaysPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    getHomestays(true);
-                  }
-                }}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -227,73 +184,80 @@ export default function HomestaysPage() {
           </div>
 
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {homestays.length === 0 && !loading && (
+            <InfiniteScroll
+              dataLength={homestays.length}
+              next={() => fetchHomestays(false)}
+              hasMore={hasMore}
+              loader={<p className="text-center py-4">Loading...</p>}
+              endMessage={
+                <p className="text-center py-4 text-muted-foreground">
+                  No more homestays to load.
+                </p>
+              }
+            >
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      No homestays found.
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                )}
-                {homestays.map((homestay) => (
-                  <TableRow key={homestay.id}>
-                    <TableCell className="font-medium">
-                      {homestay.name}
-                    </TableCell>
-                    <TableCell>{homestay.address}</TableCell>
-                    <TableCell>{formatCurrency(homestay.price)}</TableCell>
-                    <TableCell>{homestay.rating}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                          homestay.status
-                        )}`}
-                      >
-                        {homestay.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/admin/homestays/${homestay.id}`}>
-                          <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setHomestayToDelete(homestay.id);
-                            setDeleteDialogOpen(true);
-                          }}
+                </TableHeader>
+                <TableBody>
+                  {homestays.length === 0 && !loading && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center">
+                        No homestays found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {homestays.map((homestay) => (
+                    <TableRow key={homestay.id}>
+                      <TableCell className="font-medium">
+                        {homestay.name}
+                      </TableCell>
+                      <TableCell>{homestay.address}</TableCell>
+                      <TableCell>{formatCurrency(homestay.price)}</TableCell>
+                      <TableCell>{homestay.rating}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                            homestay.status
+                          )}`}
                         >
-                          <Trash className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          {homestay.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/admin/homestays/${homestay.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setHomestayToDelete(homestay.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </InfiniteScroll>
           </div>
-          <InfiniteScroll
-            onLoadMore={() => getHomestays(false)}
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-          />
         </CardContent>
       </Card>
 
@@ -306,7 +270,7 @@ export default function HomestaysPage() {
         }}
         onConfirm={() => homestayToDelete && handleDelete(homestayToDelete)}
         itemName="this homestay"
-        isDeleting={isDeleting}
+        isDeleting={false}
       />
     </div>
   );

@@ -234,3 +234,12 @@ export interface AdminReviewsResponse {
   status: string;
   createdAt: string;
 }
+
+export interface AdminHomestayRepsonse {
+  id: string;
+  name: string;
+  address: string;
+  price: number;
+  rating: number;
+  status: string;
+}
