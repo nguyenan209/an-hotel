@@ -56,6 +56,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ReportForm from "@/components/review/review-report-form";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomestayDetailPage() {
   const { id } = useParams() as { id: string };
@@ -64,12 +65,11 @@ export default function HomestayDetailPage() {
     (state) => state.addWholeHomestayToCart
   );
   const addRoomsToCart = useCartStore((state) => state.addRoomsToCart);
-
   const [homestay, setHomestay] = useState<Homestay | null>(null);
   const [rooms, setRooms] = useState<RoomWithBeds[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const { isLoggedIn } = useAuth(); // Lấy trạng thái đăng nhập từ AuthContext
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("1");
@@ -293,6 +293,17 @@ export default function HomestayDetailPage() {
   }
 
   const handleHelpfulClick = async (review: ReviewResponse) => {
+    // Kiểm tra trạng thái đăng nhập
+    if (!isLoggedIn) {
+      toast({
+        title: "Bạn cần đăng nhập",
+        description: "Vui lòng đăng nhập để sử dụng tính năng này.",
+        variant: "default",
+      });
+      router.push("/login"); // Chuyển hướng đến trang đăng nhập
+      return;
+    }
+
     const isAlreadyHelpful = helpfulReviews.includes(review.id!); // Kiểm tra trạng thái hiện tại
 
     try {
