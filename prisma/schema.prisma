@@ -394,6 +394,7 @@ model HelpfulReview {
   userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
 
   @@unique([reviewId, userId]) // Đảm bảo mỗi người dùng chỉ có thể đánh dấu một lần cho mỗi đánh giá
 }
@@ -409,6 +410,7 @@ model ReviewReport {
   status      ReportStatus   @default(PENDING) // Trạng thái xử lý báo cáo
   createdAt   DateTime       @default(now())
   resolvedAt  DateTime?
+  isDeleted   Boolean        @default(false)
 
   @@unique([reviewId, userId]) // Đảm bảo mỗi người dùng chỉ có thể báo cáo một lần cho mỗi đánh giá
 }

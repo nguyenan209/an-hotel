@@ -132,6 +132,7 @@ export default function HomestayDetailPage() {
   async function fetchReviews(
     homestayId: string,
     setReviews: Function,
+    setHelpfulReviews: Function,
     setReviewsError: Function,
     setIsLoadingReviews: Function
   ) {
@@ -144,7 +145,13 @@ export default function HomestayDetailPage() {
         throw new Error("Không thể tải đánh giá");
       }
       const data = await response.json();
+
       setReviews(data.reviews);
+      setHelpfulReviews(
+        data.reviews
+          .filter((review: any) => review.isHelpful)
+          .map((r: any) => r.id)
+      );
     } catch (err) {
       console.error("Error fetching reviews:", err);
       setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
@@ -155,7 +162,13 @@ export default function HomestayDetailPage() {
 
   useEffect(() => {
     if (id && typeof id === "string") {
-      fetchReviews(id, setReviews, setReviewsError, setIsLoadingReviews);
+      fetchReviews(
+        id,
+        setReviews,
+        setHelpfulReviews,
+        setReviewsError,
+        setIsLoadingReviews
+      );
     }
   }, [id]);
 
@@ -279,9 +292,8 @@ export default function HomestayDetailPage() {
     );
   }
 
-  // Thêm hàm xử lý khi người dùng bấm vào nút "Hữu ích"
   const handleHelpfulClick = async (review: ReviewResponse) => {
-    const isAlreadyHelpful = helpfulReviews.includes(review.id!);
+    const isAlreadyHelpful = helpfulReviews.includes(review.id!); // Kiểm tra trạng thái hiện tại
 
     try {
       // Gửi yêu cầu đến API
@@ -294,7 +306,7 @@ export default function HomestayDetailPage() {
           },
           body: JSON.stringify({
             reviewId: review.id,
-            isHelpful: !isAlreadyHelpful,
+            isHelpful: !isAlreadyHelpful, // Đảo ngược trạng thái hiện tại
           }),
         }
       );
@@ -306,10 +318,11 @@ export default function HomestayDetailPage() {
       const updatedReview = await response.json();
 
       // Cập nhật state trên client
-      setHelpfulReviews((prev) =>
-        isAlreadyHelpful
-          ? prev.filter((id) => id !== review.id)
-          : [...prev, review.id!]
+      setHelpfulReviews(
+        (prev) =>
+          isAlreadyHelpful
+            ? prev.filter((id) => id !== review.id) // Xóa khỏi danh sách nếu bỏ like
+            : [...prev, review.id!] // Thêm vào danh sách nếu like
       );
 
       setReviews((prevReviews) =>
@@ -502,6 +515,7 @@ export default function HomestayDetailPage() {
                       fetchReviews(
                         id,
                         setReviews,
+                        setHelpfulReviews,
                         setReviewsError,
                         setIsLoadingReviews
                       )
@@ -609,7 +623,12 @@ export default function HomestayDetailPage() {
                                   : ""
                               }`}
                             />
-                            <span>Hữu ích ({review.helpfulCount})</span>
+                            <span>
+                              {helpfulReviews.includes(review.id!)
+                                ? "Đã like"
+                                : "Hữu ích"}{" "}
+                              ({review.helpfulCount})
+                            </span>
                           </Button>
                           <Button
                             variant="ghost"

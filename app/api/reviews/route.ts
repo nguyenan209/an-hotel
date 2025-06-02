@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
-import { ReviewStatus } from "@prisma/client";
 
 // Lấy danh sách đánh giá
 export async function GET(request: NextRequest) {
@@ -22,22 +21,10 @@ export async function GET(request: NextRequest) {
     if (homestayId) {
       where.homestayId = homestayId;
     }
+    
+    const decoded = getTokenData(request);
+    const userId = decoded?.id || null;
 
-    console.log(JSON.stringify({
-      where,
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        customer: {
-          select: {
-            user: {
-              select: { name: true, avatar: true },
-            },
-          },
-        },
-      },
-    }))
     // Lấy danh sách đánh giá
     const reviews = await prisma.review.findMany({
       where,
@@ -52,17 +39,27 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        helpfulReviews: userId
+        ? {
+            where: { userId, isDeleted: false },
+            select: { id: true },
+          }
+        : false,
       },
     });
     
-    console.log(reviews);
+    // Định dạng lại dữ liệu trả về
+    const formattedReviews = reviews.map((review) => ({
+      ...review,
+      isHelpful: userId ? review.helpfulReviews.length > 0 : false, // Kiểm tra nếu người dùng đã like
+    }));
 
     // Tổng số đánh giá
     const total = await prisma.review.count({ where });
 
     return NextResponse.json(
       {
-        reviews,
+        reviews: formattedReviews,
         pagination: {
           total,
           page,
