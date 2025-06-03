@@ -4,10 +4,10 @@ import { getTokenData } from "@/lib/auth"; // Hàm để lấy thông tin ngư�
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params; // Lấy ID từ route động
+    const { id } = await params; // Lấy ID từ route động
     const body = await request.json();
     const { isHelpful } = body;
 
