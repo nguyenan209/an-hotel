@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const homestayId = searchParams.get("homestayId");
     const status = searchParams.get("status") || "APPROVED";
+    const rating = searchParams.get("rating");
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = sortBy === "lowest" || sortBy === "oldest" ? "asc" : "desc";
 
     const offset = (page - 1) * limit;
 
@@ -21,7 +24,11 @@ export async function GET(request: NextRequest) {
     if (homestayId) {
       where.homestayId = homestayId;
     }
-    
+
+    if (rating) {
+      where.rating = parseInt(rating, 10);
+    }
+
     const decoded = getTokenData(request);
     const userId = decoded?.id || null;
 
@@ -30,7 +37,9 @@ export async function GET(request: NextRequest) {
       where,
       skip: offset,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        [sortBy === "highest" || sortBy === "lowest" ? "rating" : "createdAt"]: sortOrder,
+      },
       include: {
         customer: {
           select: {
@@ -40,14 +49,14 @@ export async function GET(request: NextRequest) {
           },
         },
         helpfulReviews: userId
-        ? {
-            where: { userId, isDeleted: false },
-            select: { id: true },
-          }
-        : false,
+          ? {
+              where: { userId, isDeleted: false },
+              select: { id: true },
+            }
+          : false,
       },
     });
-    
+
     // Định dạng lại dữ liệu trả về
     const formattedReviews = reviews.map((review) => ({
       ...review,
@@ -77,6 +86,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 export async function POST(request: NextRequest) {
   try {
     const decoded = getTokenData(request);

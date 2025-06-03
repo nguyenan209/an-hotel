@@ -74,41 +74,41 @@ export default function ReviewsPage() {
   }, [id]);
 
   useEffect(() => {
-    let filtered = [...reviews];
+    const fetchFilteredAndSortedReviews = async () => {
+      setIsLoading(true);
+      try {
+        const queryParams = new URLSearchParams({
+          homestayId: id,
+          ...(ratingFilter !== "all" && { rating: ratingFilter }),
+          ...(sortBy && { sortBy }),
+        }).toString();
 
-    if (ratingFilter !== "all") {
-      const rating = Number.parseInt(ratingFilter);
-      filtered = filtered.filter((review) => review.rating === rating);
-    }
-
-    switch (sortBy) {
-      case "newest":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.createdAt ?? 0).getTime() -
-            new Date(a.createdAt ?? 0).getTime()
+        const reviewsResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/reviews?${queryParams}`
         );
-        break;
-      case "oldest":
-        filtered.sort(
-          (a, b) =>
-            new Date(a.createdAt ?? 0).getTime() -
-            new Date(b.createdAt ?? 0).getTime()
-        );
-        break;
-      case "highest":
-        filtered.sort((a, b) => b.rating! - a.rating!);
-        break;
-      case "lowest":
-        filtered.sort((a, b) => a.rating! - b.rating!);
-        break;
-      case "helpful":
-        filtered.sort((a, b) => b.helpfulCount! - a.helpfulCount!);
-        break;
-    }
 
-    setFilteredReviews(filtered);
-  }, [reviews, ratingFilter, sortBy]);
+        if (!reviewsResponse.ok) {
+          throw new Error("Không thể tải đánh giá");
+        }
+
+        const reviewsData = await reviewsResponse.json();
+        setReviews(reviewsData.reviews);
+        setFilteredReviews(reviewsData.reviews);
+        setHelpfulReviews(
+          reviewsData.reviews
+            .filter((review: any) => review.isHelpful)
+            .map((r: any) => r.id)
+        );
+      } catch (err) {
+        console.error("Error fetching filtered/sorted reviews:", err);
+        setError("Đã xảy ra lỗi khi tải đánh giá");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFilteredAndSortedReviews();
+  }, [id, ratingFilter, sortBy]);
 
   const indexOfLastReview = currentPage * reviewsPerPage;
   const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
