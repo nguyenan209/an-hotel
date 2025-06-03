@@ -41,6 +41,7 @@ export async function GET(request: Request) {
           price: true,
           status: true,
           homestayId: true,
+          description: true,
           homestay: {
             select: {
               id: true,
