@@ -220,7 +220,7 @@ export interface AdminReviewsResponse {
     id: string;
     checkIn: string;
     checkOut: string;
-  }
+  };
   homestay: {
     id: string;
     name: string;
@@ -251,3 +251,18 @@ export interface AdminHomestayRepsonse {
   rating: number;
   status: string;
 }
+// Tạo kiểu dữ liệu cho Review với tất cả các quan hệ được bao gồm
+export type ReviewAll = Prisma.ReviewGetPayload<{
+  include: {
+    customer: {
+      include: {
+        user: true; // Bao gồm user bên trong customer
+      };
+    };
+    owner: true;
+    homestay: true;
+    booking: true;
+    helpfulReviews: true;
+    reviewReports: true;
+  };
+}>;

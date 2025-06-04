@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, Filter } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -12,104 +20,109 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { useReviewStore } from "@/lib/store/reviewStore";
+import { ReviewAll } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
+import { ArrowLeft, Filter, Flag, Star, ThumbsUp } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReviewResponse } from "@/lib/types";
-import { StarRating } from "@/components/star-rating";
-import { ReviewCard } from "@/components/review/review-card";
-import { ReportDialog } from "@/components/review/report-dialog";
+import { useEffect, useState } from "react";
 
 export default function ReviewsPage() {
   const { id } = useParams<{ id: string }>();
-  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<ReviewResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [filteredReviews, setFilteredReviews] = useState<ReviewAll[]>([]);
   const [homestayName, setHomestayName] = useState("");
+
+  // Filter states
   const [ratingFilter, setRatingFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
-  const [reportingReview, setReportingReview] = useState<ReviewResponse | null>(
+
+  // Report dialog states
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportingReview, setReportingReview] = useState<ReviewAll | null>(
     null
   );
+  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportDetails, setReportDetails] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [reviewsPerPage] = useState(5);
-  const [helpfulReviews, setHelpfulReviews] = useState<string[]>([]);
+  const {
+    reviews,
+    helpfulReviews,
+    isLoading,
+    error,
+    markHelpful,
+    unmarkHelpful,
+    updateHelpfulCount,
+    fetchReviews,
+    setError,
+  } = useReviewStore();
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
-        const homestayResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`
-        );
+        // Fetch homestay info
+        const homestayResponse = await fetch(`/api/homestays/${id}`);
         if (homestayResponse.ok) {
           const homestayData = await homestayResponse.json();
           setHomestayName(homestayData.name);
         }
 
-        const reviewsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/reviews?homestayId=${id}`
-        );
-        if (!reviewsResponse.ok) {
-          throw new Error("Không thể tải đánh giá");
-        }
-        const reviewsData = await reviewsResponse.json();
-        setReviews(reviewsData.reviews);
-        setFilteredReviews(reviewsData.reviews);
-        setHelpfulReviews(
-          reviewsData.reviews
-            .filter((review: any) => review.isHelpful)
-            .map((r: any) => r.id)
-        );
+        // Fetch reviews using store
+        await fetchReviews(id);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Đã xảy ra lỗi khi tải đánh giá");
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, fetchReviews, setError]);
 
+  // Filter and sort reviews
   useEffect(() => {
-    const fetchFilteredAndSortedReviews = async () => {
-      setIsLoading(true);
-      try {
-        const queryParams = new URLSearchParams({
-          homestayId: id,
-          ...(ratingFilter !== "all" && { rating: ratingFilter }),
-          ...(sortBy && { sortBy }),
-        }).toString();
+    let filtered = [...reviews];
 
-        const reviewsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/reviews?${queryParams}`
+    // Filter by rating
+    if (ratingFilter !== "all") {
+      const rating = Number.parseInt(ratingFilter);
+      filtered = filtered.filter((review) => review.rating === rating);
+    }
+
+    // Sort reviews
+    switch (sortBy) {
+      case "newest":
+        filtered.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-
-        if (!reviewsResponse.ok) {
-          throw new Error("Không thể tải đánh giá");
-        }
-
-        const reviewsData = await reviewsResponse.json();
-        setReviews(reviewsData.reviews);
-        setFilteredReviews(reviewsData.reviews);
-        setHelpfulReviews(
-          reviewsData.reviews
-            .filter((review: any) => review.isHelpful)
-            .map((r: any) => r.id)
+        break;
+      case "oldest":
+        filtered.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
-      } catch (err) {
-        console.error("Error fetching filtered/sorted reviews:", err);
-        setError("Đã xảy ra lỗi khi tải đánh giá");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        break;
+      case "highest":
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case "lowest":
+        filtered.sort((a, b) => a.rating - b.rating);
+        break;
+      case "helpful":
+        filtered.sort((a, b) => b.helpfulCount - a.helpfulCount);
+        break;
+    }
 
-    fetchFilteredAndSortedReviews();
-  }, [id, ratingFilter, sortBy]);
+    setFilteredReviews(filtered);
+  }, [reviews, ratingFilter, sortBy]);
 
+  // Pagination logic
   const indexOfLastReview = currentPage * reviewsPerPage;
   const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
   const currentReviews = filteredReviews.slice(
@@ -118,14 +131,15 @@ export default function ReviewsPage() {
   );
   const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
 
+  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [ratingFilter, sortBy]);
 
   const calculateAverageRating = () => {
-    if (reviews.length === 0) return "0";
-    const sum = reviews.reduce((acc, review) => acc + review.rating!, 0);
-    return (sum / reviews.length).toFixed(1);
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return parseFloat((sum / reviews.length).toFixed(1));
   };
 
   const getRatingDistribution = () => {
@@ -134,6 +148,56 @@ export default function ReviewsPage() {
       distribution[review.rating as keyof typeof distribution]++;
     });
     return distribution;
+  };
+
+  const handleHelpfulClick = (review: ReviewAll) => {
+    const isAlreadyHelpful = helpfulReviews.includes(review.id);
+
+    if (isAlreadyHelpful) {
+      unmarkHelpful(review.id);
+      updateHelpfulCount(review.id, false);
+      toast({
+        title: "Đã bỏ đánh dấu hữu ích",
+        description: "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
+      });
+    } else {
+      markHelpful(review.id);
+      updateHelpfulCount(review.id, true);
+      toast({
+        title: "Đã đánh dấu hữu ích",
+        description: "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
+      });
+    }
+  };
+
+  const handleReportClick = (review: ReviewAll) => {
+    setReportingReview(review);
+    setReportReason("inappropriate");
+    setReportDetails("");
+    setReportDialogOpen(true);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportingReview) return;
+
+    setIsSubmittingReport(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setReportDialogOpen(false);
+      toast({
+        title: "Báo cáo đã được gửi",
+        description:
+          "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.",
+      });
+    } catch (error) {
+      toast({
+        title: "Không thể gửi báo cáo",
+        description: "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingReport(false);
+    }
   };
 
   if (isLoading) {
@@ -158,59 +222,17 @@ export default function ReviewsPage() {
 
   const ratingDistribution = getRatingDistribution();
 
-  const handleHelpfulClick = async (review: ReviewResponse) => {
-    const isAlreadyHelpful = helpfulReviews.includes(review.id);
-
-    try {
-      const response = await fetch(`/api/reviews/${review.id}/helpful`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reviewId: review.id,
-          isHelpful: !isAlreadyHelpful,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Không thể cập nhật trạng thái hữu ích");
-      }
-
-      const updatedReview = await response.json();
-
-      // Cập nhật state
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === review.id
-            ? { ...r, helpfulCount: updatedReview.review.helpfulCount }
-            : r
-        )
-      );
-
-      setHelpfulReviews((prev) =>
-        isAlreadyHelpful
-          ? prev.filter((id) => id !== review.id)
-          : [...prev, review.id]
-      );
-
-      toast({
-        title: isAlreadyHelpful
-          ? "Đã bỏ đánh dấu hữu ích"
-          : "Đã đánh dấu hữu ích",
-        description: isAlreadyHelpful
-          ? "Bạn đã bỏ đánh dấu đánh giá này là hữu ích."
-          : "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error("Error updating helpful status:", error);
-      toast({
-        title: "Không thể cập nhật trạng thái hữu ích",
-        description: "Đã xảy ra lỗi khi cập nhật trạng thái. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
+  const renderStars = (rating: number) => {
+    return Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${
+            i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+          }`}
+        />
+      ));
   };
 
   return (
@@ -233,16 +255,13 @@ export default function ReviewsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Overall Rating */}
             <div className="text-center">
               <div className="text-4xl font-bold mb-2">
                 {calculateAverageRating()}
               </div>
               <div className="flex justify-center mb-2">
-                <StarRating
-                  rating={Math.round(
-                    Number.parseFloat(calculateAverageRating())
-                  )}
-                />
+                {renderStars(calculateAverageRating())}
               </div>
               <p className="text-muted-foreground">{reviews.length} đánh giá</p>
             </div>
@@ -319,11 +338,12 @@ export default function ReviewsPage() {
         </Badge>
       </div>
 
+      {/* Reviews List */}
       <div className="space-y-6">
         {currentReviews.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <StarRating rating={0} className="h-12 w-12 text-gray-300 mb-4" />
+              <Star className="h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium mb-2">
                 Không có đánh giá nào
               </h3>
@@ -335,15 +355,115 @@ export default function ReviewsPage() {
         ) : (
           <>
             {currentReviews.map((review) => (
-              <ReviewCard
+              <Card
                 key={review.id}
-                review={review}
-                isHelpful={helpfulReviews.includes(review.id!)}
-                onHelpfulClick={() => handleHelpfulClick(review)}
-                onReportClick={(review) => setReportingReview(review)}
-              />
+                className="hover:shadow-md transition-shadow"
+              >
+                <CardContent className="p-6">
+                  {/* Review Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage
+                          src={
+                            review.customer.user.avatar || "/placeholder.svg"
+                          }
+                        />
+                        <AvatarFallback>
+                          {review.customer.user.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-medium">
+                          {review.customer.user.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(review.createdAt!)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex">{renderStars(review.rating!)}</div>
+                      <Badge variant="outline">{review.rating}/5</Badge>
+                    </div>
+                  </div>
+
+                  {/* Review Content */}
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    {review.comment}
+                  </p>
+
+                  {/* Owner Response */}
+                  <div className="ml-6 p-4 bg-gray-50 border-l-4 border-primary rounded-r-md mb-4">
+                    <div className="flex items-center mb-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="/diverse-person-portrait.png" />
+                        <AvatarFallback>CV</AvatarFallback>
+                      </Avatar>
+                      <div className="ml-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-medium">
+                            Nguyễn Văn Chủ
+                          </h4>
+                          <Badge variant="secondary" className="text-xs">
+                            Chủ sở hữu
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Phản hồi:{" "}
+                          {formatDate(
+                            new Date(
+                              new Date(review.createdAt!).getTime() +
+                                86400000 * 3
+                            ).toISOString()
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm">
+                      {review.rating! >= 4
+                        ? "Cảm ơn bạn đã đánh giá tích cực về Homestay của chúng tôi! Chúng tôi rất vui khi biết bạn đã có trải nghiệm tuyệt vời. Mong được đón tiếp bạn trong những lần tới!"
+                        : "Cảm ơn bạn đã chia sẻ phản hồi! Chúng tôi xin lỗi về những bất tiện bạn đã gặp phải. Chúng tôi sẽ cải thiện dịch vụ để mang đến trải nghiệm tốt hơn cho khách hàng trong tương lai. Rất mong được đón tiếp bạn lần sau!"}
+                    </p>
+                  </div>
+
+                  {/* Review Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={
+                          helpfulReviews.includes(review.id)
+                            ? "text-primary"
+                            : ""
+                        }
+                        onClick={() => handleHelpfulClick(review)}
+                      >
+                        <ThumbsUp
+                          className={`h-4 w-4 mr-1 ${
+                            helpfulReviews.includes(review.id)
+                              ? "fill-primary"
+                              : ""
+                          }`}
+                        />
+                        Hữu ích ({review.helpfulCount})
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleReportClick(review)}
+                      >
+                        <Flag className="h-4 w-4 mr-1" />
+                        Báo cáo
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
 
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-8">
                 <div className="text-sm text-muted-foreground">
@@ -365,6 +485,7 @@ export default function ReviewsPage() {
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                       (page) => {
+                        // Show first page, last page, current page, and pages around current page
                         if (
                           page === 1 ||
                           page === totalPages ||
@@ -416,29 +537,60 @@ export default function ReviewsPage() {
         )}
       </div>
 
-      <ReportDialog
-        open={!!reportingReview}
-        onOpenChange={(open) => !open && setReportingReview(null)}
-        review={reportingReview}
-        onSubmit={async (reason, details) => {
-          try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast({
-              title: "Báo cáo đã được gửi",
-              description:
-                "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.",
-            });
-            setReportingReview(null);
-          } catch (error) {
-            toast({
-              title: "Không thể gửi báo cáo",
-              description:
-                "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
-              variant: "destructive",
-            });
-          }
-        }}
-      />
+      {/* Report Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Báo cáo đánh giá</DialogTitle>
+            <DialogDescription>
+              Vui lòng cho chúng tôi biết lý do bạn báo cáo đánh giá này.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Lý do báo cáo</Label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger id="report-reason">
+                  <SelectValue placeholder="Chọn lý do báo cáo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inappropriate">
+                    Nội dung không phù hợp
+                  </SelectItem>
+                  <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
+                  <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
+                  <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
+                  <SelectItem value="other">Lý do khác</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="report-details">Chi tiết (không bắt buộc)</Label>
+              <Textarea
+                id="report-details"
+                placeholder="Vui lòng cung cấp thêm thông tin..."
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReportDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleSubmitReport} disabled={isSubmittingReport}>
+              {isSubmittingReport ? "Đang gửi..." : "Gửi báo cáo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

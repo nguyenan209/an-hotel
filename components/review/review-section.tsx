@@ -1,260 +1,404 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { toast } from "sonner";
-import TinyMCEEditor from "../tinymce-editor";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import { useReviewStore } from "@/lib/store/reviewStore";
+import { formatDate } from "@/lib/utils";
+import { ChevronRight, Flag, Star, ThumbsUp, User } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface ReviewSectionProps {
-  bookingId: string;
   homestayId: string;
-  homestayName: string;
+  homestayRating: number;
+  showViewAllLink?: boolean;
+  maxReviews?: number;
+  className?: string;
 }
 
 export function ReviewSection({
-  bookingId,
   homestayId,
-  homestayName,
+  homestayRating,
+  showViewAllLink = true,
+  maxReviews = 3,
+  className = "",
 }: ReviewSectionProps) {
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [review, setReview] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userReview, setUserReview] = useState<{
-    rating: number;
-    comment: string;
-    createdAt: string;
-  } | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const {
+    reviews,
+    helpfulReviews,
+    reportedReviews, // Thêm reportedReviews từ store
+    isLoading,
+    error,
+    markHelpful,
+    unmarkHelpful,
+    updateHelpfulCount,
+    markReported, // Thêm markReported từ store
+    fetchReviews,
+    setError,
+  } = useReviewStore();
+
+  const [reviewsToShow, setReviewsToShow] = useState(maxReviews);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportingReview, setReportingReview] = useState<any>(null);
+  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportDetails, setReportDetails] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   useEffect(() => {
-    const fetchUserReview = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/review?homestayId=${homestayId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setUserReview(data.review);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user review:", error);
-      }
-    };
-
-    fetchUserReview();
-  }, [homestayId]);
-
-  const handleSubmit = async () => {
-    if (rating === 0) {
-      toast.error("Please select a rating before submitting your review.");
-      return;
+    if (homestayId) {
+      fetchReviews(homestayId);
     }
+  }, [homestayId, fetchReviews]);
 
-    if (review.trim().length < 10) {
-      toast.error("Please write a review with at least 10 characters.");
-      return;
-    }
+  const renderStars = (rating: number) => {
+    return Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${
+            i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+          }`}
+        />
+      ));
+  };
 
-    setIsSubmitting(true);
+  const handleHelpfulClick = (review: any) => {
+    const isAlreadyHelpful = helpfulReviews.includes(review.id);
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/reviews`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            bookingId,
-            homestayId,
-            rating,
-            comment: review,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to submit review");
-      }
-
-      const data = await response.json();
-      setUserReview({
-        rating: data.rating,
-        comment: data.comment,
-        createdAt: data.createdAt,
+    if (isAlreadyHelpful) {
+      unmarkHelpful(review.id);
+      updateHelpfulCount(review.id, false);
+      toast({
+        title: "Đã bỏ đánh dấu hữu ích",
+        description: "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
       });
-
-      toast.success("Your review has been submitted successfully!");
-      setShowPreview(false);
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      toast.error("Failed to submit your review. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      markHelpful(review.id);
+      updateHelpfulCount(review.id, true);
+      toast({
+        title: "Đã đánh dấu hữu ích",
+        description: "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
+      });
     }
   };
 
-  if (userReview) {
+  const handleReportClick = (review: any) => {
+    setReportingReview(review);
+    setReportReason("inappropriate");
+    setReportDetails("");
+    setReportDialogOpen(true);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportingReview) return;
+
+    setIsSubmittingReport(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mark review as reported trong store
+      markReported(reportingReview.id);
+
+      setReportDialogOpen(false);
+      toast({
+        title: "Báo cáo đã được gửi",
+        description:
+          "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.",
+      });
+    } catch (error) {
+      toast({
+        title: "Không thể gửi báo cáo",
+        description: "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
+  if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Review</CardTitle>
-          <CardDescription>
-            Thank you for sharing your experience at {homestayName}!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center mb-3">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`h-6 w-6 ${
-                  star <= userReview.rating
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
-            <span className="ml-2 text-sm text-gray-600">
-              {new Date(userReview.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-          <div
-            className="text-gray-700"
-            dangerouslySetInnerHTML={{ __html: userReview.comment }}
-          />
-        </CardContent>
-        <CardFooter>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setUserReview(null);
-              setRating(userReview.rating);
-              setReview(userReview.comment);
-            }}
-            className="w-full"
-          >
-            Edit Review
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className={`space-y-4 ${className}`}>
+        <Skeleton className="h-8 w-1/3" />
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="mb-4">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4 mb-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     );
   }
 
-  if (showPreview) {
+  if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview Your Review</CardTitle>
-          <CardDescription>
-            Please review your feedback before submitting
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center mb-3">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`h-6 w-6 ${
-                  star <= rating
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
-          </div>
-          <div
-            className="text-gray-700"
-            dangerouslySetInnerHTML={{ __html: review }}
-          />
+      <div className={`text-center py-8 ${className}`}>
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setError("");
+            fetchReviews(homestayId);
+          }}
+        >
+          Thử lại
+        </Button>
+      </div>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return (
+      <Card className={className}>
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <User className="h-12 w-12 text-gray-300 mb-2" />
+          <h3 className="text-lg font-medium">Chưa có đánh giá</h3>
+          <p className="text-gray-500 text-center mt-1">
+            Homestay này chưa có đánh giá nào. Hãy là người đầu tiên chia sẻ
+            trải nghiệm của bạn!
+          </p>
         </CardContent>
-        <CardFooter className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowPreview(false)}
-            className="flex-1"
-          >
-            Edit Review
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="flex-1"
-          >
-            {isSubmitting ? "Submitting..." : "Confirm & Submit"}
-          </Button>
-        </CardFooter>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Write a Review</CardTitle>
-        <CardDescription>
-          Share your experience at {homestayName}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Rating</label>
-          <div className="flex items-center">
+    <div className={`space-y-6 ${className}`}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">
+          Đánh giá của khách ({reviews.length})
+        </h2>
+        <div className="flex items-center">
+          <div className="flex items-center mr-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`h-8 w-8 cursor-pointer transition-colors ${
-                  star <= (hoverRating || rating)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                }`}
-                onClick={() => setRating(star)}
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
+                className="h-5 w-5 fill-yellow-400 text-yellow-400"
               />
             ))}
           </div>
+          <span className="font-medium">{homestayRating}</span>
         </div>
-        <div className="space-y-2">
-          <label htmlFor="review" className="text-sm font-medium">
-            Your Review
-          </label>
-          <TinyMCEEditor
-            apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ""}
-            value={review}
-            onChange={(content) => setReview(content)}
-            height={300}
-            folder="reviews"
-          />
-          <p className="text-xs text-gray-500">
-            Your review will help other travelers make better choices and
-            provide valuable feedback to the host.
-          </p>
+      </div>
+
+      {reviews.slice(0, reviewsToShow).map((review) => (
+        <Card
+          key={review.id}
+          className="mb-4 hover:bg-gray-50 transition-colors"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center">
+                <Avatar>
+                  <AvatarImage src={review.customer.user.name || "/placeholder.svg"} />
+                  <AvatarFallback>{review.customer.user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="ml-3">
+                  <h4 className="font-medium">{review.customer.user.name}</h4>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(review.createdAt)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                {renderStars(review.rating)}
+              </div>
+            </div>
+
+            <p className="text-gray-700 mb-4">{review.comment}</p>
+
+            {/* Owner Response */}
+            <div className="mt-4 mb-4 ml-6 p-3 bg-gray-50 border-l-4 border-primary rounded-r-md">
+              <div className="flex items-center mb-2">
+                <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                  <Image
+                    src="/diverse-person-portrait.png"
+                    alt="Chủ sở hữu"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="ml-2">
+                  <div className="flex items-center">
+                    <h4 className="text-sm font-medium">Nguyễn Văn Chủ</h4>
+                    <span className="ml-2 text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+                      Chủ sở hữu
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Phản hồi:{" "}
+                    {formatDate(
+                      new Date(
+                        new Date(review.createdAt).getTime() + 86400000 * 3
+                      ).toISOString()
+                    )}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm">
+                {review.rating >= 4
+                  ? "Cảm ơn bạn đã đánh giá tích cực về Homestay của chúng tôi! Chúng tôi rất vui khi biết bạn đã có trải nghiệm tuyệt vời. Mong được đón tiếp bạn trong những lần tới!"
+                  : "Cảm ơn bạn đã chia sẻ phản hồi! Chúng tôi xin lỗi về những bất tiện bạn đã gặp phải. Chúng tôi sẽ cải thiện dịch vụ để mang đến trải nghiệm tốt hơn cho khách hàng trong tương lai. Rất mong được đón tiếp bạn lần sau!"}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-2 ${
+                    helpfulReviews.includes(review.id) ? "text-primary" : ""
+                  }`}
+                  onClick={() => handleHelpfulClick(review)}
+                >
+                  <ThumbsUp
+                    className={`h-4 w-4 mr-1 ${
+                      helpfulReviews.includes(review.id) ? "fill-primary" : ""
+                    }`}
+                  />
+                  <span>Hữu ích ({review.helpfulCount})</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-2 ${
+                    reportedReviews.includes(review.id) ? "text-red-500" : ""
+                  }`}
+                  onClick={() => handleReportClick(review)}
+                  disabled={reportedReviews.includes(review.id)} // Disable nếu đã báo cáo
+                >
+                  <Flag
+                    className={`h-4 w-4 mr-1 ${
+                      reportedReviews.includes(review.id) ? "fill-red-500" : ""
+                    }`}
+                  />
+                  <span>
+                    {reportedReviews.includes(review.id)
+                      ? "Đã báo cáo"
+                      : "Báo cáo"}
+                  </span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
+      {reviews.length > reviewsToShow && (
+        <div className="text-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() =>
+              setReviewsToShow((prev) => Math.min(prev + 3, reviews.length))
+            }
+            className="mr-2"
+          >
+            Xem thêm đánh giá ({reviews.length - reviewsToShow} còn lại)
+          </Button>
         </div>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={() => setShowPreview(true)} className="w-full">
-          Preview Review
-        </Button>
-      </CardFooter>
-    </Card>
+      )}
+
+      {showViewAllLink &&
+        reviewsToShow >= reviews.length &&
+        reviews.length > maxReviews && (
+          <div className="text-center pt-2">
+            <Link href={`/homestays/${homestayId}/reviews`}>
+              <Button variant="ghost" size="sm">
+                Xem tất cả đánh giá trên trang riêng
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        )}
+
+      {/* Report Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Báo cáo đánh giá</DialogTitle>
+            <DialogDescription>
+              Vui lòng cho chúng tôi biết lý do bạn báo cáo đánh giá này.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Lý do báo cáo</Label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger id="report-reason">
+                  <SelectValue placeholder="Chọn lý do báo cáo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inappropriate">
+                    Nội dung không phù hợp
+                  </SelectItem>
+                  <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
+                  <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
+                  <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
+                  <SelectItem value="other">Lý do khác</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="report-details">Chi tiết (không bắt buộc)</Label>
+              <Textarea
+                id="report-details"
+                placeholder="Vui lòng cung cấp thêm thông tin..."
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReportDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleSubmitReport} disabled={isSubmittingReport}>
+              {isSubmittingReport ? "Đang gửi..." : "Gửi báo cáo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Home, Hotel, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, Star, Check, Hotel, Home, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
+import { AmenityList } from "@/components/homestay/amenity-list";
+import { RoomCard } from "@/components/homestay/room-card";
+import Loading from "@/components/loading";
+import { LeafletMap } from "@/components/map/leaflet-map";
+import { ReviewSection } from "@/components/review/review-section";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Carousel,
   CarouselContent,
@@ -22,27 +19,23 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils";
-import { useCartStore } from "@/lib/store/cartStore";
-import { bookingSchema } from "@/lib/validation";
-import { RoomCard } from "@/components/homestay/room-card";
-import { AmenityList } from "@/components/homestay/amenity-list";
-import { BookingType, Homestay } from "@prisma/client";
-import Loading from "@/components/loading";
-import { ReviewResponse, RoomWithBeds } from "@/lib/types";
-import { LeafletMap } from "@/components/map/leaflet-map";
-import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import moment from "moment";
-import { useAuth } from "@/context/AuthContext";
-import { ReviewCard } from "@/components/review/review-card";
-import { useHelpfulReview } from "@/hooks/use-helpful-review";
-import { ReportDialog } from "@/components/review/report-dialog";
-import { StarRating } from "@/components/star-rating";
+import { useCartStore } from "@/lib/store/cartStore";
+import { ReviewResponse, RoomWithBeds } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
+import { bookingSchema } from "@/lib/validation";
+import { BookingType, Homestay } from "@prisma/client";
 
 export default function HomestayDetailPage() {
   const { id } = useParams() as { id: string };
@@ -55,7 +48,6 @@ export default function HomestayDetailPage() {
   const [rooms, setRooms] = useState<RoomWithBeds[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const { isLoggedIn } = useAuth();
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("1");
@@ -68,7 +60,9 @@ export default function HomestayDetailPage() {
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [reviewsError, setReviewsError] = useState("");
   const [helpfulReviews, setHelpfulReviews] = useState<string[]>([]);
-  const [ reportingReview, setReportingReview ] = useState<ReviewResponse | null>(null);
+  const [reportingReview, setReportingReview] = useState<ReviewResponse | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchHomestay = async () => {
@@ -132,6 +126,15 @@ export default function HomestayDetailPage() {
         data.reviews
           .filter((review: any) => review.isHelpful)
           .map((r: any) => r.id)
+      );
+      const reportedReviews = data.reviews
+        .filter((review: any) => review.isReported)
+        .map((r: any) => r.id);
+      setReviews((prev: ReviewResponse[]) =>
+        prev.map((review: ReviewResponse) => ({
+          ...review,
+          isReported: reportedReviews.includes(review.id),
+        }))
       );
     } catch (err) {
       console.error("Error fetching reviews:", err);
@@ -241,7 +244,7 @@ export default function HomestayDetailPage() {
   const handleBookNow = () => {
     handleAddToCart();
   };
-  
+
   const handleHelpfulClick = async (review: ReviewResponse) => {
     const isAlreadyHelpful = helpfulReviews.includes(review.id);
 
@@ -292,6 +295,44 @@ export default function HomestayDetailPage() {
       toast({
         title: "Không thể cập nhật trạng thái hữu ích",
         description: "Đã xảy ra lỗi khi cập nhật trạng thái. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReportClick = async (
+    review: ReviewResponse,
+    reason: string,
+    details: string
+  ) => {
+    try {
+      const response = await fetch(`/api/reviews/${review.id}/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason, details }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể gửi báo cáo");
+      }
+
+      // Cập nhật state
+      setReviews((prev) =>
+        prev.map((r) => (r.id === review.id ? { ...r, isReported: true } : r))
+      );
+
+      toast({
+        title: "Báo cáo đã được gửi",
+        description: "Cảm ơn bạn đã gửi báo cáo. Trạng thái đã được cập nhật.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      toast({
+        title: "Không thể gửi báo cáo",
+        description: "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
         variant: "destructive",
       });
     }
@@ -399,98 +440,11 @@ export default function HomestayDetailPage() {
               />
             </TabsContent>
             <TabsContent value="reviews" className="mt-4">
-              <div className="flex items-center mb-4">
-                <StarRating rating={homestay.rating} className="mr-2" />
-                <span className="text-2xl font-bold">{homestay.rating}</span>
-                <span className="text-muted-foreground ml-2">
-                  ({reviews.length} đánh giá)
-                </span>
-              </div>
-
-              {isLoadingReviews ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="border rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="ml-3 space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
-                  ))}
-                </div>
-              ) : reviewsError ? (
-                <div className="text-center py-8">
-                  <p className="text-red-500 mb-4">{reviewsError}</p>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      fetchReviews(
-                        id,
-                        setReviews,
-                        setHelpfulReviews,
-                        setReviewsError,
-                        setIsLoadingReviews
-                      )
-                    }
-                  >
-                    Thử lại
-                  </Button>
-                </div>
-              ) : reviews.length === 0 ? (
-                <p className="text-muted-foreground">Chưa có đánh giá nào.</p>
-              ) : (
-                <div className="space-y-6">
-                  {reviews.slice(0, 3).map((review) => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      isHelpful={helpfulReviews.includes(review.id!)}
-                      onHelpfulClick={() => handleHelpfulClick(review)}
-                      onReportClick={(review) => setReportingReview(review)}
-                    />
-                  ))}
-
-                  {reviews.length > 3 && (
-                    <div className="text-center pt-2">
-                      <Link href={`/homestays/${id}/reviews`}>
-                        <Button variant="outline" className="mt-2">
-                          Xem tất cả {reviews.length} đánh giá
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
-              <ReportDialog
-                open={!!reportingReview}
-                onOpenChange={(open) => !open && setReportingReview(null)}
-                review={reportingReview}
-                onSubmit={async (reason, details) => {
-                  try {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    toast({
-                      title: "Báo cáo đã được gửi",
-                      description:
-                        "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.",
-                      variant: "default",
-                    });
-                    setReportingReview(null);
-                  } catch (error) {
-                    console.error("Lỗi khi gửi báo cáo:", error);
-                    toast({
-                      title: "Không thể gửi báo cáo",
-                      description:
-                        "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại sau.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
+              <ReviewSection
+                homestayId={id}
+                homestayRating={homestay.rating}
+                showViewAllLink={true}
+                maxReviews={3}
               />
             </TabsContent>
             <TabsContent value="location" className="mt-4">
