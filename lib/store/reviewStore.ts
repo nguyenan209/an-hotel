@@ -16,7 +16,7 @@ interface ReviewStore {
   unmarkHelpful: (reviewId: string) => void;
   updateHelpfulCount: (reviewId: string, increment: boolean) => void;
   markReported: (reviewId: string) => void; // Thêm action để mark reported
-  fetchReviews: (homestayId: string) => Promise<void>;
+  fetchReviews: (homestayId: string, ratingFilter?: string, sortBy?: string) => Promise<void>;
 }
 
 export const useReviewStore = create<ReviewStore>((set, get) => ({
@@ -66,10 +66,17 @@ export const useReviewStore = create<ReviewStore>((set, get) => ({
     }
   },
 
-  fetchReviews: async (homestayId) => {
+  fetchReviews: async (homestayId, ratingFilter, sortBy) => {
     set({ isLoading: true, error: "" });
     try {
-      const response = await fetch(`/api/reviews?homestayId=${homestayId}`);
+      let url = `/api/reviews?homestayId=${homestayId}`;
+      if (ratingFilter && ratingFilter !== "all") {
+        url += `&rating=${ratingFilter}`;
+      }
+      if (sortBy) {
+        url += `&sortBy=${sortBy}`;
+      }
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error("Không thể tải đánh giá");
       }

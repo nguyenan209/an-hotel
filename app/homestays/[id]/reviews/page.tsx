@@ -76,55 +76,20 @@ export default function ReviewsPage() {
           const homestayData = await homestayResponse.json();
           setHomestayName(homestayData.name);
         }
-
-        // Fetch reviews using store
-        await fetchReviews(id);
+        // Fetch reviews using store, pass filter/sort
+        await fetchReviews(id, ratingFilter, sortBy);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Đã xảy ra lỗi khi tải đánh giá");
       }
     };
-
     fetchData();
-  }, [id, fetchReviews, setError]);
+  }, [id, fetchReviews, setError, ratingFilter, sortBy]);
 
-  // Filter and sort reviews
+  // Set filteredReviews directly from reviews
   useEffect(() => {
-    let filtered = [...(reviews as ReviewWithFlags[])];
-
-    // Filter by rating
-    if (ratingFilter !== "all") {
-      const rating = Number.parseInt(ratingFilter);
-      filtered = filtered.filter((review) => review.rating === rating);
-    }
-
-    // Sort reviews
-    switch (sortBy) {
-      case "newest":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case "oldest":
-        filtered.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-        break;
-      case "highest":
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case "lowest":
-        filtered.sort((a, b) => a.rating - b.rating);
-        break;
-      case "helpful":
-        filtered.sort((a, b) => b.helpfulCount - a.helpfulCount);
-        break;
-    }
-
-    setFilteredReviews(filtered);
-  }, [reviews, ratingFilter, sortBy]);
+    setFilteredReviews(reviews as ReviewWithFlags[]);
+  }, [reviews]);
 
   // Pagination logic
   const indexOfLastReview = currentPage * reviewsPerPage;
