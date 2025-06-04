@@ -1,15 +1,15 @@
 import { create } from "zustand";
-import { ReviewAll, ReviewResponse } from "../types";
+import { ReviewAll, ReviewAllWithFlags, ReviewResponse } from "../types";
 
 interface ReviewStore {
-  reviews: ReviewAll[];
+  reviews: ReviewAllWithFlags[];
   helpfulReviews: string[];
   reportedReviews: string[]; // Thêm array để track các review đã báo cáo
   isLoading: boolean;
   error: string;
 
   // Actions
-  setReviews: (reviews: ReviewAll[]) => void;
+  setReviews: (reviews: ReviewAllWithFlags[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   markHelpful: (reviewId: string) => void;
@@ -74,7 +74,7 @@ export const useReviewStore = create<ReviewStore>((set, get) => ({
         throw new Error("Không thể tải đánh giá");
       }
       const data = await response.json();
-      set({ reviews: data.reviews });
+      set({ reviews: data.reviews, helpfulReviews: data.helpfulReviews });
       console.log("Đánh giá đã được tải thành công:", data.reviews);
     } catch (error) {
       console.error("Error fetching reviews:", error);

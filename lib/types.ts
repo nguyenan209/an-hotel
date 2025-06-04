@@ -266,3 +266,8 @@ export type ReviewAll = Prisma.ReviewGetPayload<{
     reviewReports: true;
   };
 }>;
+
+export type ReviewAllWithFlags = ReviewAll & {
+  isHelpful?: boolean;
+  isReported?: boolean;
+};

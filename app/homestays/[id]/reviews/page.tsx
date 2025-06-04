@@ -29,10 +29,15 @@ import { ArrowLeft, Filter, Flag, Star, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+
+// Define a type that extends ReviewAll with isHelpful and isReported
+type ReviewWithFlags = ReviewAll & { isHelpful?: boolean; isReported?: boolean };
 
 export default function ReviewsPage() {
   const { id } = useParams<{ id: string }>();
-  const [filteredReviews, setFilteredReviews] = useState<ReviewAll[]>([]);
+  const { isLoggedIn } = useAuth();
+  const [filteredReviews, setFilteredReviews] = useState<ReviewWithFlags[]>([]);
   const [homestayName, setHomestayName] = useState("");
 
   // Filter states
@@ -86,7 +91,7 @@ export default function ReviewsPage() {
 
   // Filter and sort reviews
   useEffect(() => {
-    let filtered = [...reviews];
+    let filtered = [...(reviews as ReviewWithFlags[])];
 
     // Filter by rating
     if (ratingFilter !== "all") {
@@ -433,21 +438,14 @@ export default function ReviewsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={
-                          helpfulReviews.includes(review.id)
-                            ? "text-primary"
-                            : ""
-                        }
+                        className={`h-8 px-2 ${isLoggedIn && review.isHelpful ? "text-primary" : ""}`}
                         onClick={() => handleHelpfulClick(review)}
+                        disabled={!isLoggedIn}
                       >
                         <ThumbsUp
-                          className={`h-4 w-4 mr-1 ${
-                            helpfulReviews.includes(review.id)
-                              ? "fill-primary"
-                              : ""
-                          }`}
+                          className={`h-4 w-4 mr-1 ${isLoggedIn && review.isHelpful ? "fill-primary" : ""}`}
                         />
-                        Hữu ích ({review.helpfulCount})
+                        <span>Hữu ích ({review.helpfulCount})</span>
                       </Button>
                       <Button
                         variant="ghost"
