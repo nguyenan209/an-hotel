@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { ReportReason } from "@prisma/client";
 
 // Define a type that extends ReviewAll with isHelpful and isReported
 type ReviewWithFlags = ReviewAll & { isHelpful?: boolean; isReported?: boolean };
@@ -49,7 +50,7 @@ export default function ReviewsPage() {
   const [reportingReview, setReportingReview] = useState<ReviewAll | null>(
     null
   );
-  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportReason, setReportReason] = useState<ReportReason>(ReportReason.INAPPROPRIATE);
   const [reportDetails, setReportDetails] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
@@ -160,17 +161,26 @@ export default function ReviewsPage() {
 
   const handleReportClick = (review: ReviewAll) => {
     setReportingReview(review);
-    setReportReason("inappropriate");
+    setReportReason(ReportReason.INAPPROPRIATE);
     setReportDetails("");
     setReportDialogOpen(true);
   };
 
   const handleSubmitReport = async () => {
     if (!reportingReview) return;
-
     setIsSubmittingReport(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/reviews/${reportingReview.id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reportReason, details: reportDetails }),
+      });
+      if (!response.ok) throw new Error("Không thể gửi báo cáo");
+      setFilteredReviews((prev) =>
+        prev.map((r) =>
+          r.id === reportingReview.id ? { ...r, isReported: true } : r
+        )
+      );
       setReportDialogOpen(false);
       toast({
         title: "Báo cáo đã được gửi",
@@ -434,8 +444,10 @@ export default function ReviewsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleReportClick(review)}
+                        className={`h-8 px-2 ${review.isReported ? "text-red-500" : ""}`}
+                        disabled={review.isReported}
                       >
-                        <Flag className="h-4 w-4 mr-1" />
+                        <Flag className={`h-4 w-4 mr-1 ${review.isReported ? "fill-red-500" : ""}`} />
                         Báo cáo
                       </Button>
                     </div>
@@ -531,18 +543,18 @@ export default function ReviewsPage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="report-reason">Lý do báo cáo</Label>
-              <Select value={reportReason} onValueChange={setReportReason}>
+              <Select value={reportReason} onValueChange={(value) => setReportReason(value as ReportReason)}>
                 <SelectTrigger id="report-reason">
                   <SelectValue placeholder="Chọn lý do báo cáo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="inappropriate">
+                  <SelectItem value={ReportReason.INAPPROPRIATE}>
                     Nội dung không phù hợp
                   </SelectItem>
-                  <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
-                  <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
-                  <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
-                  <SelectItem value="other">Lý do khác</SelectItem>
+                  <SelectItem value={ReportReason.SPAM}>Spam hoặc quảng cáo</SelectItem>
+                  <SelectItem value={ReportReason.FAKE}>Đánh giá giả mạo</SelectItem>
+                  <SelectItem value={ReportReason.OFFENSIVE}>Nội dung xúc phạm</SelectItem>
+                  <SelectItem value={ReportReason.OTHER}>Lý do khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>

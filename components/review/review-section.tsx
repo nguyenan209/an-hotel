@@ -25,6 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useReviewStore } from "@/lib/store/reviewStore";
 import { formatDate } from "@/lib/utils";
+import { ReportReason } from "@prisma/client";
 import { ChevronRight, Flag, Star, ThumbsUp, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export function ReviewSection({
   const [reviewsToShow, setReviewsToShow] = useState(maxReviews);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportingReview, setReportingReview] = useState<any>(null);
-  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportReason, setReportReason] = useState<ReportReason>(ReportReason.INAPPROPRIATE);
   const [reportDetails, setReportDetails] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const { isLoggedIn } = useAuth();
@@ -129,22 +130,27 @@ export function ReviewSection({
 
   const handleReportClick = (review: any) => {
     setReportingReview(review);
-    setReportReason("inappropriate");
+    setReportReason(ReportReason.INAPPROPRIATE);
     setReportDetails("");
     setReportDialogOpen(true);
   };
 
   const handleSubmitReport = async () => {
     if (!reportingReview) return;
-
     setIsSubmittingReport(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mark review as reported trong store
-      markReported(reportingReview.id);
-
+      const response = await fetch(`/api/reviews/${reportingReview.id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reportReason, details: reportDetails }),
+      });
+      if (!response.ok) throw new Error("Không thể gửi báo cáo");
+      // Update review in state to isReported: true
+      setReviews(
+        reviews.map((r) =>
+          r.id === reportingReview.id ? { ...r, isReported: true } : r
+        )
+      );
       setReportDialogOpen(false);
       toast({
         title: "Báo cáo đã được gửi",
@@ -315,21 +321,15 @@ export function ReviewSection({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`h-8 px-2 ${
-                    reportedReviews.includes(review.id) ? "text-red-500" : ""
-                  }`}
+                  className={`h-8 px-2 ${review.isReported ? "text-red-500" : ""}`}
                   onClick={() => handleReportClick(review)}
-                  disabled={reportedReviews.includes(review.id)} // Disable nếu đã báo cáo
+                  disabled={review.isReported}
                 >
                   <Flag
-                    className={`h-4 w-4 mr-1 ${
-                      reportedReviews.includes(review.id) ? "fill-red-500" : ""
-                    }`}
+                    className={`h-4 w-4 mr-1 ${review.isReported ? "fill-red-500" : ""}`}
                   />
                   <span>
-                    {reportedReviews.includes(review.id)
-                      ? "Đã báo cáo"
-                      : "Báo cáo"}
+                    {review.isReported ? "Đã báo cáo" : "Báo cáo"}
                   </span>
                 </Button>
               </div>
@@ -378,18 +378,18 @@ export function ReviewSection({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="report-reason">Lý do báo cáo</Label>
-              <Select value={reportReason} onValueChange={setReportReason}>
+              <Select value={reportReason} onValueChange={(value) => setReportReason(value as ReportReason)}>
                 <SelectTrigger id="report-reason">
                   <SelectValue placeholder="Chọn lý do báo cáo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="inappropriate">
+                  <SelectItem value={ReportReason.INAPPROPRIATE}>
                     Nội dung không phù hợp
                   </SelectItem>
-                  <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
-                  <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
-                  <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
-                  <SelectItem value="other">Lý do khác</SelectItem>
+                  <SelectItem value={ReportReason.SPAM}>Spam hoặc quảng cáo</SelectItem>
+                  <SelectItem value={ReportReason.FAKE}>Đánh giá giả mạo</SelectItem>
+                  <SelectItem value={ReportReason.OFFENSIVE}>Nội dung xúc phạm</SelectItem>
+                  <SelectItem value={ReportReason.OTHER}>Lý do khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>
