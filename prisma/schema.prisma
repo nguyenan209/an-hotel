@@ -420,6 +420,7 @@ enum ReportReason {
   SPAM
   FAKE
   OTHER
+  OFFENSIVE
 }
 
 enum ReportStatus {

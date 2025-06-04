@@ -20,6 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ReviewResponse } from "@/lib/types";
 import { useState } from "react";
+import { ReportReason } from "@prisma/client";
 
 interface ReportDialogProps {
   open: boolean;
@@ -34,14 +35,36 @@ export function ReportDialog({
   review,
   onSubmit,
 }: ReportDialogProps) {
-  const [reportReason, setReportReason] = useState<string>("inappropriate");
+  const [reportReason, setReportReason] = useState<ReportReason>(
+    ReportReason.INAPPROPRIATE
+  );
   const [reportDetails, setReportDetails] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (!review) return;
+
     setIsSubmitting(true);
     try {
-      await onSubmit(reportReason, reportDetails);
+      const response = await fetch(`/api/reviews/${review.id}/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason: reportReason,
+          details: reportDetails,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to submit report:", await response.json());
+      } else {
+        console.log("Report submitted successfully");
+        onOpenChange(false); // Close the dialog after successful submission
+      }
+    } catch (error) {
+      console.error("Error submitting report:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -61,18 +84,27 @@ export function ReportDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="report-reason">Lý do báo cáo</Label>
-            <Select value={reportReason} onValueChange={setReportReason}>
+            <Select
+              value={reportReason}
+              onValueChange={(value) => setReportReason(value as ReportReason)}
+            >
               <SelectTrigger id="report-reason">
                 <SelectValue placeholder="Chọn lý do báo cáo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="inappropriate">
+                <SelectItem value={ReportReason.INAPPROPRIATE}>
                   Nội dung không phù hợp
                 </SelectItem>
-                <SelectItem value="spam">Spam hoặc quảng cáo</SelectItem>
-                <SelectItem value="fake">Đánh giá giả mạo</SelectItem>
-                <SelectItem value="offensive">Nội dung xúc phạm</SelectItem>
-                <SelectItem value="other">Lý do khác</SelectItem>
+                <SelectItem value={ReportReason.SPAM}>
+                  Spam hoặc quảng cáo
+                </SelectItem>
+                <SelectItem value={ReportReason.FAKE}>
+                  Đánh giá giả mạo
+                </SelectItem>
+                <SelectItem value={ReportReason.OFFENSIVE}>
+                  Nội dung xúc phạm
+                </SelectItem>
+                <SelectItem value={ReportReason.OTHER}>Lý do khác</SelectItem>
               </SelectContent>
             </Select>
           </div>

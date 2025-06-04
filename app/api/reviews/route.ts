@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "APPROVED";
     const rating = searchParams.get("rating");
     const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortOrder = sortBy === "lowest" || sortBy === "oldest" ? "asc" : "desc";
+    const sortOrder =
+      sortBy === "lowest" || sortBy === "oldest" ? "asc" : "desc";
 
     const offset = (page - 1) * limit;
 
@@ -38,7 +39,8 @@ export async function GET(request: NextRequest) {
       skip: offset,
       take: limit,
       orderBy: {
-        [sortBy === "highest" || sortBy === "lowest" ? "rating" : "createdAt"]: sortOrder,
+        [sortBy === "highest" || sortBy === "lowest" ? "rating" : "createdAt"]:
+          sortOrder,
       },
       include: {
         customer: {
@@ -54,13 +56,21 @@ export async function GET(request: NextRequest) {
               select: { id: true },
             }
           : false,
+
+        reviewReports: userId
+          ? {
+              where: { userId, isDeleted: false },
+              select: { id: true },
+            }
+          : false,
       },
     });
 
     // Định dạng lại dữ liệu trả về
     const formattedReviews = reviews.map((review) => ({
       ...review,
-      isHelpful: userId ? review.helpfulReviews.length > 0 : false, // Kiểm tra nếu người dùng đã like
+      isHelpful: userId ? review.helpfulReviews.length > 0 : false,
+      isReported: userId ? review.reviewReports.length > 0 : false,
     }));
 
     // Tổng số đánh giá
@@ -103,7 +113,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const homestay = await prisma.homestay.findUnique({
       where: { id: homestayId },
       select: { ownerId: true },
@@ -155,9 +165,7 @@ export async function POST(request: NextRequest) {
         owner: {
           connect: { id: ownerId },
         },
-        booking: bookingId
-          ? { connect: { id: bookingId } }
-          : undefined,
+        booking: bookingId ? { connect: { id: bookingId } } : undefined,
         rating,
         comment,
         status: "PENDING",
