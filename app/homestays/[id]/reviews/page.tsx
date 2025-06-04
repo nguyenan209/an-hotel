@@ -58,7 +58,6 @@ export default function ReviewsPage() {
   const [reviewsPerPage] = useState(5);
   const {
     reviews,
-    helpfulReviews,
     isLoading,
     error,
     markHelpful,
@@ -155,22 +154,41 @@ export default function ReviewsPage() {
     return distribution;
   };
 
-  const handleHelpfulClick = (review: ReviewAll) => {
-    const isAlreadyHelpful = helpfulReviews.includes(review.id);
-
-    if (isAlreadyHelpful) {
-      unmarkHelpful(review.id);
-      updateHelpfulCount(review.id, false);
+  const handleHelpfulClick = async (review: ReviewWithFlags) => {
+    if (!isLoggedIn) {
       toast({
-        title: "Đã bỏ đánh dấu hữu ích",
-        description: "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
+        title: "Bạn cần đăng nhập để đánh dấu hữu ích",
+        description: "Vui lòng đăng nhập để sử dụng tính năng này.",
+        variant: "destructive",
       });
-    } else {
-      markHelpful(review.id);
-      updateHelpfulCount(review.id, true);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/reviews/${review.id}/helpful`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHelpful: !review.isHelpful }),
+      });
+      if (!response.ok) throw new Error("Không thể cập nhật trạng thái hữu ích");
+      const updated = await response.json();
+      setFilteredReviews((prev) =>
+        prev.map((r) =>
+          r.id === review.id
+            ? { ...r, helpfulCount: updated.review.helpfulCount, isHelpful: !review.isHelpful }
+            : r
+        )
+      );
       toast({
-        title: "Đã đánh dấu hữu ích",
-        description: "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích.",
+        title: !review.isHelpful ? "Đã đánh dấu hữu ích" : "Đã bỏ đánh dấu hữu ích",
+        description: !review.isHelpful
+          ? "Cảm ơn bạn đã đánh dấu đánh giá này là hữu ích."
+          : "Bạn đã bỏ đánh dấu đánh giá này là hữu ích.",
+      });
+    } catch (error) {
+      toast({
+        title: "Có lỗi xảy ra",
+        description: "Vui lòng thử lại sau.",
+        variant: "destructive",
       });
     }
   };
@@ -438,12 +456,12 @@ export default function ReviewsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={`h-8 px-2 ${isLoggedIn && review.isHelpful ? "text-primary" : ""}`}
+                        className={`h-8 px-2 ${review.isHelpful ? "text-primary" : ""}`}
                         onClick={() => handleHelpfulClick(review)}
                         disabled={!isLoggedIn}
                       >
                         <ThumbsUp
-                          className={`h-4 w-4 mr-1 ${isLoggedIn && review.isHelpful ? "fill-primary" : ""}`}
+                          className={`h-4 w-4 mr-1 ${review.isHelpful ? "fill-primary" : ""}`}
                         />
                         <span>Hữu ích ({review.helpfulCount})</span>
                       </Button>
