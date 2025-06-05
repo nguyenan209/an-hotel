@@ -40,6 +40,7 @@ import moment from "moment";
 import { BookingStatus } from "@prisma/client";
 import Loading from "@/components/loading";
 import { ReviewSection } from "@/components/review/review-section";
+import { ReviewForm } from "@/components/review/review-form";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -344,7 +345,7 @@ export default function BookingDetailsPage() {
             <Star className="h-6 w-6 mr-2 text-yellow-400" />
             Share Your Experience
           </h2>
-          <ReviewSection
+          <ReviewForm
             bookingId={booking.id}
             homestayId={booking.homestayId}
             homestayName={booking.homestay.name}
