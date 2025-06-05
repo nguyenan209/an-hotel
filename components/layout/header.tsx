@@ -64,37 +64,39 @@ export function Header() {
           <nav className="hidden md:flex gap-4">
             <Link
               href="/search"
-              className={`text-sm font-medium ${
-                pathname === "/search"
+              className={`text-sm font-medium ${pathname === "/search"
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               Tìm kiếm
             </Link>
             <Link
               href="/contact"
-              className={`text-sm font-medium ${
-                pathname === "/contact"
+              className={`text-sm font-medium ${pathname === "/contact"
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               Liên hệ
             </Link>
             <Link
               href="/support"
-              className={`text-sm font-medium ${
-                pathname === "/support"
+              className={`text-sm font-medium ${pathname === "/support"
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               Hỗ trợ
             </Link>
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/host/register" className="hidden md:block">
+            <Button variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+              Become host
+            </Button>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
