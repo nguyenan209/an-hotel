@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
@@ -95,6 +95,15 @@ export function SearchForm({ params }: { params: SearchParams }) {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
+            {location && (
+              <button
+                type="button"
+                onClick={() => setLocation("")}
+                className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 
