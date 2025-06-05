@@ -77,3 +77,35 @@ export const bookingSchema = z.object({
 });
 
 export type BookingFormValues = z.infer<typeof bookingSchema>;
+
+
+// Form schema for profile information
+export const profileFormSchema = z.object({
+  fullName: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  phone: z
+    .string()
+    .min(10, { message: "Phone number must be at least 10 digits." }),
+  address: z.string().optional(),
+  bio: z.string().optional(),
+});
+
+// Form schema for password change
+export const passwordFormSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    newPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });

@@ -30,48 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/components/ui/use-toast";
 import { Camera, Loader2 } from "lucide-react";
 import Loading from "@/components/loading";
-
-// Form schema for profile information
-const profileFormSchema = z.object({
-  fullName: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  phone: z
-    .string()
-    .min(10, { message: "Phone number must be at least 10 digits." }),
-  address: z.string().optional(),
-  bio: z.string().optional(),
-});
-
-// Form schema for password change
-const passwordFormSchema = z
-  .object({
-    currentPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-    newPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-    confirmPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-// Mock user data - in a real app, this would come from an API
-const mockUser = {
-  id: "u1",
-  fullName: "John Doe",
-  email: "john.doe@example.com",
-  phone: "0123456789",
-  address: "123 Main St, City, Country",
-  bio: "Travel enthusiast and food lover. Always looking for new adventures and experiences.",
-  avatar: "",
-};
+import { passwordFormSchema, profileFormSchema } from "@/lib/schema";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -104,20 +63,20 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    // Simulate API call to fetch user data
+    // Fetch user profile from real API
     const fetchUserData = async () => {
       try {
-        // In a real app, this would be an API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setUser(mockUser);
-
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        setUser(data.user);
         // Set form default values
         profileForm.reset({
-          fullName: mockUser.fullName,
-          email: mockUser.email,
-          phone: mockUser.phone,
-          address: mockUser.address || "",
-          bio: mockUser.bio || "",
+          fullName: data.user.name || "",
+          email: data.user.email || "",
+          phone: data.user.phone || "",
+          address: data.user.address || "",
+          bio: data.user.bio || "",
         });
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -130,21 +89,23 @@ export default function ProfilePage() {
         setIsLoading(false);
       }
     };
-
     fetchUserData();
   }, [profileForm]);
 
   const onProfileSubmit = async (data: z.infer<typeof profileFormSchema>) => {
     setIsUpdating(true);
     try {
-      // Simulate API call to update profile
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Gọi API thật để update profile
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update profile");
+      const result = await res.json();
 
       // Update local user state
-      setUser({
-        ...user,
-        ...data,
-      });
+      setUser(result.user);
 
       toast({
         title: "Profile Updated",
@@ -165,25 +126,27 @@ export default function ProfilePage() {
   const onPasswordSubmit = async (data: z.infer<typeof passwordFormSchema>) => {
     setIsChangingPassword(true);
     try {
-      // Simulate API call to change password
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          oldPassword: data.currentPassword,
+          newPassword: data.newPassword,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to change password");
+      }
+      passwordForm.reset();
       toast({
         title: "Password Changed",
-        description: "Your password has been changed successfully.",
-      });
-
-      // Reset form
-      passwordForm.reset({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+        description: "Your password has been updated successfully.",
       });
     } catch (error) {
-      console.error("Failed to change password:", error);
       toast({
         title: "Error",
-        description: "Failed to change password. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to change password",
         variant: "destructive",
       });
     } finally {
@@ -207,35 +170,44 @@ export default function ProfilePage() {
 
   const uploadAvatar = async () => {
     if (!avatarFile) return;
-
     setIsUpdating(true);
     try {
-      // Simulate API call to upload avatar
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // 1. Upload file lên S3 qua API
+      const formData = new FormData();
+      formData.append("files", avatarFile);
 
-      // In a real app, you would upload the file to your server/S3
-      // and get back a URL to the uploaded image
-
-      // Update local user state with new avatar URL
-      setUser({
-        ...user,
-        avatar: avatarPreview,
+      const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
+        method: "POST",
+        body: formData,
       });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const { urls } = await uploadRes.json();
+      const avatarUrl = urls[0];
+
+      // 2. Gọi API cập nhật profile với avatar mới
+      const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: avatarUrl }),
+      });
+      if (!updateRes.ok) throw new Error("Update profile failed");
+
+      // 3. Cập nhật lại state user/avatar nếu cần
+      const { user } = await updateRes.json();
+      setUser(user);
 
       toast({
-        title: "Avatar Updated",
-        description: "Your profile picture has been updated successfully.",
+        title: "Avatar updated",
+        description: "Your profile picture has been updated.",
       });
     } catch (error) {
-      console.error("Failed to upload avatar:", error);
       toast({
         title: "Error",
-        description: "Failed to upload profile picture. Please try again.",
+        description: "Failed to update avatar.",
         variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
-      setAvatarFile(null);
     }
   };
 
@@ -258,7 +230,7 @@ export default function ProfilePage() {
               <Avatar className="w-32 h-32">
                 <AvatarImage src={avatarPreview || user.avatar || undefined} />
                 <AvatarFallback className="text-2xl">
-                  {user.fullName
+                  {user.name
                     .split(" ")
                     .map((n: string) => n[0])
                     .join("")}
@@ -417,7 +389,7 @@ export default function ProfilePage() {
                         )}
                       />
 
-                      <Button type="submit" disabled={isUpdating}>
+                      <Button type="submit" disabled={isUpdating || !profileForm.formState.isDirty}>
                         {isUpdating ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
