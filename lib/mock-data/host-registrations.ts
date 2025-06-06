@@ -1,0 +1,78 @@
+import type { HostRegistration, HostPayment } from "@/lib/types"
+
+export const hostRegistrations: HostRegistration[] = [
+    {
+        id: "reg-001",
+        fullName: "Nguyễn Văn An",
+        email: "an.nguyen@email.com",
+        phone: "0901234567",
+        homestayAddress: "123 Đường Biển, Nha Trang, Khánh Hòa",
+        experience: "Có 3 năm kinh nghiệm trong lĩnh vực du lịch",
+        registrationStep: "approved",
+        paymentStatus: "paid",
+        setupFeeAmount: 500000,
+        paymentMethod: "credit_card",
+        packageType: "premium",
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-16T14:30:00Z",
+        approvedAt: "2024-01-16T14:30:00Z",
+    },
+    {
+        id: "reg-002",
+        fullName: "Trần Thị Bình",
+        email: "binh.tran@email.com",
+        phone: "0912345678",
+        homestayAddress: "456 Phố Cổ, Hội An, Quảng Nam",
+        registrationStep: "payment",
+        paymentStatus: "pending",
+        setupFeeAmount: 300000,
+        packageType: "basic",
+        createdAt: "2024-01-20T09:15:00Z",
+        updatedAt: "2024-01-20T09:15:00Z",
+    },
+    {
+        id: "reg-003",
+        fullName: "Lê Minh Cường",
+        email: "cuong.le@email.com",
+        phone: "0923456789",
+        homestayAddress: "789 Đường Núi, Sa Pa, Lào Cai",
+        experience: "Chủ resort nhỏ, muốn mở rộng qua platform online",
+        registrationStep: "verification",
+        paymentStatus: "paid",
+        setupFeeAmount: 1000000,
+        paymentMethod: "bank_transfer",
+        packageType: "enterprise",
+        createdAt: "2024-01-18T16:45:00Z",
+        updatedAt: "2024-01-19T11:20:00Z",
+    },
+]
+
+export const hostPayments: HostPayment[] = [
+    {
+        id: "pay-001",
+        registrationId: "reg-001",
+        amount: 500000,
+        currency: "VND",
+        paymentMethod: "credit_card",
+        paymentIntentId: "pi_1234567890",
+        status: "succeeded",
+        createdAt: "2024-01-15T10:30:00Z",
+        metadata: {
+            packageType: "premium",
+            cardLast4: "4242",
+        },
+    },
+    {
+        id: "pay-002",
+        registrationId: "reg-003",
+        amount: 1000000,
+        currency: "VND",
+        paymentMethod: "bank_transfer",
+        status: "succeeded",
+        createdAt: "2024-01-18T17:00:00Z",
+        metadata: {
+            packageType: "enterprise",
+            bankName: "Vietcombank",
+        },
+    },
+]

@@ -38,6 +38,7 @@ model User {
   notifications Notification[]
   HelpfulReviews HelpfulReview[]
   ReviewReports ReviewReport[]
+  hostRegistrations HostRegistration[]
 }
 
 enum UserRole {
@@ -610,4 +611,75 @@ enum CartStatus {
   ACTIVE
   CHECKED_OUT
   ABANDONED
+}
+
+enum HostRegistrationStep {
+  INFO
+  PAYMENT
+  VERIFICATION
+  APPROVED
+  REJECTED
+}
+
+enum HostPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum HostPackageType {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+  STANDARD
+}
+
+enum HostPaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  MOMO
+  VNPAY
+}
+
+enum HostPaymentTransactionStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+model HostRegistration {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String?  @db.ObjectId
+  user            User?    @relation(fields: [userId], references: [id])
+  fullName        String
+  email           String
+  phone           String
+  homestayAddress String
+  experience      String?
+  registrationStep HostRegistrationStep @default(INFO)
+  paymentStatus   HostPaymentStatus @default(PENDING)
+  setupFeeAmount  Float
+  paymentMethod   HostPaymentMethod?
+  packageType     HostPackageType @default(BASIC)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  approvedAt      DateTime?
+  rejectedReason  String?
+
+  payments        HostPayment[]
+}
+
+model HostPayment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  registrationId  String   @db.ObjectId
+  registration    HostRegistration @relation(fields: [registrationId], references: [id])
+  amount          Float
+  currency        String
+  paymentMethod   HostPaymentMethod
+  paymentIntentId String?
+  status          HostPaymentTransactionStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  metadata        Json?
 }

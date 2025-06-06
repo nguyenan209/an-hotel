@@ -271,3 +271,44 @@ export type ReviewAllWithFlags = ReviewAll & {
   isHelpful?: boolean;
   isReported?: boolean;
 };
+
+// New Host Registration Types
+export interface HostRegistration {
+  id: string
+  userId?: string
+  fullName: string
+  email: string
+  phone: string
+  homestayAddress: string
+  experience?: string
+  registrationStep: "info" | "payment" | "verification" | "approved" | "rejected"
+  paymentStatus: "pending" | "paid" | "failed" | "refunded"
+  setupFeeAmount: number
+  paymentMethod?: string
+  packageType: "basic" | "premium" | "enterprise" | "standard"
+  createdAt: string
+  updatedAt: string
+  approvedAt?: string
+  rejectedReason?: string
+}
+
+export interface HostPayment {
+  id: string
+  registrationId: string
+  amount: number
+  currency: string
+  paymentMethod: string
+  paymentIntentId?: string
+  status: "pending" | "succeeded" | "failed" | "canceled"
+  createdAt: string
+  metadata?: Record<string, any>
+}
+
+export interface HostPackage {
+  id: string
+  name: string
+  price: number
+  commission: number
+  features: string[]
+  popular?: boolean
+}

@@ -1,5 +1,6 @@
 import { sendEmail } from "../email";
 import { getConfirmRegistrationEmailHTML } from "../email-templates/confirm-registration";
+import { getHostApprovalEmailHTML, getHostRejectionEmailHTML } from "../email-templates/host-approval";
 import { getWelcomeEmailHTML } from "../email-templates/welcome-email";
 
 interface SendEmailOptions {
@@ -57,6 +58,42 @@ export class EmailService {
       subject: "Chào mừng đến với Homestay Booking!",
       html,
     });
+  }
+
+  static async sendHostApprovalEmail(
+    email: string,
+    hostName: string,
+    username: string,
+    password: string,
+  ): Promise<boolean> {
+    const html = getHostApprovalEmailHTML({
+      hostName,
+      username,
+      password,
+      loginUrl: "https://homestay.com/owner/login",
+      supportEmail: "host-support@homestay.com",
+    })
+
+    return this.sendEmail({
+      to: email,
+      subject: "🎉 Chúc mừng! Bạn đã được phê duyệt làm Host - Homestay Booking",
+      html,
+    })
+  }
+
+  static async sendHostRejectionEmail(email: string, hostName: string, rejectionReason: string): Promise<boolean> {
+    const html = getHostRejectionEmailHTML({
+      hostName,
+      rejectionReason,
+      supportEmail: "host-support@homestay.com",
+      reapplyUrl: "https://homestay.com/host/register",
+    })
+
+    return this.sendEmail({
+      to: email,
+      subject: "Thông báo về đơn đăng ký Host - Homestay Booking",
+      html,
+    })
   }
 }
 
