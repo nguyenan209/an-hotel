@@ -28,16 +28,16 @@ model User {
   bio       String?
 
   // Relationships
-  customer      Customer?      @relation
-  customerId    String?        @db.ObjectId
-  homestays     Homestay[]
-  admin         Admin?         @relation
-  adminId       String?        @db.ObjectId
-  reviews       Review[]
-  complaints    Complaint[]
-  notifications Notification[]
-  HelpfulReviews HelpfulReview[]
-  ReviewReports ReviewReport[]
+  customer          Customer?          @relation
+  customerId        String?            @db.ObjectId
+  homestays         Homestay[]
+  admin             Admin?             @relation
+  adminId           String?            @db.ObjectId
+  reviews           Review[]
+  complaints        Complaint[]
+  notifications     Notification[]
+  HelpfulReviews    HelpfulReview[]
+  ReviewReports     ReviewReport[]
   hostRegistrations HostRegistration[]
 }
 
@@ -294,15 +294,15 @@ model BookingItem {
 
 // Thanh toán
 model Payment {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId     String        @db.ObjectId
-  booking       Booking       @relation(fields: [bookingId], references: [id])
-  amount        Float
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
-  transactionId String? // ID giao dịch từ cổng thanh toán
-  paymentDate   DateTime      @default(now())
-  notes         String?
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId      String        @db.ObjectId
+  booking        Booking       @relation(fields: [bookingId], references: [id])
+  amount         Float
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  transactionId  String? // ID giao dịch từ cổng thanh toán
+  paymentDate    DateTime      @default(now())
+  notes          String?
   paymentDetails Json? // Chi tiết thanh toán (thông tin thẻ, ngân hàng, v.v.)
 }
 
@@ -377,8 +377,8 @@ model Review {
   isDeleted      Boolean      @default(false)
   helpfulCount   Int          @default(0) // Tổng số lượt đánh dấu hữu ích
   reportCount    Int          @default(0) // Tổng số lượt báo cáo
-  
-    // Relationships
+
+  // Relationships
   helpfulReviews HelpfulReview[]
   reviewReports  ReviewReport[]
 }
@@ -402,17 +402,17 @@ model HelpfulReview {
 }
 
 model ReviewReport {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  reviewId    String         @db.ObjectId
-  review      Review         @relation(fields: [reviewId], references: [id])
-  userId      String         @db.ObjectId
-  user        User           @relation(fields: [userId], references: [id])
-  reason      ReportReason   // Lý do báo cáo
-  details     String?        // Chi tiết bổ sung từ người dùng
-  status      ReportStatus   @default(PENDING) // Trạng thái xử lý báo cáo
-  createdAt   DateTime       @default(now())
-  resolvedAt  DateTime?
-  isDeleted   Boolean        @default(false)
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  reviewId   String       @db.ObjectId
+  review     Review       @relation(fields: [reviewId], references: [id])
+  userId     String       @db.ObjectId
+  user       User         @relation(fields: [userId], references: [id])
+  reason     ReportReason // Lý do báo cáo
+  details    String? // Chi tiết bổ sung từ người dùng
+  status     ReportStatus @default(PENDING) // Trạng thái xử lý báo cáo
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+  isDeleted  Boolean      @default(false)
 
   @@unique([reviewId, userId]) // Đảm bảo mỗi người dùng chỉ có thể báo cáo một lần cho mỗi đánh giá
 }
@@ -589,22 +589,22 @@ model Cart {
 
 // Mục trong giỏ hàng
 model CartItem {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  cartId      String         @db.ObjectId
-  cart        Cart           @relation(fields: [cartId], references: [id])
-  homestayId  String         @db.ObjectId
-  homestay    Homestay       @relation(fields: [homestayId], references: [id])
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  cartId      String      @db.ObjectId
+  cart        Cart        @relation(fields: [cartId], references: [id])
+  homestayId  String      @db.ObjectId
+  homestay    Homestay    @relation(fields: [homestayId], references: [id])
   checkIn     DateTime
   checkOut    DateTime
   guests      Int
-  nights       Int // Số đêm
+  nights      Int // Số đêm
   rooms       Json
   note        String? // Ghi chú của khách hàng
   totalPrice  Float // Tổng giá
   bookingType BookingType // Loại đặt phòng (toàn bộ homestay hoặc từng phòng)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  isDeleted   Boolean        @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  isDeleted   Boolean     @default(false)
 }
 
 enum CartStatus {
@@ -650,36 +650,36 @@ enum HostPaymentTransactionStatus {
 }
 
 model HostRegistration {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String?  @db.ObjectId
-  user            User?    @relation(fields: [userId], references: [id])
-  fullName        String
-  email           String
-  phone           String
-  homestayAddress String
-  experience      String?
+  id               String               @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String?              @db.ObjectId
+  user             User?                @relation(fields: [userId], references: [id])
+  fullName         String
+  email            String               @unique
+  phone            String
+  homestayAddress  String
+  experience       String?
   registrationStep HostRegistrationStep @default(INFO)
-  paymentStatus   HostPaymentStatus @default(PENDING)
-  setupFeeAmount  Float
-  paymentMethod   HostPaymentMethod?
-  packageType     HostPackageType @default(BASIC)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  approvedAt      DateTime?
-  rejectedReason  String?
+  paymentStatus    HostPaymentStatus    @default(PENDING)
+  setupFeeAmount   Float
+  paymentMethod    HostPaymentMethod?
+  packageType      HostPackageType      @default(BASIC)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  approvedAt       DateTime?
+  rejectedReason   String?
 
-  payments        HostPayment[]
+  payments HostPayment[]
 }
 
 model HostPayment {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  registrationId  String   @db.ObjectId
-  registration    HostRegistration @relation(fields: [registrationId], references: [id])
+  id              String                       @id @default(auto()) @map("_id") @db.ObjectId
+  registrationId  String                       @db.ObjectId
+  registration    HostRegistration             @relation(fields: [registrationId], references: [id])
   amount          Float
   currency        String
   paymentMethod   HostPaymentMethod
   paymentIntentId String?
   status          HostPaymentTransactionStatus @default(PENDING)
-  createdAt       DateTime @default(now())
+  createdAt       DateTime                     @default(now())
   metadata        Json?
 }
