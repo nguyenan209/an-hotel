@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import BasicInfoStep from "./steps/basic-info";
 import PaymentStep from "./steps/payment";
 import ConfirmationStep from "./steps/confirmation";
 import StepIndicator from "./_components/step-indicator";
+import { useSearchParams } from "next/navigation";
 
 export default function HostRegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -38,6 +39,22 @@ export default function HostRegisterPage() {
     { number: 2, title: "Thanh toán", description: "Chọn gói và thanh toán" },
     { number: 3, title: "Hoàn tất", description: "Xác nhận đăng ký" },
   ];
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (
+      searchParams.get("success") === "1" &&
+      searchParams.get("registrationId")
+    ) {
+      setRegistrationData((prev) => ({
+        ...prev,
+        registrationId: searchParams.get("registrationId")!,
+      }));
+      setCurrentStep(3);
+    }
+    // Nếu muốn xử lý khi cancel thì thêm else if ở đây
+  }, [searchParams]);
 
   const handleStepComplete = (stepData: any) => {
     setRegistrationData((prev) => ({ ...prev, ...stepData }));

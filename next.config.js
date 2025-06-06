@@ -32,6 +32,10 @@ module.exports = {
       },
     ],
   },
+  allowedDevOrigins: [
+    "https://5443-14-160-24-43.ngrok-free.app", // domain ngrok của bạn
+    "http://localhost:3000", // hoặc các domain dev khác nếu cần
+  ],
   async headers() {
     return [
         {
