@@ -12,7 +12,7 @@ interface SendEmailOptions {
 export async function sendEmail({ to, subject, html, from }: SendEmailOptions) {
   try {
     const response = await resend.emails.send({
-      from: from || "onboarding@resend.dev", // Thay bằng email mặc định của bạn
+      from: from || process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || "onboarding@resend.dev",
       to,
       subject,
       html,

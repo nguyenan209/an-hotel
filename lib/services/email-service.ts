@@ -70,7 +70,7 @@ export class EmailService {
       hostName,
       username,
       password,
-      loginUrl: "https://homestay.com/owner/login",
+      loginUrl: process.env.NEXT_PUBLIC_BASE_URL + "/login",
       supportEmail: "host-support@homestay.com",
     })
 
