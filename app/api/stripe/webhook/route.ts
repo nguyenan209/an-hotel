@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
-import { HostPaymentStatus } from "@prisma/client";
+import { HostPaymentStatus, HostRegistrationStep } from "@prisma/client";
 
 const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-04-30.basil",
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
       await prisma.hostRegistration.update({
         where: { email: email, paymentStatus: HostPaymentStatus.PENDING },
-        data: { paymentStatus: HostPaymentStatus.PAID },
+        data: { paymentStatus: HostPaymentStatus.PAID, registrationStep: HostRegistrationStep.VERIFICATION },
       });
 
       break;

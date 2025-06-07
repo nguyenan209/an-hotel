@@ -4,16 +4,9 @@
 
    ▲ Next.js 15.2.4
    - Local:        http://localhost:3000
-   - Network:      http://10.17.0.4:3000
+   - Network:      http://192.168.1.80:3000
    - Environments: .env
 
  ✓ Starting...
- ✓ Ready in 2.1s
- ✓ Compiled /middleware in 237ms (101 modules)
- ○ Compiling /admin ...
- ✓ Compiled /admin in 6.6s (3365 modules)
- GET /admin 200 in 7140ms
- ○ Compiling /_not-found ...
- ✓ Compiled /api/notifications in 3.6s (3544 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 3205ms
- GET /admin 200 in 19ms
+ ✓ Ready in 1458ms
+[?25h

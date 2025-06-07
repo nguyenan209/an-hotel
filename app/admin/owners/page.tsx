@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import InfiniteScroll from "react-infinite-scroll-component";
 import {
   Edit,
   Plus,
@@ -51,61 +52,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import type { HostRegistration } from "@/lib/types";
-
-// Mock data for existing homestay owners
-const mockOwners = [
-  {
-    id: "own1",
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "0901234567",
-    totalHomestays: 3,
-    joinDate: "2023-01-15T10:30:00Z",
-    status: "active",
-  },
-  {
-    id: "own2",
-    name: "Trần Thị B",
-    email: "tranthib@example.com",
-    phone: "0912345678",
-    totalHomestays: 2,
-    joinDate: "2023-02-20T14:45:00Z",
-    status: "active",
-  },
-  {
-    id: "own3",
-    name: "Lê Văn C",
-    email: "levanc@example.com",
-    phone: "0923456789",
-    totalHomestays: 1,
-    joinDate: "2023-03-10T09:15:00Z",
-    status: "suspended",
-  },
-  {
-    id: "own4",
-    name: "Phạm Thị D",
-    email: "phamthid@example.com",
-    phone: "0934567890",
-    totalHomestays: 4,
-    joinDate: "2023-01-05T11:30:00Z",
-    status: "active",
-  },
-  {
-    id: "own5",
-    name: "Hoàng Văn E",
-    email: "hoangvane@example.com",
-    phone: "0945678901",
-    totalHomestays: 2,
-    joinDate: "2023-04-12T16:20:00Z",
-    status: "terminated",
-  },
-];
+import { HostPaymentStatus, HostRegistration, HostRegistrationStep, UserStatus } from "@prisma/client";
 
 export default function OwnersPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | HostRegistrationStep
+  >("all");
   const [activeTab, setActiveTab] = useState("active-owners");
+
+  // Infinity scroll state for owners
+  const [owners, setOwners] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Host registrations state
   const [registrations, setRegistrations] = useState<HostRegistration[]>([]);
@@ -115,6 +74,55 @@ export default function OwnersPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [detailsRegistration, setDetailsRegistration] = useState<HostRegistration | null>(null)
+
+  const PAGE_SIZE = 20;
+
+  // Chuyển string thường về enum HostRegistrationStep
+  const normalizeStep = (step: string): HostRegistrationStep => step.toUpperCase() as HostRegistrationStep;
+
+  // Fetch owners with infinite scroll
+  const fetchOwners = async (skip = 0, append = false) => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("skip", skip.toString());
+      params.set("limit", PAGE_SIZE.toString());
+      if (searchQuery) params.set("search", searchQuery);
+      if (statusFilter && statusFilter !== "all")
+        params.set("status", statusFilter);
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/api/admin/owners?${params.toString()}`
+      );
+      const data = await response.json();
+      if (data.success) {
+        if (append) {
+          setOwners((prev) => [...prev, ...data.data]);
+        } else {
+          setOwners(data.data);
+        }
+        setHasMore(data.data.length === PAGE_SIZE);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMoreOwners = () => {
+    if (!hasMore || isLoading) return;
+    fetchOwners(owners.length, true);
+  };
+
+  useEffect(() => {
+    fetchOwners(0, false);
+  }, [searchQuery, statusFilter]);
 
   // Fetch host registrations
   useEffect(() => {
@@ -123,7 +131,9 @@ export default function OwnersPage() {
 
   const fetchRegistrations = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/host-registrations`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/host-registrations`
+      );
       const data = await response.json();
       if (data.success) {
         setRegistrations(data.data);
@@ -140,19 +150,6 @@ export default function OwnersPage() {
     }
   };
 
-  // Filter existing owners
-  const filteredOwners = mockOwners.filter((owner) => {
-    const matchesSearch =
-      owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      owner.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      owner.phone.includes(searchQuery);
-
-    const matchesStatus =
-      statusFilter === "all" || owner.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
   // Filter registrations
   const filteredRegistrations = registrations.filter((reg) => {
     const matchesSearch =
@@ -161,7 +158,7 @@ export default function OwnersPage() {
       reg.phone.includes(searchQuery);
 
     const matchesStatus =
-      statusFilter === "all" || reg.registrationStep === statusFilter;
+      statusFilter === "all" || normalizeStep(reg.registrationStep) === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -239,49 +236,93 @@ export default function OwnersPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  // Status icons và badges cho UserStatus
+  const getUserStatusIcon = (status: UserStatus) => {
+    switch (status) {
+      case UserStatus.ACTIVE:
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case UserStatus.INACTIVE:
+        return <Clock className="h-4 w-4 text-gray-400" />;
+      case UserStatus.SUSPENDED:
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      case UserStatus.DELETED:
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getUserStatusBadge = (status: UserStatus) => {
     const statusConfig = {
-      active: { label: "Hoạt động", className: "bg-green-100 text-green-800" },
-      suspended: {
+      [UserStatus.ACTIVE]: {
+        label: "Hoạt động",
+        className: "bg-green-100 text-green-800",
+      },
+      [UserStatus.INACTIVE]: {
+        label: "Chưa kích hoạt",
+        className: "bg-gray-100 text-gray-800",
+      },
+      [UserStatus.SUSPENDED]: {
         label: "Tạm khóa",
         className: "bg-yellow-100 text-yellow-800",
       },
-      terminated: { label: "Chấm dứt", className: "bg-red-100 text-red-800" },
-      info: { label: "Thông tin", className: "bg-blue-100 text-blue-800" },
-      payment: {
-        label: "Thanh toán",
-        className: "bg-orange-100 text-orange-800",
+      [UserStatus.DELETED]: {
+        label: "Đã xóa",
+        className: "bg-red-100 text-red-800",
       },
-      verification: {
-        label: "Chờ duyệt",
-        className: "bg-yellow-100 text-yellow-800",
-      },
-      approved: { label: "Đã duyệt", className: "bg-green-100 text-green-800" },
-      rejected: { label: "Từ chối", className: "bg-red-100 text-red-800" },
     };
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.info;
+    const config = statusConfig[status] || statusConfig[UserStatus.INACTIVE];
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "verification":
+  // Status icons và badges cho HostRegistrationStep
+  const getRegistrationStepIcon = (step: HostRegistrationStep) => {
+    switch (step) {
+      case HostRegistrationStep.INFO:
+        return <AlertCircle className="h-4 w-4 text-blue-500" />;
+      case HostRegistrationStep.PAYMENT:
+        return <Clock className="h-4 w-4 text-orange-500" />;
+      case HostRegistrationStep.VERIFICATION:
         return <Clock className="h-4 w-4 text-yellow-500" />;
-      case "approved":
-      case "active":
+      case HostRegistrationStep.APPROVED:
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "rejected":
-      case "terminated":
+      case HostRegistrationStep.REJECTED:
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-blue-500" />;
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
     }
+  };
+
+  const getRegistrationStepBadge = (step: HostRegistrationStep) => {
+    const stepConfig = {
+      [HostRegistrationStep.INFO]: {
+        label: "Thông tin",
+        className: "bg-blue-100 text-blue-800",
+      },
+      [HostRegistrationStep.PAYMENT]: {
+        label: "Thanh toán",
+        className: "bg-orange-100 text-orange-800",
+      },
+      [HostRegistrationStep.VERIFICATION]: {
+        label: "Chờ duyệt",
+        className: "bg-yellow-100 text-yellow-800",
+      },
+      [HostRegistrationStep.APPROVED]: {
+        label: "Đã duyệt",
+        className: "bg-green-100 text-green-800",
+      },
+      [HostRegistrationStep.REJECTED]: {
+        label: "Từ chối",
+        className: "bg-red-100 text-red-800",
+      },
+    };
+    const config = stepConfig[step] || stepConfig[HostRegistrationStep.INFO];
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   // Count pending registrations
   const pendingCount = registrations.filter(
-    (reg) => reg.registrationStep === "verification"
+    (reg) => normalizeStep(reg.registrationStep) === HostRegistrationStep.VERIFICATION
   ).length;
 
   return (
@@ -289,7 +330,7 @@ export default function OwnersPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Homestay Owners</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchRegistrations}>
+          <Button variant="outline" onClick={() => fetchOwners(0, false)}>
             Làm mới
           </Button>
           <Link href="/admin/owners/new">
@@ -338,81 +379,108 @@ export default function OwnersPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value: "all" | HostRegistrationStep) =>
+                      setStatusFilter(value)
+                    }
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Lọc theo trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value="active">Hoạt động</SelectItem>
-                      <SelectItem value="suspended">Tạm khóa</SelectItem>
-                      <SelectItem value="terminated">Chấm dứt</SelectItem>
+                      <SelectItem value={UserStatus.ACTIVE}>
+                        Hoạt động
+                      </SelectItem>
+                      <SelectItem value={UserStatus.SUSPENDED}>
+                        Tạm khóa
+                      </SelectItem>
+                      <SelectItem value={UserStatus.DELETED}>
+                        Chấm dứt
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tên</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Điện thoại</TableHead>
-                      <TableHead>Homestays</TableHead>
-                      <TableHead>Ngày tham gia</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOwners.length === 0 ? (
+              <div className="rounded-md border"
+                id="owners-scrollable-div"
+                style={{ maxHeight: 500, overflowY: "auto" }}
+              >
+                <InfiniteScroll
+                  dataLength={owners.length}
+                  next={loadMoreOwners}
+                  hasMore={hasMore}
+                  loader={<p className="text-center py-4">Đang tải...</p>}
+                  endMessage={
+                    <p className="text-center py-4 text-muted-foreground">
+                      Đã tải hết danh sách owner.
+                    </p>
+                  }
+                  scrollableTarget="owners-scrollable-div"
+                >
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-4">
-                          Không tìm thấy owner nào
-                        </TableCell>
+                        <TableHead>Tên</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Điện thoại</TableHead>
+                        <TableHead>Homestays</TableHead>
+                        <TableHead>Ngày tham gia</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                        <TableHead className="text-right">Thao tác</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredOwners.map((owner) => (
-                        <TableRow key={owner.id}>
-                          <TableCell className="font-medium">
-                            {owner.name}
-                          </TableCell>
-                          <TableCell>{owner.email}</TableCell>
-                          <TableCell>{owner.phone}</TableCell>
-                          <TableCell>{owner.totalHomestays}</TableCell>
-                          <TableCell>{formatDate(owner.joinDate)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(owner.status)}
-                              {getStatusBadge(owner.status)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Link href={`/admin/owners/${owner.id}`}>
-                                <Button variant="ghost" size="icon">
-                                  <Edit className="h-4 w-4" />
-                                  <span className="sr-only">Edit</span>
-                                </Button>
-                              </Link>
-                              <Link
-                                href={`/admin/owners/${owner.id}/homestays`}
-                              >
-                                <Button variant="ghost" size="icon">
-                                  <UserCog className="h-4 w-4" />
-                                  <span className="sr-only">
-                                    Manage Homestays
-                                  </span>
-                                </Button>
-                              </Link>
-                            </div>
+                    </TableHeader>
+                    <TableBody>
+                      {owners.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-4">
+                            Không tìm thấy owner nào
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : (
+                        owners.map((owner) => (
+                          <TableRow key={owner.id}>
+                            <TableCell className="font-medium">
+                              {owner.name}
+                            </TableCell>
+                            <TableCell>{owner.email}</TableCell>
+                            <TableCell>{owner.phone}</TableCell>
+                            <TableCell>{owner.totalHomestays}</TableCell>
+                            <TableCell>{formatDate(owner.createdAt)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getUserStatusIcon(owner.status)}
+                                {getUserStatusBadge(owner.status)}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Link href={`/admin/owners/${owner.id}`}>
+                                  <Button variant="ghost" size="icon">
+                                    <Edit className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </Button>
+                                </Link>
+                                <Link
+                                  href={`/admin/owners/${owner.id}/homestays`}
+                                >
+                                  <Button variant="ghost" size="icon">
+                                    <UserCog className="h-4 w-4" />
+                                    <span className="sr-only">
+                                      Manage Homestays
+                                    </span>
+                                  </Button>
+                                </Link>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </InfiniteScroll>
               </div>
             </CardContent>
           </Card>
@@ -438,15 +506,26 @@ export default function OwnersPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value: "all" | HostRegistrationStep) =>
+                      setStatusFilter(value)
+                    }
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Lọc theo trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value="verification">Chờ duyệt</SelectItem>
-                      <SelectItem value="approved">Đã duyệt</SelectItem>
-                      <SelectItem value="rejected">Từ chối</SelectItem>
+                      <SelectItem value={HostRegistrationStep.VERIFICATION}>
+                        Chờ duyệt
+                      </SelectItem>
+                      <SelectItem value={HostRegistrationStep.APPROVED}>
+                        Đã duyệt
+                      </SelectItem>
+                      <SelectItem value={HostRegistrationStep.REJECTED}>
+                        Từ chối
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -516,8 +595,8 @@ export default function OwnersPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                {getStatusIcon(registration.registrationStep)}
-                                {getStatusBadge(registration.registrationStep)}
+                                {getRegistrationStepIcon(normalizeStep(registration.registrationStep))}
+                                {getRegistrationStepBadge(normalizeStep(registration.registrationStep))}
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -526,11 +605,14 @@ export default function OwnersPage() {
                                   variant="ghost"
                                   size="icon"
                                   title="Xem chi tiết"
+                                  onClick={() => {
+                                    setDetailsRegistration(registration)
+                                    setShowDetailsDialog(true)
+                                  }}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {registration.registrationStep ===
-                                  "verification" && (
+                                {normalizeStep(registration.registrationStep) === HostRegistrationStep.VERIFICATION && (
                                   <>
                                     <Button
                                       variant="ghost"
@@ -606,6 +688,117 @@ export default function OwnersPage() {
               {actionLoading ? "Đang xử lý..." : "Từ chối"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+            {/* Details Dialog */}
+            <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chi tiết đăng ký Host</DialogTitle>
+            <DialogDescription>Thông tin chi tiết về đăng ký làm Host</DialogDescription>
+          </DialogHeader>
+
+          {detailsRegistration && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Thông tin cá nhân</h3>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <span className="font-medium">Họ tên:</span> {detailsRegistration.fullName}
+                    </div>
+                    <div>
+                      <span className="font-medium">Email:</span> {detailsRegistration.email}
+                    </div>
+                    <div>
+                      <span className="font-medium">Số điện thoại:</span> {detailsRegistration.phone}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Thông tin đăng ký</h3>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <span className="font-medium">ID:</span> {detailsRegistration.id}
+                    </div>
+                    <div>
+                      <span className="font-medium">Ngày đăng ký:</span> {formatDate(detailsRegistration.createdAt)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Trạng thái:</span>{" "}
+                      {getRegistrationStepBadge(detailsRegistration.registrationStep)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Địa chỉ Homestay</h3>
+                <p className="mt-2">{detailsRegistration.homestayAddress}</p>
+              </div>
+
+              {detailsRegistration.experience && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Kinh nghiệm</h3>
+                  <p className="mt-2">{detailsRegistration.experience}</p>
+                </div>
+              )}
+
+              {detailsRegistration.paymentStatus && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Thông tin thanh toán</h3>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <span className="font-medium">Trạng thái:</span>{" "}
+                      <Badge
+                        className={
+                          detailsRegistration.paymentStatus === HostPaymentStatus.PAID
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }
+                      >
+                        {detailsRegistration.paymentStatus === HostPaymentStatus.PAID ? "Đã thanh toán" : "Chưa thanh toán"}
+                      </Badge>
+                    </div>
+                    {detailsRegistration.paymentStatus === HostPaymentStatus.PAID && (
+                      <div>
+                        <span className="font-medium">Số tiền:</span>{" "}
+                        {detailsRegistration.setupFeeAmount?.toLocaleString()} VNĐ
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {detailsRegistration.registrationStep === HostRegistrationStep.VERIFICATION && (
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowDetailsDialog(false)
+                      setSelectedRegistration(detailsRegistration)
+                      setShowRejectDialog(true)
+                    }}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Từ chối
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowDetailsDialog(false)
+                      handleApprove(detailsRegistration)
+                    }}
+                    disabled={actionLoading}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Phê duyệt
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
