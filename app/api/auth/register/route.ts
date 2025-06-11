@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "@/lib/auth";
 import { EmailService, OTPService } from "@/lib/services/email-service";
 import { getExpireOtpTime } from "@/lib/utils";
+import { getRedisClient } from '@/lib/redis';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -59,6 +61,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Generate and store register token in Redis (TTL 5 phút)
+    const registerToken = crypto.randomBytes(32).toString('hex');
+    const redis = await getRedisClient();
+    await redis.set(`register_token:${email}`, registerToken, { EX: 300 });
+
     return NextResponse.json(
       {
         message: "User registered successfully. Please activate your account using the OTP sent to your email.",
@@ -68,6 +75,7 @@ export async function POST(req: Request) {
           name: user.name,
           role: user.role,
         },
+        token: registerToken,
       },
       { status: 201 }
     );

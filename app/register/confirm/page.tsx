@@ -28,7 +28,31 @@ export default function RegisterConfirmPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+  const token = searchParams.get("token") || "";
   const userName = searchParams.get("name") || "";
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+
+  // Kiểm tra token hợp lệ khi vào trang
+  useEffect(() => {
+    if (!email || !token) {
+      router.replace("/register");
+      return;
+    }
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-register-token?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.valid) {
+          toast.error("Bạn không có quyền truy cập trang này hoặc link đã hết hạn.");
+          router.replace("/register");
+        } else {
+          setTokenValid(true);
+        }
+      })
+      .catch(() => {
+        toast.error("Không thể xác thực token.");
+        router.replace("/register");
+      });
+  }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -156,21 +180,14 @@ export default function RegisterConfirmPage() {
     }
   }, [otp]);
 
-  if (!email) {
+  if (!email || tokenValid === false) {
+    return null;
+  }
+  if (tokenValid === null) {
+    // Đang kiểm tra token
     return (
-      <div className="container py-8">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground mb-4">
-                Không tìm thấy thông tin đăng ký
-              </p>
-              <Button asChild>
-                <Link href="/register">Quay lại đăng ký</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-muted-foreground">Đang kiểm tra quyền truy cập...</div>
       </div>
     );
   }
