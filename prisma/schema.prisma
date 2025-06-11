@@ -451,8 +451,6 @@ model Complaint {
   updatedAt   DateTime          @updatedAt
   isDeleted   Boolean           @default(false)
 
-  // Relationships
-  attachments ComplaintAttachment[]
   responses   ComplaintResponse[]
 }
 
@@ -478,17 +476,6 @@ enum ComplaintPriority {
   MEDIUM
   HIGH
   URGENT
-}
-
-// Tệp đính kèm khiếu nại
-model ComplaintAttachment {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  complaintId String    @db.ObjectId
-  complaint   Complaint @relation(fields: [complaintId], references: [id])
-  fileUrl     String
-  fileName    String
-  fileType    String
-  uploadedAt  DateTime  @default(now())
 }
 
 // Phản hồi khiếu nại

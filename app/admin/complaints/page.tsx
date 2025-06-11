@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle, Eye, Filter, Search } from "lucide-react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,107 +33,62 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 
-// Mock data for complaints
-const mockComplaints = [
-  {
-    id: "comp1",
-    subject: "Phòng không sạch sẽ",
-    customerId: "cust1",
-    customerName: "Lê Minh",
-    homestayId: "hs1",
-    homestayName: "Sunset Beach Villa",
-    bookingId: "book123",
-    priority: "high",
-    status: "open",
-    createdAt: "2023-06-15T10:30:00Z",
-    lastUpdated: "2023-06-15T14:45:00Z",
-  },
-  {
-    id: "comp2",
-    subject: "Thiếu tiện nghi như đã quảng cáo",
-    customerId: "cust2",
-    customerName: "Trần Hoa",
-    homestayId: "hs2",
-    homestayName: "Mountain Retreat Lodge",
-    bookingId: "book234",
-    priority: "medium",
-    status: "in_progress",
-    createdAt: "2023-06-16T09:20:00Z",
-    lastUpdated: "2023-06-17T11:30:00Z",
-  },
-  {
-    id: "comp3",
-    subject: "Chủ nhà không thân thiện",
-    customerId: "cust3",
-    customerName: "Nguyễn Thành",
-    homestayId: "hs3",
-    homestayName: "Riverside Cottage",
-    bookingId: "book345",
-    priority: "low",
-    status: "resolved",
-    createdAt: "2023-06-14T15:10:00Z",
-    lastUpdated: "2023-06-18T09:15:00Z",
-  },
-  {
-    id: "comp4",
-    subject: "Vấn đề về thanh toán",
-    customerId: "cust4",
-    customerName: "Phạm Linh",
-    homestayId: "hs4",
-    homestayName: "City Center Apartment",
-    bookingId: "book456",
-    priority: "high",
-    status: "open",
-    createdAt: "2023-06-17T08:45:00Z",
-    lastUpdated: "2023-06-17T08:45:00Z",
-  },
-  {
-    id: "comp5",
-    subject: "Hủy đặt phòng không hoàn tiền",
-    customerId: "cust5",
-    customerName: "Hoàng Nam",
-    homestayId: "hs5",
-    homestayName: "Lakeside Villa",
-    bookingId: "book567",
-    priority: "medium",
-    status: "closed",
-    createdAt: "2023-06-13T11:30:00Z",
-    lastUpdated: "2023-06-19T14:20:00Z",
-  },
-];
+const PAGE_SIZE = 20;
 
 export default function ComplaintsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [complaints, setComplaints] = useState(mockComplaints);
 
-  // Filter complaints based on search query, status filter, and priority filter
-  const filteredComplaints = complaints.filter((complaint) => {
-    const matchesSearch =
-      complaint.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      complaint.customerName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      complaint.homestayName.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" || complaint.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === "all" || complaint.priority === priorityFilter;
-
-    return matchesSearch && matchesStatus && matchesPriority;
+  // Infinite query for complaints
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["admin-complaints", searchQuery, statusFilter, priorityFilter],
+    queryFn: async ({ pageParam = 1 }: { pageParam?: number }) => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set("search", searchQuery);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      if (priorityFilter !== "all") params.set("priority", priorityFilter);
+      params.set("limit", PAGE_SIZE.toString());
+      params.set("page", pageParam.toString());
+      const res = await fetch(`/api/admin/complaints?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch complaints");
+      return res.json();
+    },
+    getNextPageParam: (lastPage: { complaints: any[]; total: number }, allPages: { complaints: any[]; total: number }[]) => {
+      const loaded = allPages.reduce((acc, page) => acc + page.complaints.length, 0);
+      if (loaded < lastPage.total) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
   });
+
+  const complaints = data?.pages.flatMap((page) => page.complaints) || [];
+  const total = data?.pages[0]?.total || 0;
+
+  // Filtered counts for badges (tính trên toàn bộ complaints đã load)
+  const openCount = complaints.filter((c: any) => c.status === "OPEN").length;
+  const inProgressCount = complaints.filter((c: any) => c.status === "IN_PROGRESS").length;
+  const resolvedCount = complaints.filter((c: any) => c.status === "RESOLVED").length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open":
+      case "OPEN":
         return "bg-red-100 text-red-800";
-      case "in_progress":
+      case "IN_PROGRESS":
         return "bg-blue-100 text-blue-800";
-      case "resolved":
+      case "RESOLVED":
         return "bg-green-100 text-green-800";
-      case "closed":
+      case "CLOSED":
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -140,11 +97,11 @@ export default function ComplaintsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
+      case "HIGH":
         return "bg-red-100 text-red-800";
-      case "medium":
+      case "MEDIUM":
         return "bg-yellow-100 text-yellow-800";
-      case "low":
+      case "LOW":
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -153,10 +110,10 @@ export default function ComplaintsPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "in_progress":
+      case "IN_PROGRESS":
         return "In Progress";
       default:
-        return status.charAt(0).toUpperCase() + status.slice(1);
+        return status.charAt(0) + status.slice(1).toLowerCase();
     }
   };
 
@@ -167,7 +124,7 @@ export default function ComplaintsPage() {
           Complaint Management
         </h2>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
@@ -177,10 +134,10 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="OPEN">Open</SelectItem>
+              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="RESOLVED">Resolved</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -189,9 +146,9 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="LOW">Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -220,164 +177,96 @@ export default function ComplaintsPage() {
                 variant="outline"
                 className="bg-red-50 text-red-700 text-sm font-normal"
               >
-                {filteredComplaints.filter((c) => c.status === "open").length}{" "}
-                Open
+                {openCount} Open
               </Badge>
               <Badge
                 variant="outline"
                 className="bg-blue-50 text-blue-700 text-sm font-normal"
               >
-                {
-                  filteredComplaints.filter((c) => c.status === "in_progress")
-                    .length
-                }{" "}
-                In Progress
+                {inProgressCount} In Progress
               </Badge>
               <Badge
                 variant="outline"
                 className="bg-green-50 text-green-700 text-sm font-normal"
               >
-                {
-                  filteredComplaints.filter((c) => c.status === "resolved")
-                    .length
-                }{" "}
-                Resolved
+                {resolvedCount} Resolved
               </Badge>
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Homestay</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredComplaints.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-4">
-                      No complaints found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredComplaints.map((complaint) => (
-                    <TableRow key={complaint.id}>
-                      <TableCell className="font-medium">
-                        {complaint.subject}
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/admin/customers/${complaint.customerId}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {complaint.customerName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/admin/homestays/${complaint.homestayId}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {complaint.homestayName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getPriorityColor(complaint.priority)}>
-                          {complaint.priority.charAt(0).toUpperCase() +
-                            complaint.priority.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(complaint.status)}>
-                          {formatStatus(complaint.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(complaint.createdAt)}</TableCell>
-                      <TableCell>{formatDate(complaint.lastUpdated)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Link href={`/admin/complaints/${complaint.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                          </Link>
-                          {complaint.status === "open" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-blue-600"
-                              onClick={() => {
-                                // In a real app, you would call an API to update the complaint status
-                                setComplaints(
-                                  complaints.map((c) =>
-                                    c.id === complaint.id
-                                      ? {
-                                          ...c,
-                                          status: "in_progress",
-                                          lastUpdated: new Date().toISOString(),
-                                        }
-                                      : c
-                                  )
-                                );
-                              }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                              >
-                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                                <path d="m7 12 3 3 7-7" />
-                              </svg>
-                              <span className="sr-only">Take Action</span>
-                            </Button>
-                          )}
-                          {complaint.status === "in_progress" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-green-600"
-                              onClick={() => {
-                                // In a real app, you would call an API to update the complaint status
-                                setComplaints(
-                                  complaints.map((c) =>
-                                    c.id === complaint.id
-                                      ? {
-                                          ...c,
-                                          status: "resolved",
-                                          lastUpdated: new Date().toISOString(),
-                                        }
-                                      : c
-                                  )
-                                );
-                              }}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              <span className="sr-only">Resolve</span>
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
+          {isLoading ? (
+            <div className="text-center py-8">Loading complaints...</div>
+          ) : isError ? (
+            <div className="text-center py-8 text-red-500">Failed to load complaints.</div>
+          ) : (
+            <InfiniteScroll
+              dataLength={complaints.length}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              loader={<div className="text-center py-4">Loading more...</div>}
+              endMessage={
+                <div className="text-center py-4 text-muted-foreground">
+                  {complaints.length === 0
+                    ? "No complaints found"
+                    : `All complaints loaded (${complaints.length}/${total})`}
+                </div>
+              }
+              scrollableTarget={null}
+            >
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {complaints.map((complaint: any) => (
+                      <TableRow key={complaint.id}>
+                        <TableCell className="font-medium">
+                          {complaint.subject}
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            href={`/admin/customers/${complaint.customerId}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {complaint.customer?.user?.name || "-"}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getPriorityColor(complaint.priority)}>
+                            {complaint.priority.charAt(0) + complaint.priority.slice(1).toLowerCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(complaint.status)}>
+                            {formatStatus(complaint.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(complaint.createdAt)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link href={`/admin/complaints/${complaint.id}`}>
+                              <Button variant="ghost" size="icon">
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Button>
+                            </Link>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </InfiniteScroll>
+          )}
         </CardContent>
       </Card>
     </div>
