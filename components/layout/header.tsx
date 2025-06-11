@@ -92,11 +92,13 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/host/register" className="hidden md:block">
-            <Button variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
-              Become host
-            </Button>
-          </Link>
+          {!isLoggedIn && (
+            <Link href="/host/register" className="hidden md:block">
+              <Button variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                Become host
+              </Button>
+            </Link>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
