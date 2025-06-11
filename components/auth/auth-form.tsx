@@ -84,7 +84,7 @@ export function AuthForm({ type }: AuthFormProps) {
           setError(result.message || "Đăng ký thất bại");
           return;
         }
-        router.push("/register/confirm");
+        router.push(`/register/confirm?email=${data.email}`);
       }
     } catch (err) {
       setError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
