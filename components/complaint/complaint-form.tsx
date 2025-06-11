@@ -76,11 +76,18 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
     setError(null);
 
     try {
-      // In a real app, this would be an API call
-      console.log("Submitting complaint:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Simulate successful submission
+      // Gửi complaint lên API thực tế
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/complaints`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: data.subject,
+          description: data.description,
+          priority: data.priority,
+          bookingId: data.bookingId,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to submit complaint");
       setIsSuccess(true);
       toast({
         title: "Complaint submitted",

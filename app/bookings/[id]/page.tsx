@@ -43,6 +43,7 @@ import Loading from "@/components/loading";
 import { ReviewSection } from "@/components/review/review-section";
 import { ReviewForm } from "@/components/review/review-form";
 import { ComplaintForm } from "@/components/complaint/complaint-form";
+import { useAuth } from "@/context/AuthContext";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -56,6 +57,8 @@ export default function BookingDetailsPage() {
   ); // Lưu review của người dùng
   const [hasReviewed, setHasReviewed] = useState(false);
   const [isComplaintDialogOpen, setIsComplaintDialogOpen] = useState(false);
+  const { user, isLoggedIn } = useAuth();
+  const [hasComplaint, setHasComplaint] = useState(false);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -107,6 +110,22 @@ export default function BookingDetailsPage() {
     }
   }, [params.id]);
 
+  useEffect(() => {
+    const checkComplaint = async () => {
+      if (!isLoggedIn || !user?.customerId || !booking) return;
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/complaints?bookingId=${booking.id}&customerId=${user.customerId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setHasComplaint(data.complaints && data.complaints.length > 0);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    checkComplaint();
+  }, [isLoggedIn, user, booking]);
+
   const handleCancelBooking = async () => {
     try {
       setIsCancelling(true);
@@ -119,11 +138,6 @@ export default function BookingDetailsPage() {
       console.error("Failed to cancel booking:", error);
       setIsCancelling(false);
     }
-  };
-
-  const handleReviewSuccess = () => {
-    setHasReviewed(true);
-    // In a real app, you would update the booking in the database
   };
 
   if (isLoading) {
@@ -328,13 +342,19 @@ export default function BookingDetailsPage() {
               <ContactHostButton
                 hostPhone={booking.homestay.owner.phone || ""}
               />
-              <Button
-                variant="outline"
-                className="w-full flex items-center"
-                onClick={() => setIsComplaintDialogOpen(true)}
-              >
-                <AlertCircle className="mr-2 h-4 w-4" /> Report an Issue
-              </Button>
+              {booking && (hasComplaint ? (
+                <Button variant="outline" className="w-full flex items-center" disabled>
+                  <AlertCircle className="mr-2 h-4 w-4" /> Đã gửi khiếu nại
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center"
+                  onClick={() => setIsComplaintDialogOpen(true)}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" /> Report an Issue
+                </Button>
+              ))}
             </CardFooter>
           </Card>
 
@@ -416,7 +436,7 @@ export default function BookingDetailsPage() {
       
             {/* Complaint Dialog */}
             <Dialog open={isComplaintDialogOpen} onOpenChange={setIsComplaintDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
@@ -427,7 +447,7 @@ export default function BookingDetailsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="py-4 overflow-y-auto flex-1">
             <ComplaintForm
               bookingId={booking.id}
               bookingInfo={{
