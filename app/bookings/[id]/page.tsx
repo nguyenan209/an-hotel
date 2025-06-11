@@ -24,6 +24,7 @@ import {
   MessageSquare,
   AlertTriangle,
   Star,
+  AlertCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -41,6 +42,7 @@ import { BookingStatus } from "@prisma/client";
 import Loading from "@/components/loading";
 import { ReviewSection } from "@/components/review/review-section";
 import { ReviewForm } from "@/components/review/review-form";
+import { ComplaintForm } from "@/components/complaint/complaint-form";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -53,6 +55,7 @@ export default function BookingDetailsPage() {
     null
   ); // Lưu review của người dùng
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [isComplaintDialogOpen, setIsComplaintDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -325,6 +328,13 @@ export default function BookingDetailsPage() {
               <ContactHostButton
                 hostPhone={booking.homestay.owner.phone || ""}
               />
+              <Button
+                variant="outline"
+                className="w-full flex items-center"
+                onClick={() => setIsComplaintDialogOpen(true)}
+              >
+                <AlertCircle className="mr-2 h-4 w-4" /> Report an Issue
+              </Button>
             </CardFooter>
           </Card>
 
@@ -401,6 +411,33 @@ export default function BookingDetailsPage() {
               {isCancelling ? "Cancelling..." : "Yes, Cancel Booking"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+            {/* Complaint Dialog */}
+            <Dialog open={isComplaintDialogOpen} onOpenChange={setIsComplaintDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+              Report an Issue
+            </DialogTitle>
+            <DialogDescription>
+              Please provide details about the issue you're experiencing with your booking.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <ComplaintForm
+              bookingId={booking.id}
+              bookingInfo={{
+                id: booking.id,
+                homestayName: booking.homestay.name,
+                checkIn: new Date(booking.checkIn).toISOString(),
+                checkOut: new Date(booking.checkOut).toISOString(),
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
