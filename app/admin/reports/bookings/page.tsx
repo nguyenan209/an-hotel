@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,55 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockBookingStats } from "@/lib/mock-data/admin";
 
 export default function BookingReportPage() {
   const [timeRange, setTimeRange] = useState("year");
-  const [year, setYear] = useState("2023");
+  const [year, setYear] = useState("2025");
+  const [bookingStats, setBookingStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/bookings?year=${year}`);
+        const data = await res.json();
+        setBookingStats(data.stats || null);
+      } catch (e) {
+        setBookingStats(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, [year]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg">Loading booking stats...</p>
+      </div>
+    );
+  }
+  if (!bookingStats) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg text-red-500">Failed to load booking stats.</p>
+      </div>
+    );
+  }
+
+  // Tính maxBookings cho chart
+  const maxBookings = Math.max(...bookingStats.monthlyStats.map((s: { bookings: number }) => s.bookings));
+
+  // Hàm scale chiều cao cột: tỉ lệ tuyệt đối
+  const getBarHeight = (bookings: number) => {
+    if (maxBookings === 0) return '0%';
+    return `${(bookings / maxBookings) * 100}%`;
+  };
+
+  // Log dữ liệu chart để debug
+  console.log('monthlyStats', bookingStats.monthlyStats);
 
   return (
     <div className="space-y-6">
@@ -39,6 +83,7 @@ export default function BookingReportPage() {
               <SelectItem value="2022">2022</SelectItem>
               <SelectItem value="2023">2023</SelectItem>
               <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline">
@@ -56,7 +101,7 @@ export default function BookingReportPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBookingStats.total}</div>
+            <div className="text-2xl font-bold">{bookingStats.total}</div>
             <p className="text-xs text-muted-foreground">For the year {year}</p>
           </CardContent>
         </Card>
@@ -66,13 +111,10 @@ export default function BookingReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockBookingStats.completed}
+              {bookingStats.completed}
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(
-                (mockBookingStats.completed / mockBookingStats.total) * 100
-              )}
-              % of total
+              {bookingStats.total > 0 ? Math.round((bookingStats.completed / bookingStats.total) * 100) : 0}% of total
             </p>
           </CardContent>
         </Card>
@@ -82,13 +124,10 @@ export default function BookingReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockBookingStats.cancelled}
+              {bookingStats.cancelled}
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(
-                (mockBookingStats.cancelled / mockBookingStats.total) * 100
-              )}
-              % of total
+              {bookingStats.total > 0 ? Math.round((bookingStats.cancelled / bookingStats.total) * 100) : 0}% of total
             </p>
           </CardContent>
         </Card>
@@ -97,7 +136,7 @@ export default function BookingReportPage() {
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBookingStats.pending}</div>
+            <div className="text-2xl font-bold">{bookingStats.pending}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting confirmation
             </p>
@@ -120,32 +159,34 @@ export default function BookingReportPage() {
                 Monthly booking statistics for the year {year}
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
-              <div className="h-full w-full">
-                {/* This would be a chart in a real implementation */}
+            <CardContent className="h-[260px] pt-8 pb-4 border border-muted-foreground/10 rounded-lg">
+              <div className="h-full w-full flex flex-col justify-end">
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {mockBookingStats.monthlyStats.map((item, index) => (
-                      <div key={index} className="relative flex-1">
+                    {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
+                      <div key={index} className="relative flex-1 h-full">
                         <div
-                          className="absolute bottom-0 w-full rounded-md bg-primary"
+                          className={`absolute bottom-0 w-full rounded-md border ${item.bookings > 0 ? 'bg-pink-500 border-pink-700' : 'bg-muted-foreground/20 border-muted-foreground/30'}`}
                           style={{
-                            height: `${
-                              (item.bookings /
-                                Math.max(
-                                  ...mockBookingStats.monthlyStats.map(
-                                    (s) => s.bookings
-                                  )
-                                )) *
-                              100
-                            }%`,
+                            height: getBarHeight(item.bookings),
+                            minHeight: item.bookings === 0 ? 4 : undefined,
                           }}
                         />
+                        {item.bookings > 0 && (
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium"
+                            style={{
+                              bottom: `calc(${getBarHeight(item.bookings)} + 4px)`
+                            }}
+                          >
+                            {item.bookings}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {mockBookingStats.monthlyStats.map((item, index) => (
+                    {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
                       <div key={index} className="flex-1 text-center">
                         {item.month}
                       </div>
@@ -166,7 +207,7 @@ export default function BookingReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockBookingStats.monthlyStats.map((item, index) => (
+                {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between"
@@ -181,14 +222,9 @@ export default function BookingReportPage() {
                             className="h-2 rounded-full bg-primary"
                             style={{
                               width: `${
-                                (item.bookings /
-                                  Math.max(
-                                    ...mockBookingStats.monthlyStats.map(
-                                      (s) => s.bookings
-                                    )
-                                  )) *
-                                100
+                                maxBookings > 0 ? (item.bookings / maxBookings) * 100 : 4
                               }%`,
+                              minWidth: 4,
                             }}
                           />
                         </div>
