@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, Hotel, User } from "lucide-react";
@@ -62,6 +62,8 @@ export default function OwnerDetailPage() {
   const [owner, setOwner] = useState<any | null>(null);
   const [ownerHomestays, setOwnerHomestays] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(!isNewOwner);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<OwnerFormValues>({
     resolver: zodResolver(ownerSchema),
@@ -82,75 +84,25 @@ export default function OwnerDetailPage() {
       return;
     }
 
-    // Simulate API call to fetch owner details
+    // Fetch owner details và homestays từ API
     const fetchOwner = async () => {
       try {
-        // In a real app, you would fetch from an API
-        const mockOwners = [
-          {
-            id: "own1",
-            name: "Nguyễn Văn A",
-            email: "nguyenvana@example.com",
-            phone: "0901234567",
-            address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
-            totalHomestays: 3,
-            joinDate: "2023-01-15T10:30:00Z",
-            status: "active",
-          },
-          {
-            id: "own2",
-            name: "Trần Thị B",
-            email: "tranthib@example.com",
-            phone: "0912345678",
-            address: "456 Lê Lợi, Quận 1, TP.HCM",
-            totalHomestays: 2,
-            joinDate: "2023-02-20T14:45:00Z",
-            status: "active",
-          },
-        ];
-
-        const foundOwner = mockOwners.find((o) => o.id === id);
-
-        if (foundOwner) {
-          setOwner(foundOwner);
-          form.reset({
-            name: foundOwner.name,
-            email: foundOwner.email,
-            phone: foundOwner.phone,
-            address: foundOwner.address,
-            status: foundOwner.status,
-          });
-
-          // Get owner homestays
-          const mockHomestays = [
-            {
-              id: "hs1",
-              name: "Sunset Beach Villa",
-              location: "Đà Nẵng",
-              price: 2500000,
-              status: "active",
-              createdAt: "2023-02-15T10:30:00Z",
-            },
-            {
-              id: "hs2",
-              name: "Mountain Retreat Lodge",
-              location: "Sapa",
-              price: 1800000,
-              status: "active",
-              createdAt: "2023-03-20T14:45:00Z",
-            },
-            {
-              id: "hs3",
-              name: "Riverside Cottage",
-              location: "Hội An",
-              price: 1500000,
-              status: "pending",
-              createdAt: "2023-05-10T09:15:00Z",
-            },
-          ];
-
-          setOwnerHomestays(mockHomestays);
-        }
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch owner");
+        const ownerData = await res.json();
+        setOwner(ownerData);
+        form.reset({
+          name: ownerData.name,
+          email: ownerData.email,
+          phone: ownerData.phone,
+          address: ownerData.address,
+          status: ownerData.status,
+        });
+        // Fetch homestays của owner
+        const resHomestays = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}/homestays`);
+        if (!resHomestays.ok) throw new Error("Failed to fetch homestays");
+        const homestaysData = await resHomestays.json();
+        setOwnerHomestays(homestaysData);
       } catch (error) {
         console.error("Error fetching owner:", error);
       } finally {
@@ -169,6 +121,36 @@ export default function OwnerDetailPage() {
     setTimeout(() => {
       router.push("/admin/owners");
     }, 1000);
+  };
+
+  const handleAvatarUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // reset input nếu chọn lại cùng file
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", "owners");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/images`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAvatarUrl(data.url);
+        // TODO: Gọi API cập nhật avatar cho owner nếu muốn lưu vào DB
+      } else {
+        alert(data.error || "Upload failed");
+      }
+    } catch (err) {
+      alert("Upload failed");
+    }
   };
 
   if (isLoading) {
@@ -214,13 +196,26 @@ export default function OwnerDetailPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-center mb-6">
                     <div className="relative">
-                      <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="h-12 w-12 text-gray-500" />
+                      <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                        ) : (
+                          <User className="h-12 w-12 text-gray-500" />
+                        )}
                       </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        onChange={handleFileChange}
+                      />
                       <Button
                         variant="secondary"
                         size="sm"
                         className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                        type="button"
+                        onClick={handleAvatarUpload}
                       >
                         <span className="sr-only">Change avatar</span>
                         <svg
