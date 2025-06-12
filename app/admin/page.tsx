@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart3, Hotel, ShoppingCart, Users } from "lucide-react";
 
 import {
@@ -27,136 +27,35 @@ import {
 
 export default function Page() {
   const [dateRange, setDateRange] = useState("7d");
+  const [stats, setStats] = useState<any | null>(null);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for the dashboard
-  const stats = {
-    totalRevenue: 125000000,
-    totalBookings: 87,
-    totalCustomers: 64,
-    totalHomestays: 42,
-    pendingApprovals: 5,
-    openComplaints: 3,
-    pendingReviews: 8,
-  };
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard?range=${dateRange}`);
+        const data = await res.json();
+        setStats(data.stats);
+        setRevenueData(data.revenueData);
+      } catch (e) {
+        setStats(null);
+        setRevenueData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, [dateRange]);
 
-  // Mock data for the revenue chart
-  const revenueData = [
-    { name: "Mon", revenue: 5000000 },
-    { name: "Tue", revenue: 7000000 },
-    { name: "Wed", revenue: 6500000 },
-    { name: "Thu", revenue: 8000000 },
-    { name: "Fri", revenue: 12000000 },
-    { name: "Sat", revenue: 15000000 },
-    { name: "Sun", revenue: 10000000 },
-  ];
-
-  // Mock data for the bookings chart
-  const bookingsData = [
-    { name: "Mon", bookings: 5 },
-    { name: "Tue", bookings: 8 },
-    { name: "Wed", bookings: 6 },
-    { name: "Thu", bookings: 9 },
-    { name: "Fri", bookings: 12 },
-    { name: "Sat", bookings: 15 },
-    { name: "Sun", bookings: 10 },
-  ];
-
-  // Mock data for the homestay types chart
-  const homestayTypesData = [
-    { name: "Beach", value: 15 },
-    { name: "Mountain", value: 10 },
-    { name: "City", value: 8 },
-    { name: "Countryside", value: 5 },
-    { name: "Lakeside", value: 4 },
-  ];
-
-  // Mock data for recent bookings
-  const recentBookings = [
-    {
-      id: "book123",
-      customerName: "Lê Minh",
-      homestayName: "Sunset Beach Villa",
-      checkIn: "2023-06-20",
-      checkOut: "2023-06-25",
-      total: 12500000,
-      status: "confirmed",
-    },
-    {
-      id: "book124",
-      customerName: "Trần Hoa",
-      homestayName: "Mountain Retreat Lodge",
-      checkIn: "2023-06-22",
-      checkOut: "2023-06-24",
-      total: 3600000,
-      status: "pending",
-    },
-    {
-      id: "book125",
-      customerName: "Nguyễn Thành",
-      homestayName: "Riverside Cottage",
-      checkIn: "2023-06-25",
-      checkOut: "2023-06-30",
-      total: 7500000,
-      status: "confirmed",
-    },
-    {
-      id: "book126",
-      customerName: "Phạm Linh",
-      homestayName: "City Center Apartment",
-      checkIn: "2023-06-21",
-      checkOut: "2023-06-23",
-      total: 3000000,
-      status: "completed",
-    },
-  ];
-
-  // Mock data for pending approvals
-  const pendingApprovals = [
-    {
-      id: "hs1",
-      name: "Sunset Beach Villa",
-      ownerName: "Nguyễn Văn A",
-      location: "Đà Nẵng",
-      submittedDate: "2023-06-15",
-    },
-    {
-      id: "hs2",
-      name: "Mountain Retreat Lodge",
-      ownerName: "Trần Thị B",
-      location: "Sapa",
-      submittedDate: "2023-06-16",
-    },
-    {
-      id: "hs3",
-      name: "Riverside Cottage",
-      ownerName: "Lê Văn C",
-      location: "Hội An",
-      submittedDate: "2023-06-14",
-    },
-  ];
-
-  // Mock data for open complaints
-  const openComplaints = [
-    {
-      id: "comp1",
-      subject: "Phòng không sạch sẽ",
-      customerName: "Lê Minh",
-      homestayName: "Sunset Beach Villa",
-      priority: "high",
-      createdAt: "2023-06-15",
-    },
-    {
-      id: "comp4",
-      subject: "Vấn đề về thanh toán",
-      customerName: "Phạm Linh",
-      homestayName: "City Center Apartment",
-      priority: "high",
-      createdAt: "2023-06-17",
-    },
-  ];
-
-  // Colors for the pie chart
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+  if (isLoading || !stats) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -164,7 +63,7 @@ export default function Page() {
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center gap-2">
           <Tabs
-            defaultValue="7d"
+            defaultValue={dateRange}
             className="w-[400px]"
             onValueChange={setDateRange}
           >
