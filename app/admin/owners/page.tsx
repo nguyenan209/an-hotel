@@ -329,17 +329,6 @@ export default function OwnersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Homestay Owners</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => fetchOwners(0, false)}>
-            Làm mới
-          </Button>
-          <Link href="/admin/owners/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Owner
-            </Button>
-          </Link>
-        </div>
       </div>
 
       <Tabs

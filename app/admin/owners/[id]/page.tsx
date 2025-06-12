@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Hotel, User } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,14 @@ const ownerSchema = z.object({
 
 type OwnerFormValues = z.infer<typeof ownerSchema>;
 
+// Danh sách status lấy từ enum UserStatus trong prisma
+const USER_STATUS_OPTIONS = [
+  { value: "ACTIVE", label: "Active" },
+  { value: "INACTIVE", label: "Inactive" },
+  { value: "SUSPENDED", label: "Suspended" },
+  { value: "DELETED", label: "Deleted" },
+];
+
 export default function OwnerDetailPage() {
   const params = useParams();
   const { id } = params;
@@ -98,6 +107,7 @@ export default function OwnerDetailPage() {
           address: ownerData.address,
           status: ownerData.status,
         });
+        setAvatarUrl(ownerData.avatar);
         // Fetch homestays của owner
         const resHomestays = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}/homestays`);
         if (!resHomestays.ok) throw new Error("Failed to fetch homestays");
@@ -113,14 +123,34 @@ export default function OwnerDetailPage() {
     fetchOwner();
   }, [id, isNewOwner, form]);
 
-  const onSubmit = (data: OwnerFormValues) => {
-    // In a real app, you would submit to an API
-    console.log("Form submitted:", data);
-
-    // Simulate successful submission
-    setTimeout(() => {
-      router.push("/admin/owners");
-    }, 1000);
+  const onSubmit = async (data: OwnerFormValues) => {
+    try {
+      let res, result;
+      if (isNewOwner) {
+        // Tạo owner mới
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...data, avatar: avatarUrl }),
+        });
+      } else {
+        // Cập nhật owner
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...data, avatar: avatarUrl }),
+        });
+      }
+      result = await res.json();
+      if (res.ok) {
+        toast.success(isNewOwner ? "Owner created successfully!" : "Owner updated successfully!");
+        router.push("/admin/owners");
+      } else {
+        alert(result.error || "Failed to save owner");
+      }
+    } catch (error) {
+      alert("Failed to save owner");
+    }
   };
 
   const handleAvatarUpload = () => {
@@ -143,8 +173,17 @@ export default function OwnerDetailPage() {
       });
       const data = await res.json();
       if (res.ok && data.url) {
-        setAvatarUrl(data.url);
-        // TODO: Gọi API cập nhật avatar cho owner nếu muốn lưu vào DB
+        // Gọi API cập nhật avatar vào DB
+        const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatar: data.url }),
+        });
+        if (updateRes.ok) {
+          setAvatarUrl(data.url);
+        } else {
+          alert("Upload succeeded but failed to update avatar in database");
+        }
       } else {
         alert(data.error || "Upload failed");
       }
@@ -303,7 +342,7 @@ export default function OwnerDetailPage() {
                         <FormLabel>Status</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -311,11 +350,11 @@ export default function OwnerDetailPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="suspended">Suspended</SelectItem>
-                            <SelectItem value="terminated">
-                              Terminated
-                            </SelectItem>
+                            {USER_STATUS_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
