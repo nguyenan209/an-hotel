@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, MessageSquare, User } from "lucide-react";
 
@@ -29,71 +29,33 @@ import { useParams } from "next/navigation";
 export default function ComplaintDetailPage() {
     const params = useParams();
     const { id } = params;
-  const complaint = {
-    id: id,
-    subject: "Phòng không sạch sẽ",
-    description:
-      "Khi chúng tôi đến nơi, phòng không được dọn dẹp sạch sẽ. Có rác từ khách trước và phòng tắm không được vệ sinh. Chúng tôi đã liên hệ với chủ nhà nhưng không nhận được phản hồi kịp thời.",
-    customerId: "cust1",
-    customerName: "Lê Minh",
-    customerEmail: "leminh@example.com",
-    customerPhone: "0901234567",
-    homestayId: "hs1",
-    homestayName: "Sunset Beach Villa",
-    bookingId: "book123",
-    checkIn: "2023-06-01",
-    checkOut: "2023-06-05",
-    priority: "high",
-    status: "in_progress",
-    createdAt: "2023-06-15T10:30:00Z",
-    lastUpdated: "2023-06-17T11:30:00Z",
-    assignedTo: "admin2",
-    assignedToName: "Trần Quản Lý",
-    messages: [
-      {
-        id: "msg1",
-        senderId: "cust1",
-        senderName: "Lê Minh",
-        senderType: "customer",
-        message:
-          "Tôi rất thất vọng về tình trạng phòng khi chúng tôi đến. Mong được giải quyết sớm.",
-        createdAt: "2023-06-15T10:30:00Z",
-      },
-      {
-        id: "msg2",
-        senderId: "admin1",
-        senderName: "Nguyễn Admin",
-        senderType: "admin",
-        message:
-          "Xin lỗi về trải nghiệm không tốt của bạn. Chúng tôi đang liên hệ với chủ nhà để giải quyết vấn đề này.",
-        createdAt: "2023-06-15T14:45:00Z",
-      },
-      {
-        id: "msg3",
-        senderId: "own1",
-        senderName: "Chủ nhà",
-        senderType: "owner",
-        message:
-          "Tôi xin lỗi về sự cố này. Đã có sự nhầm lẫn trong lịch dọn dẹp. Chúng tôi sẽ cử người đến dọn dẹp ngay lập tức và sẽ giảm giá 20% cho đêm đầu tiên.",
-        createdAt: "2023-06-16T09:15:00Z",
-      },
-      {
-        id: "msg4",
-        senderId: "admin2",
-        senderName: "Trần Quản Lý",
-        senderType: "admin",
-        message:
-          "Chúng tôi đã xác nhận với chủ nhà rằng phòng đã được dọn dẹp và bạn sẽ được giảm giá 20% cho đêm đầu tiên. Bạn có hài lòng với giải pháp này không?",
-        createdAt: "2023-06-17T11:30:00Z",
-      },
-    ],
-  };
+    const [complaint, setComplaint] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [status, setStatus] = useState("");
+    const [priority, setPriority] = useState("");
+    const [assignedTo, setAssignedTo] = useState("");
+    const [newMessage, setNewMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [status, setStatus] = useState(complaint.status);
-  const [priority, setPriority] = useState(complaint.priority);
-  const [assignedTo, setAssignedTo] = useState(complaint.assignedTo);
-  const [newMessage, setNewMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    useEffect(() => {
+        const fetchComplaint = async () => {
+            setIsLoading(true);
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/complaints/${id}`);
+                if (!res.ok) throw new Error("Failed to fetch complaint");
+                const data = await res.json();
+                setComplaint(data);
+                setStatus(data.status);
+                setPriority(data.priority);
+                setAssignedTo(data.assignedTo || "");
+            } catch (e) {
+                setComplaint(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        if (id) fetchComplaint();
+    }, [id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -199,12 +161,12 @@ export default function ComplaintDetailPage() {
           <p className="text-muted-foreground">
             Submitted by{" "}
             <Link
-              href={`/admin/customers/${complaint.customerId}`}
+              href={`/admin/customers/${complaint?.customerId}`}
               className="text-blue-600 hover:underline"
             >
-              {complaint.customerName}
+              {complaint?.customerName}
             </Link>{" "}
-            on {formatDate(complaint.createdAt)}
+            on {formatDate(complaint?.createdAt)}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -221,7 +183,7 @@ export default function ComplaintDetailPage() {
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{complaint.subject}</CardTitle>
+              <CardTitle>{complaint?.subject}</CardTitle>
               <CardDescription>
                 Complaint details and description
               </CardDescription>
@@ -231,7 +193,7 @@ export default function ComplaintDetailPage() {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Description
                 </h3>
-                <p className="text-base mt-1">{complaint.description}</p>
+                <p className="text-base mt-1">{complaint?.description}</p>
               </div>
 
               <Separator />
@@ -244,28 +206,28 @@ export default function ComplaintDetailPage() {
                   <div>
                     <p className="text-xs text-muted-foreground">Booking ID</p>
                     <Link
-                      href={`/admin/bookings/${complaint.bookingId}`}
+                      href={`/admin/bookings/${complaint?.bookingId}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      {complaint.bookingId}
+                      {complaint?.bookingId}
                     </Link>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Homestay</p>
                     <Link
-                      href={`/admin/homestays/${complaint.homestayId}`}
+                      href={`/admin/homestays/${complaint?.homestayId}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      {complaint.homestayName}
+                      {complaint?.homestayName}
                     </Link>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-in</p>
-                    <p className="text-sm">{complaint.checkIn}</p>
+                    <p className="text-sm">{complaint?.checkIn}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-out</p>
-                    <p className="text-sm">{complaint.checkOut}</p>
+                    <p className="text-sm">{complaint?.checkOut}</p>
                   </div>
                 </div>
               </div>
@@ -281,37 +243,41 @@ export default function ComplaintDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
-                {complaint.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.senderType === "admin"
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
+                {(complaint?.messages && complaint.messages.length > 0) ? (
+                  complaint.messages.map((message: any) => (
                     <div
-                      className={`rounded-lg p-4 max-w-[80%] ${
+                      key={message.id}
+                      className={`flex ${
                         message.senderType === "admin"
-                          ? "bg-blue-100 text-blue-800"
-                          : message.senderType === "owner"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                          ? "justify-end"
+                          : "justify-start"
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <User className="h-4 w-4" />
-                        <p className="text-sm font-medium">
-                          {message.senderName}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(message.createdAt)}
-                        </span>
+                      <div
+                        className={`rounded-lg p-4 max-w-[80%] ${
+                          message.senderType === "admin"
+                            ? "bg-blue-100 text-blue-800"
+                            : message.senderType === "owner"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className="h-4 w-4" />
+                          <p className="text-sm font-medium">
+                            {message.senderName}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(message.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-sm">{message.message}</p>
                       </div>
-                      <p className="text-sm">{message.message}</p>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-sm text-muted-foreground">No conversation yet.</div>
+                )}
               </div>
 
               <Separator />
@@ -348,19 +314,19 @@ export default function ComplaintDetailPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
                   <p className="text-base font-medium">
-                    {complaint.customerName}
+                    {complaint?.customerName}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-base">{complaint.customerEmail}</p>
+                  <p className="text-base">{complaint?.customerEmail}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="text-base">{complaint.customerPhone}</p>
+                  <p className="text-base">{complaint?.customerPhone}</p>
                 </div>
               </div>
-              <Link href={`/admin/customers/${complaint.customerId}`}>
+              <Link href={`/admin/customers/${complaint?.customerId}`}>
                 <Button variant="outline" className="w-full">
                   View Customer
                 </Button>
