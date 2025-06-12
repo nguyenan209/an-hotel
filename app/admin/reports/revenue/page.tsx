@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,32 +20,57 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils";
-import { mockRevenueData } from "@/lib/mock-data/admin";
 
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
   const [year, setYear] = useState("2023");
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRevenue = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/revenue?year=${year}`);
+        const data = await res.json();
+        setRevenueData(data.revenueData || []);
+      } catch (e) {
+        setRevenueData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRevenue();
+  }, [year]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg">Loading revenue data...</p>
+      </div>
+    );
+  }
 
   // Calculate total revenue
-  const totalRevenue = mockRevenueData.reduce(
+  const totalRevenue = revenueData.reduce(
     (sum, item) => sum + item.revenue,
     0
   );
 
   // Calculate average monthly revenue
-  const averageMonthlyRevenue = totalRevenue / mockRevenueData.length;
+  const averageMonthlyRevenue = revenueData.length > 0 ? totalRevenue / revenueData.length : 0;
 
   // Find highest revenue month
-  const highestRevenueMonth = mockRevenueData.reduce(
+  const highestRevenueMonth = revenueData.reduce(
     (highest, current) =>
       current.revenue > highest.revenue ? current : highest,
-    mockRevenueData[0]
+    revenueData[0] || { revenue: 0, month: "" }
   );
 
   // Find lowest revenue month
-  const lowestRevenueMonth = mockRevenueData.reduce(
+  const lowestRevenueMonth = revenueData.reduce(
     (lowest, current) => (current.revenue < lowest.revenue ? current : lowest),
-    mockRevenueData[0]
+    revenueData[0] || { revenue: 0, month: "" }
   );
 
   return (
@@ -62,6 +87,7 @@ export default function RevenueReportPage() {
               <SelectItem value="2022">2022</SelectItem>
               <SelectItem value="2023">2023</SelectItem>
               <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline">
@@ -141,29 +167,37 @@ export default function RevenueReportPage() {
             </CardHeader>
             <CardContent className="h-[400px]">
               <div className="h-full w-full">
-                {/* This would be a chart in a real implementation */}
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {mockRevenueData.map((item, index) => (
+                    {revenueData.map((item, index) => (
                       <div key={index} className="relative flex-1">
                         <div
-                          className="absolute bottom-0 w-full rounded-md bg-primary"
+                          className={`absolute bottom-0 w-full rounded-md ${item.revenue > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`}
                           style={{
                             height: `${
-                              (item.revenue / highestRevenueMonth.revenue) * 100
+                              highestRevenueMonth.revenue > 0 ? (item.revenue / highestRevenueMonth.revenue) * 100 : 4
                             }%`,
+                            minHeight: 4,
                           }}
                         />
+                        {item.revenue > 0 && (
+                          <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium">
+                            {formatCurrency(item.revenue)}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {mockRevenueData.map((item, index) => (
+                    {revenueData.map((item, index) => (
                       <div key={index} className="flex-1 text-center">
                         {item.month}
                       </div>
                     ))}
                   </div>
+                  {totalRevenue === 0 && (
+                    <div className="text-center text-muted-foreground mt-10 w-full">No revenue data for this year.</div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -179,7 +213,7 @@ export default function RevenueReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockRevenueData.map((item, index) => (
+                {revenueData.map((item, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between"
@@ -194,8 +228,7 @@ export default function RevenueReportPage() {
                             className="h-2 rounded-full bg-primary"
                             style={{
                               width: `${
-                                (item.revenue / highestRevenueMonth.revenue) *
-                                100
+                                highestRevenueMonth.revenue > 0 ? (item.revenue / highestRevenueMonth.revenue) * 100 : 0
                               }%`,
                             }}
                           />
