@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,24 +25,19 @@ import { formatCurrency } from "@/lib/utils";
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
   const [year, setYear] = useState("2023");
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRevenue = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/revenue?year=${year}`);
-        const data = await res.json();
-        setRevenueData(data.revenueData || []);
-      } catch (e) {
-        setRevenueData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRevenue();
-  }, [year]);
+  const {
+    data: revenueData = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["revenue-report", year],
+    queryFn: async () => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/revenue?year=${year}`);
+      const data = await res.json();
+      return data.revenueData || [];
+    },
+  });
 
   if (isLoading) {
     return (
@@ -50,10 +46,17 @@ export default function RevenueReportPage() {
       </div>
     );
   }
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg text-red-500">Failed to load revenue data.</p>
+      </div>
+    );
+  }
 
   // Calculate total revenue
   const totalRevenue = revenueData.reduce(
-    (sum, item) => sum + item.revenue,
+    (sum: any, item: any) => sum + item.revenue,
     0
   );
 
@@ -62,14 +65,14 @@ export default function RevenueReportPage() {
 
   // Find highest revenue month
   const highestRevenueMonth = revenueData.reduce(
-    (highest, current) =>
+    (highest: any, current: any) =>
       current.revenue > highest.revenue ? current : highest,
     revenueData[0] || { revenue: 0, month: "" }
   );
 
   // Find lowest revenue month
   const lowestRevenueMonth = revenueData.reduce(
-    (lowest, current) => (current.revenue < lowest.revenue ? current : lowest),
+    (lowest: any, current: any) => (current.revenue < lowest.revenue ? current : lowest),
     revenueData[0] || { revenue: 0, month: "" }
   );
 
@@ -169,7 +172,7 @@ export default function RevenueReportPage() {
               <div className="h-full w-full">
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {revenueData.map((item, index) => (
+                    {revenueData.map((item: any, index: number) => (
                       <div key={index} className="relative flex-1">
                         <div
                           className={`absolute bottom-0 w-full rounded-md ${item.revenue > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`}
@@ -189,7 +192,7 @@ export default function RevenueReportPage() {
                     ))}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {revenueData.map((item, index) => (
+                    {revenueData.map((item: any, index: number) => (
                       <div key={index} className="flex-1 text-center">
                         {item.month}
                       </div>
@@ -213,7 +216,7 @@ export default function RevenueReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {revenueData.map((item, index) => (
+                {revenueData.map((item: any, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between"
