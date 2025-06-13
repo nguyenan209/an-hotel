@@ -1,32 +1,30 @@
+"use client";
+import { useQuery } from "@tanstack/react-query";
 import { SearchForm } from "@/components/search/search-form";
 import { HomestayList } from "@/components/homestay/homestay-list";
 import { CartLoader } from "@/components/cart/cart-loader";
 
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  let featuredHomestays = [];
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/homestays?featured=true`,
-      {
-        cache: "no-store", // Tự động làm mới dữ liệu sau 60 giây
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch featured homestays");
-    }
-
-    const data = await response.json();
-    featuredHomestays = data.homestays || [];
-  } catch (error) {
-    console.error("Error fetching featured homestays:", error);
-  }
+export default function Home() {
+  const {
+    data: featuredHomestays = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["featured-homestays"],
+    queryFn: async () => {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/homestays?featured=true`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch featured homestays");
+      const data = await response.json();
+      return data.homestays || [];
+    },
+  });
 
   return (
     <div className="container py-8">
@@ -51,8 +49,13 @@ export default async function Home() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Homestay nổi bật</h2>
         </div>
-
-        <HomestayList homestays={featuredHomestays} />
+        {isLoading ? (
+          <div className="text-center py-8">Đang tải homestay nổi bật...</div>
+        ) : isError ? (
+          <div className="text-center text-red-500 py-8">Không thể tải homestay nổi bật.</div>
+        ) : (
+          <HomestayList homestays={featuredHomestays} />
+        )}
       </section>
 
       <section className="grid md:grid-cols-2 gap-8 mb-12">
