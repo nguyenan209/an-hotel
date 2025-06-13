@@ -27,6 +27,7 @@ import {
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency } from "@/lib/utils";
+import Image from "next/image";
 
 export function Header() {
   const pathname = usePathname();
@@ -59,8 +60,15 @@ export function Header() {
     <header className="border-b bg-white">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-xl font-bold">
-            HomeStay
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="An's Homestay"
+              height={56}
+              width={56}
+              className="h-14 w-auto"
+              priority
+            />
           </Link>
           <nav className="hidden md:flex gap-4">
             <Link
