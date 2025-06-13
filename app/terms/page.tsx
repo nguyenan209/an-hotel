@@ -14,9 +14,9 @@ export default function TermsPage() {
         <section>
           <h2 className="mb-4 text-2xl font-semibold">1. Giới thiệu</h2>
           <p className="text-muted-foreground">
-            Chào mừng bạn đến với An's HomeStay. Khi bạn sử dụng dịch vụ của chúng
+            Chào mừng bạn đến với An&apos;s HomeStay. Khi bạn sử dụng dịch vụ của chúng
             tôi, bạn đồng ý tuân thủ các điều khoản và điều kiện được nêu trong
-            tài liệu này. Vui lòng đọc kỹ các điều khoản này.
+            tài liệu này. Vui lòng đọc kỹ các điều khoản này.   
           </p>
         </section>
 
@@ -24,12 +24,12 @@ export default function TermsPage() {
           <h2 className="mb-4 text-2xl font-semibold">2. Định nghĩa</h2>
           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
             <li>
-              "An's HomeStay", "chúng tôi", "của chúng tôi" đề cập đến nền tảng
-              An's HomeStay và công ty sở hữu.
+              "An&apos;s HomeStay", "chúng tôi", "của chúng tôi" đề cập đến nền tảng
+              An&apos;s HomeStay và công ty sở hữu.
             </li>
             <li>
               "Dịch vụ" đề cập đến tất cả các dịch vụ được cung cấp bởi
-              An's HomeStay, bao gồm trang web, ứng dụng và các dịch vụ liên quan.
+              An&apos;s HomeStay, bao gồm trang web, ứng dụng và các dịch vụ liên quan.
             </li>
             <li>
               "Người dùng", "bạn", "của bạn" đề cập đến cá nhân hoặc tổ chức sử
