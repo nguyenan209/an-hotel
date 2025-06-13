@@ -13,9 +13,9 @@ import Head from "next/head";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HomeStay - Đặt phòng homestay trực tuyến",
-  description: "Nền tảng đặt phòng homestay hàng đầu Việt Nam",
-  generator: "v0.dev",
+  title: "An's Homestay - Tìm và đặt homestay tuyệt vời",
+  description: "Cùng An khám phá những homestay phù hợp với bạn. Tìm kiếm và đặt phòng homestay dễ dàng và nhanh chóng.",
+  generator: "An's Husband",
 };
 
 export default function RootLayout({
