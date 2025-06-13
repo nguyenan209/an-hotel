@@ -10,6 +10,10 @@ export function ConditionalFooter() {
   if (isAdminPage) {
     return null
   }
+  
+  if (pathname === "/host/register") {
+    return null
+  }
 
   return <Footer />
 }

@@ -2,7 +2,6 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import { ConditionalFooter } from "@/components/layout/conditional-footer";
 import CustomQueryClientProvider from "@/components/providers/CustomQueryClientProvider";
