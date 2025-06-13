@@ -91,6 +91,11 @@ export function AuthForm({ type }: AuthFormProps) {
     }
   };
 
+  // Google login handler
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/google`;
+  };
+
   return (
     <div className="fixed inset-0">
       {/* Background image */}
@@ -326,6 +331,7 @@ export function AuthForm({ type }: AuthFormProps) {
                 type="button"
                 variant="outline"
                 className="w-full bg-white/80 hover:bg-white text-gray-800 border-white/20 flex items-center justify-center gap-2"
+                onClick={handleGoogleLogin}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
