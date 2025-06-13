@@ -68,24 +68,27 @@ export default function ReviewsPage() {
     setError,
   } = useReviewStore();
 
+  // 1. Fetch homestay info (chỉ khi id đổi)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchHomestay = async () => {
       try {
-        // Fetch homestay info
-        const homestayResponse = await fetch(`/api/homestays/${id}`);
+        const homestayResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`);
         if (homestayResponse.ok) {
           const homestayData = await homestayResponse.json();
           setHomestayName(homestayData.name);
         }
-        // Fetch reviews using store, pass filter/sort
-        await fetchReviews(id, ratingFilter, sortBy);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Đã xảy ra lỗi khi tải đánh giá");
+        console.error("Error fetching homestay info:", err);
+        setError("Đã xảy ra lỗi khi tải thông tin homestay");
       }
     };
-    fetchData();
-  }, [id, fetchReviews, setError, ratingFilter, sortBy]);
+    fetchHomestay();
+  }, [id, setError]);
+
+  // 2. Fetch reviews (chỉ khi id, filter, sort đổi)
+  useEffect(() => {
+    fetchReviews(id, ratingFilter, sortBy);
+  }, [id, fetchReviews, ratingFilter, sortBy]);
 
   // Set filteredReviews directly from reviews
   useEffect(() => {

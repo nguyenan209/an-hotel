@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 
 import { AmenityList } from "@/components/homestay/amenity-list";
 import { RoomCard } from "@/components/homestay/room-card";
@@ -44,10 +45,6 @@ export default function HomestayDetailPage() {
     (state) => state.addWholeHomestayToCart
   );
   const addRoomsToCart = useCartStore((state) => state.addRoomsToCart);
-  const [homestay, setHomestay] = useState<Homestay | null>(null);
-  const [rooms, setRooms] = useState<RoomWithBeds[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("1");
@@ -56,105 +53,54 @@ export default function HomestayDetailPage() {
   );
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [bookingError, setBookingError] = useState("");
-  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
-  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
-  const [reviewsError, setReviewsError] = useState("");
-  const [helpfulReviews, setHelpfulReviews] = useState<string[]>([]);
-  const [reportingReview, setReportingReview] = useState<ReviewResponse | null>(
-    null
-  );
 
-  useEffect(() => {
-    const fetchHomestay = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`
-        );
-        if (!response.ok) {
-          throw new Error("Không thể tải thông tin homestay");
-        }
+  // React Query: fetch homestay
+  const {
+    data: homestay,
+    isLoading: isLoadingHomestay,
+    isError: isErrorHomestay,
+    error: errorHomestay,
+  } = useQuery({
+    queryKey: ["homestay", id],
+    queryFn: async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`);
+      if (!response.ok) throw new Error("Không thể tải thông tin homestay");
+      return response.json();
+    },
+    enabled: !!id,
+  });
 
-        const data = await response.json();
-        setHomestay(data);
-      } catch (err) {
-        setError("Đã xảy ra lỗi khi tải thông tin homestay");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const fetchRooms = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`
-        );
-        if (!response.ok) {
-          throw new Error("Không thể tải thông tin phòng");
-        }
-
-        const data = await response.json();
-        setRooms(data.rooms || []);
-      } catch (err) {
-        console.error("Error fetching rooms:", err);
-      }
-    };
-
-    fetchHomestay();
-    fetchRooms();
-  }, [id]);
-
-  async function fetchReviews(
-    homestayId: string,
-    setReviews: Function,
-    setHelpfulReviews: Function,
-    setReviewsError: Function,
-    setIsLoadingReviews: Function
-  ) {
-    setIsLoadingReviews(true);
-    setReviewsError("");
-
-    try {
-      const response = await fetch(`/api/reviews?homestayId=${homestayId}`);
-      if (!response.ok) {
-        throw new Error("Không thể tải đánh giá");
-      }
+  // React Query: fetch rooms
+  const {
+    data: rooms = [],
+    isLoading: isLoadingRooms,
+    isError: isErrorRooms,
+  } = useQuery({
+    queryKey: ["rooms", id],
+    queryFn: async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`);
+      if (!response.ok) throw new Error("Không thể tải thông tin phòng");
       const data = await response.json();
+      return data.rooms || [];
+    },
+    enabled: !!id,
+  });
 
-      setReviews(data.reviews);
-      setHelpfulReviews(
-        data.reviews
-          .filter((review: any) => review.isHelpful)
-          .map((r: any) => r.id)
-      );
-      const reportedReviews = data.reviews
-        .filter((review: any) => review.isReported)
-        .map((r: any) => r.id);
-      setReviews((prev: ReviewResponse[]) =>
-        prev.map((review: ReviewResponse) => ({
-          ...review,
-          isReported: reportedReviews.includes(review.id),
-        }))
-      );
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-      setReviewsError("Đã xảy ra lỗi khi tải đánh giá");
-    } finally {
-      setIsLoadingReviews(false);
-    }
-  }
-
-  useEffect(() => {
-    if (id && typeof id === "string") {
-      fetchReviews(
-        id,
-        setReviews,
-        setHelpfulReviews,
-        setReviewsError,
-        setIsLoadingReviews
-      );
-    }
-  }, [id]);
+  // React Query: fetch reviews
+  const {
+    data: reviews = [],
+    isLoading: isLoadingReviews,
+    isError: isErrorReviews,
+  } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: async () => {
+      const response = await fetch(`/api/reviews?homestayId=${id}`);
+      if (!response.ok) throw new Error("Không thể tải đánh giá");
+      const data = await response.json();
+      return data.reviews || [];
+    },
+    enabled: !!id,
+  });
 
   const handleRoomSelection = (roomId: string, isSelected: boolean) => {
     if (isSelected) {
@@ -166,7 +112,7 @@ export default function HomestayDetailPage() {
 
   const calculateTotalCapacity = () => {
     return selectedRooms.reduce((total, roomId) => {
-      const room = rooms.find((r) => r.id === roomId);
+      const room = rooms.find((r: any) => r.id === roomId);
       return total + (room?.capacity || 0);
     }, 0);
   };
@@ -176,7 +122,7 @@ export default function HomestayDetailPage() {
       return homestay?.price || 0;
     } else {
       return selectedRooms.reduce((total, roomId) => {
-        const room = rooms.find((r) => r.id === roomId);
+        const room = rooms.find((r: any) => r.id === roomId);
         return total + (room?.price || 0);
       }, 0);
     }
@@ -210,7 +156,7 @@ export default function HomestayDetailPage() {
           return;
         }
 
-        const selectedRoomsData = rooms.filter((room) =>
+        const selectedRoomsData = rooms.filter((room: any) =>
           selectedRooms.includes(room.id)
         );
 
@@ -245,15 +191,15 @@ export default function HomestayDetailPage() {
     handleAddToCart();
   };
   
-  if (isLoading) {
+  if (isLoadingHomestay || isLoadingRooms) {
     return <Loading />;
   }
 
-  if (error || !homestay) {
+  if (isErrorHomestay || !homestay) {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center h-96">
-          <p className="text-red-500">{error || "Không tìm thấy homestay"}</p>
+          <p className="text-red-500">{errorHomestay?.message || "Không tìm thấy homestay"}</p>
         </div>
       </div>
     );
@@ -277,7 +223,7 @@ export default function HomestayDetailPage() {
 
           <Carousel className="mb-8">
             <CarouselContent>
-              {homestay.images.map((image, index) => (
+              {homestay.images.map((image: any, index: number) => (
                 <CarouselItem key={index}>
                   <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg">
                     <Image
@@ -331,7 +277,7 @@ export default function HomestayDetailPage() {
             <TabsContent value="rooms" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {rooms.length > 0 ? (
-                  rooms.map((room) => <RoomCard key={room.id} room={room} />)
+                  rooms.map((room: any) => <RoomCard key={room.id} room={room} />)
                 ) : (
                   <p className="col-span-full text-muted-foreground">
                     Không có thông tin phòng
@@ -504,7 +450,7 @@ export default function HomestayDetailPage() {
                   <div className="space-y-2 pt-2 border-t">
                     <label className="text-sm font-medium">Chọn phòng</label>
                     <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                      {rooms.map((room) => (
+                      {rooms.map((room: any) => (
                         <div
                           key={room.id}
                           className={`border rounded-md p-3 cursor-pointer transition-colors ${
