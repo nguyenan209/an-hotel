@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
+import { Token } from "@/lib/types";
 
 const prisma = new PrismaClient();
 
@@ -40,19 +41,30 @@ export async function GET(req: NextRequest) {
         role: "CUSTOMER",
       },
     });
-    await prisma.customer.create({ data: { userId: user.id } });
   }
 
-  // 4. Tạo JWT
-  const token = jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      avatar: user.avatar,
-      provider: user.provider,
+  let customer = await prisma.customer.findUnique({
+    where: {
+      userId: user.id,
     },
+  });
+  if (!customer) {
+    customer = await prisma.customer.create({ data: { userId: user.id } });
+  }
+
+
+  // 4. Tạo JWT
+  const userPayload: Token = {
+    id: user.id,
+    customerId: customer.id ?? "",
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    phone: user.phone ?? "",
+    address: user.address ?? "",
+    avatar: user.avatar ?? "",
+  }
+  const token = jwt.sign(userPayload,
     process.env.NEXT_PUBLIC_JWT_SECRET!,
     { expiresIn: "7d" }
   );

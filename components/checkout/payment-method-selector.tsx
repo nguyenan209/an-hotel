@@ -38,9 +38,7 @@ export function PaymentMethodSelector({
   const [amountInUSD, setAmountInUSD] = useState<number>(0);
   const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(false);
   const { toast } = useToast();
-  const cartItems = useCartStore((state) => state.items);
-
-  const totalPrice = calculateCartTotal(cartItems);
+  const totalPrice = useCartStore((state) => state.getTotalPrice());
 
   // Tạo payment intent khi chọn phương thức thanh toán thẻ
   useEffect(() => {
