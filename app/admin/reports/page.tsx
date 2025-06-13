@@ -294,6 +294,21 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Revenue Overview */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Revenue Overview</CardTitle>
+          <CardDescription>Revenue trend for the last 7d</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(!overview.revenueTrend || overview.revenueTrend.length === 0 || overview.revenueTrend.every((d: any) => d.value === 0)) ? (
+            <div className="text-center text-muted-foreground mt-10">No revenue data for this period.</div>
+          ) : (
+            <div id="dashboard-revenue-chart" />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
