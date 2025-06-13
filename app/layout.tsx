@@ -55,6 +55,7 @@ export default function RootLayout({
           content="Cùng An khám phá những homestay phù hợp với bạn. Tìm kiếm và đặt phòng homestay dễ dàng và nhanh chóng."
         />
         <meta name="twitter:image" content="/images/sunset-beach-villa-2.png" />
+        <link rel="icon" href="/logo.png" />
       </Head>
       <body className={inter.className}>
         <div className="flex min-h-screen flex-col">
