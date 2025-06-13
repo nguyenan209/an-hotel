@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Kiểm tra token và quyền admin
     const token = getTokenData(req);
     if (!token || token.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     // Lấy danh sách homestays của owner
     const homestays = await prisma.homestay.findMany({
       where: { ownerId: id },

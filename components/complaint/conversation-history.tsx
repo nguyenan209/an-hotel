@@ -143,7 +143,7 @@ export function ConversationHistory({
                       <User className="h-4 w-4 text-green-500" />
                     </div>
                     <span className="text-sm font-medium">
-                      {message.senderName || message.adminName || "Owner"}
+                      {message.senderName || "Admin"}
                     </span>
                     <span className="text-sm text-gray-600">
                       •&nbsp;{formatDate(message.createdAt)}

@@ -272,6 +272,27 @@ export type ReviewAllWithFlags = ReviewAll & {
   isReported?: boolean;
 };
 
+
+// New Host Registration Types
+export interface HostRegistration {
+  id: string
+  userId?: string
+  fullName: string
+  email: string
+  phone: string
+  homestayAddress: string
+  experience?: string
+  registrationStep: "info" | "payment" | "verification" | "approved" | "rejected"
+  paymentStatus: "pending" | "paid" | "failed" | "refunded"
+  setupFeeAmount: number
+  paymentMethod?: string
+  packageType: "basic" | "premium" | "enterprise"
+  createdAt: string
+  updatedAt: string
+  approvedAt?: string
+  rejectedReason?: string
+}
+
 export interface HostPayment {
   id: string
   registrationId: string

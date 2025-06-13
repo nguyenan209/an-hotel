@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Home,
@@ -16,11 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function ResetPasswordPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,6 +27,7 @@ export default function ResetPasswordPage({
   const [error, setError] = useState<string | null>(null);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const { token } = useParams();
 
   // Validate token on mount
   useEffect(() => {
@@ -38,7 +35,7 @@ export default function ResetPasswordPage({
       // In a real app, you would verify the token with your API
       // For demo, we'll simulate a token check
       setTimeout(() => {
-        if (params.token && params.token.length > 10) {
+        if (token && token.length > 10) {
           setTokenValid(true);
         } else {
           setTokenValid(false);
@@ -48,7 +45,7 @@ export default function ResetPasswordPage({
     };
 
     validateToken();
-  }, [params.token]);
+  }, [token]);
 
   // Check password strength
   useEffect(() => {

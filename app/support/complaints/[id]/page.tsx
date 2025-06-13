@@ -17,19 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
 import { ConversationHistory } from "@/components/complaint/conversation-history";
+import { useParams } from "next/navigation";
 
-interface ComplaintDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function ComplaintDetailPage({
-  params,
-}: ComplaintDetailPageProps) {
+export default function ComplaintDetailPage() {
+  const { id } = useParams();
   // Mock data for the complaint
   const [complaint, setComplaint] = useState({
-    id: params.id,
+    id: id,
     subject: "Phòng không sạch sẽ",
     description:
       "Khi chúng tôi đến nơi, phòng không được dọn dẹp sạch sẽ. Có rác từ khách trước và phòng tắm không được vệ sinh. Chúng tôi đã liên hệ với chủ nhà nhưng không nhận được phản hồi kịp thời.",
