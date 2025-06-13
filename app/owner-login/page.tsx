@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 export default function OwnerLoginPage() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function OwnerLoginPage() {
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { login } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -68,19 +70,21 @@ export default function OwnerLoginPage() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      const result = await res.json();
 
-      if (
-        formData.email === "owner@homestay.com" &&
-        formData.password === "owner123"
-      ) {
-        localStorage.setItem(
-          "ownerAuth",
-          JSON.stringify({ email: formData.email, role: "owner" })
-        );
+      if (res.ok) {
+        login(result.user, result.token);
         router.push("/owner");
       } else {
-        setErrors({ submit: "Email hoặc mật khẩu không đúng" });
+        setErrors({ submit: result.message || "Email hoặc mật khẩu không đúng" });
       }
     } catch (error) {
       setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" });
@@ -277,21 +281,6 @@ export default function OwnerLoginPage() {
                     Privacy Policy
                   </Link>
                 </p>
-              </div>
-
-              {/* Demo credentials */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                <p className="text-white/90 text-sm font-semibold mb-2">
-                  Demo Credentials:
-                </p>
-                <div className="text-white/80 text-xs space-y-1">
-                  <p>
-                    <strong>Email:</strong> owner@homestay.com
-                  </p>
-                  <p>
-                    <strong>Password:</strong> owner123
-                  </p>
-                </div>
               </div>
             </form>
 
