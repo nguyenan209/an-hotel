@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,43 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockRoomUsageStats } from "@/lib/mock-data/admin";
 
 export default function RoomUsageReportPage() {
   const [timeRange, setTimeRange] = useState("year");
-  const [year, setYear] = useState("2023");
+  const [year, setYear] = useState("2025");
+  const [roomUsageStats, setRoomUsageStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/room-usage?year=${year}`);
+        const data = await res.json();
+        setRoomUsageStats(data.stats || null);
+      } catch (e) {
+        setRoomUsageStats(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, [year]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg">Loading room usage stats...</p>
+      </div>
+    );
+  }
+  if (!roomUsageStats) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-lg text-red-500">Failed to load room usage stats.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -41,6 +73,7 @@ export default function RoomUsageReportPage() {
               <SelectItem value="2022">2022</SelectItem>
               <SelectItem value="2023">2023</SelectItem>
               <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline">
@@ -59,7 +92,7 @@ export default function RoomUsageReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockRoomUsageStats.totalHomestays}
+              {roomUsageStats.totalHomestays}
             </div>
             <p className="text-xs text-muted-foreground">In the system</p>
           </CardContent>
@@ -72,12 +105,12 @@ export default function RoomUsageReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockRoomUsageStats.activeHomestays}
+              {roomUsageStats.activeHomestays}
             </div>
             <p className="text-xs text-muted-foreground">
               {Math.round(
-                (mockRoomUsageStats.activeHomestays /
-                  mockRoomUsageStats.totalHomestays) *
+                (roomUsageStats.activeHomestays /
+                  roomUsageStats.totalHomestays) *
                   100
               )}
               % of total
@@ -92,7 +125,7 @@ export default function RoomUsageReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockRoomUsageStats.occupancyRate}%
+              {roomUsageStats.occupancyRate}%
             </div>
             <p className="text-xs text-muted-foreground">Average for {year}</p>
           </CardContent>
@@ -105,7 +138,7 @@ export default function RoomUsageReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockRoomUsageStats.averageStayDuration} days
+              {roomUsageStats.averageStayDuration} days
             </div>
             <p className="text-xs text-muted-foreground">Per booking</p>
           </CardContent>
@@ -131,19 +164,27 @@ export default function RoomUsageReportPage() {
                 {/* This would be a chart in a real implementation */}
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {mockRoomUsageStats.monthlyOccupancy.map((item, index) => (
-                      <div key={index} className="relative flex-1">
-                        <div
-                          className="absolute bottom-0 w-full rounded-md bg-primary"
-                          style={{
-                            height: `${item.rate}%`,
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {roomUsageStats.monthlyOccupancy.every((item: { rate: number }) => item.rate === 0) ? (
+                      <div className="w-full text-center text-muted-foreground mt-10">No occupancy data for this year.</div>
+                    ) : (
+                      roomUsageStats.monthlyOccupancy.map((item: { month: string; rate: number }, index: number) => (
+                        <div key={index} className="relative flex-1 h-full">
+                          <div
+                            className={`absolute bottom-0 w-full rounded-md border ${item.rate > 0 ? 'bg-pink-500 border-pink-700' : 'bg-muted-foreground/20 border-muted-foreground/30'}`}
+                            style={{
+                              height: `${item.rate}%`,
+                              minHeight: item.rate === 0 ? 4 : undefined,
+                            }}
+                          />
+                          {item.rate > 0 && (
+                            <div className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium" style={{ bottom: `calc(${item.rate}% + 4px)` }}>{item.rate}%</div>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {mockRoomUsageStats.monthlyOccupancy.map((item, index) => (
+                    {roomUsageStats.monthlyOccupancy.map((item: { month: string; rate: number }, index: number) => (
                       <div key={index} className="flex-1 text-center">
                         {item.month}
                       </div>
@@ -165,7 +206,7 @@ export default function RoomUsageReportPage() {
                 <div className="flex h-40 w-40 items-center justify-center rounded-full border-8 border-primary">
                   <div className="text-center">
                     <span className="text-3xl font-bold">
-                      {mockRoomUsageStats.activeHomestays}
+                      {roomUsageStats.activeHomestays}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       Active
@@ -177,7 +218,7 @@ export default function RoomUsageReportPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Active</span>
                       <span className="text-sm font-medium">
-                        {mockRoomUsageStats.activeHomestays}
+                        {roomUsageStats.activeHomestays}
                       </span>
                     </div>
                     <div className="mt-1 h-2 w-full rounded-full bg-secondary">
@@ -185,8 +226,8 @@ export default function RoomUsageReportPage() {
                         className="h-2 rounded-full bg-primary"
                         style={{
                           width: `${
-                            (mockRoomUsageStats.activeHomestays /
-                              mockRoomUsageStats.totalHomestays) *
+                            (roomUsageStats.activeHomestays /
+                              roomUsageStats.totalHomestays) *
                             100
                           }%`,
                         }}
@@ -197,7 +238,7 @@ export default function RoomUsageReportPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Maintenance</span>
                       <span className="text-sm font-medium">
-                        {mockRoomUsageStats.maintenanceHomestays}
+                        {roomUsageStats.maintenanceHomestays}
                       </span>
                     </div>
                     <div className="mt-1 h-2 w-full rounded-full bg-secondary">
@@ -205,8 +246,8 @@ export default function RoomUsageReportPage() {
                         className="h-2 rounded-full bg-yellow-500"
                         style={{
                           width: `${
-                            (mockRoomUsageStats.maintenanceHomestays /
-                              mockRoomUsageStats.totalHomestays) *
+                            (roomUsageStats.maintenanceHomestays /
+                              roomUsageStats.totalHomestays) *
                             100
                           }%`,
                         }}
@@ -217,7 +258,7 @@ export default function RoomUsageReportPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Inactive</span>
                       <span className="text-sm font-medium">
-                        {mockRoomUsageStats.inactiveHomestays}
+                        {roomUsageStats.inactiveHomestays}
                       </span>
                     </div>
                     <div className="mt-1 h-2 w-full rounded-full bg-secondary">
@@ -225,8 +266,8 @@ export default function RoomUsageReportPage() {
                         className="h-2 rounded-full bg-red-500"
                         style={{
                           width: `${
-                            (mockRoomUsageStats.inactiveHomestays /
-                              mockRoomUsageStats.totalHomestays) *
+                            (roomUsageStats.inactiveHomestays /
+                              roomUsageStats.totalHomestays) *
                             100
                           }%`,
                         }}
