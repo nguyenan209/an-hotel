@@ -57,78 +57,92 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { PaymentMethod, PaymentStatus } from "@prisma/client";
+import Loading from "@/components/loading";
+import { toast } from "sonner";
+
+interface Payment {
+  id: string;
+  customer: string;
+  email: string;
+  homestay: string;
+  amount: number;
+  method: string;
+  status: string;
+  date: string;
+  transactionId: string;
+}
+
+interface PaymentsResponse {
+  payments: Payment[];
+  total: number;
+  hasMore: boolean;
+}
 
 export default function PaymentManagementPage() {
-  // Mock data for payments
-  const mockPayments = [
-    {
-      id: "PAY-001",
-      customer: "Nguyễn Văn An",
-      email: "an@example.com",
-      homestay: "Sunset Beach Villa",
-      amount: 2500000,
-      method: "Stripe",
-      status: "completed",
-      date: "2024-01-15",
-      transactionId: "txn_1234567890",
-    },
-    {
-      id: "PAY-002",
-      customer: "Trần Thị Bình",
-      email: "binh@example.com",
-      homestay: "Mountain Retreat",
-      amount: 1800000,
-      method: "QR Code",
-      status: "pending",
-      date: "2024-01-14",
-      transactionId: "txn_0987654321",
-    },
-    {
-      id: "PAY-003",
-      customer: "Lê Văn Cường",
-      email: "cuong@example.com",
-      homestay: "Riverside Cottage",
-      amount: 3200000,
-      method: "Bank Transfer",
-      status: "failed",
-      date: "2024-01-13",
-      transactionId: "txn_1122334455",
-    },
-    {
-      id: "PAY-004",
-      customer: "Phạm Thị Dung",
-      email: "dung@example.com",
-      homestay: "City Center Apartment",
-      amount: 1500000,
-      method: "Stripe",
-      status: "completed",
-      date: "2024-01-12",
-      transactionId: "txn_5566778899",
-    },
-    {
-      id: "PAY-005",
-      customer: "Hoàng Văn Em",
-      email: "em@example.com",
-      homestay: "Lakeside Villa",
-      amount: 2800000,
-      method: "QR Code",
-      status: "refunded",
-      date: "2024-01-11",
-      transactionId: "txn_9988776655",
-    },
-  ];
-
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [filters, setFilters] = useState({
+    status: "all",
+    method: "all",
+    search: "",
+  });
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showRefundSuccessModal, setShowRefundSuccessModal] = useState(false)
 
-  const handleViewDetails = (payment: any) => {
+  const fetchPayments = async ({ pageParam = 1 }) => {
+    const params = new URLSearchParams({
+      page: pageParam.toString(),
+      limit: "10",
+      ...filters,
+    });
+    const response = await fetch(`/api/payments?${params}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch payments');
+    }
+    return response.json();
+  };
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ["payments", filters],
+    queryFn: fetchPayments,
+    getNextPageParam: (lastPage, pages) => {
+      if (!lastPage.hasMore) return undefined;
+      return pages.length + 1;
+    },
+    initialPageParam: 1,
+  });
+
+  const payments = data?.pages.flatMap((page) => page.payments) ?? [];
+
+  const handleSearch = (value: string) => {
+    setFilters((prev) => ({ ...prev, search: value }));
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFilters((prev) => ({ ...prev, status: value }));
+  };
+
+  const handleMethodChange = (value: string) => {
+    setFilters((prev) => ({ ...prev, method: value }));
+  };
+
+  const handleViewDetails = (payment: Payment) => {
     setSelectedPayment(payment);
     setShowDetailModal(true);
   };
 
-  const handleRefund = (payment: any) => {
+  const handleRefund = (payment: Payment) => {
     setSelectedPayment(payment);
     setShowRefundModal(true);
   };
@@ -148,7 +162,7 @@ export default function PaymentManagementPage() {
     }
   };
 
-  const handleDownloadInvoice = (payment: any) => {
+  const handleDownloadInvoice = (payment: Payment) => {
     // Generate and download invoice
     console.log("Downloading invoice for:", payment.id);
     alert(`Đang tải hóa đơn cho ${payment.id}...`);
@@ -170,7 +184,7 @@ export default function PaymentManagementPage() {
       ];
       const csvContent = [
         headers.join(","),
-        ...mockPayments.map((payment) =>
+        ...payments.map((payment) =>
           [
             payment.id,
             `"${payment.customer}"`,
@@ -198,55 +212,54 @@ export default function PaymentManagementPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      alert("Báo cáo đã được xuất thành công!");
+      toast.success("Báo cáo đã được xuất thành công!");
     } catch (error) {
       console.error("Error exporting report:", error);
-      alert("Có lỗi xảy ra khi xuất báo cáo!");
+      toast.error("Có lỗi xảy ra khi xuất báo cáo!");
     }
   };
 
   const processRefund = async () => {
-    if (!selectedPayment) return;
+    if (!selectedPayment) return
 
-    setIsProcessing(true);
+    setIsProcessing(true)
     try {
       // API call to process refund
-      console.log("Processing refund for:", selectedPayment.id);
-      alert("Hoàn tiền thành công!");
-      setShowRefundModal(false);
+      console.log("Processing refund for:", selectedPayment.id)
+      setShowRefundModal(false)
+      setShowRefundSuccessModal(true)
     } catch (error) {
-      console.error("Error processing refund:", error);
-      alert("Có lỗi xảy ra khi hoàn tiền!");
+      console.error("Error processing refund:", error)
+      alert("Có lỗi xảy ra khi hoàn tiền!")
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
+      case PaymentStatus.PAID:
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <CheckCircle className="w-3 h-3 mr-1" />
             Thành công
           </Badge>
         );
-      case "pending":
+      case PaymentStatus.PENDING:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
             <Clock className="w-3 h-3 mr-1" />
             Đang xử lý
           </Badge>
         );
-      case "failed":
+      case PaymentStatus.FAILED:
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
             <XCircle className="w-3 h-3 mr-1" />
             Thất bại
           </Badge>
         );
-      case "refunded":
+      case PaymentStatus.REFUNDED:
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <RefreshCw className="w-3 h-3 mr-1" />
@@ -260,11 +273,11 @@ export default function PaymentManagementPage() {
 
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case "Stripe":
+      case PaymentMethod.CREDIT_CARD:
         return <CreditCard className="w-4 h-4" />;
-      case "QR Code":
+      case PaymentMethod.BANK_TRANSFER:
         return <Smartphone className="w-4 h-4" />;
-      case "Bank Transfer":
+      case PaymentMethod.CASH:
         return <Banknote className="w-4 h-4" />;
       default:
         return <DollarSign className="w-4 h-4" />;
@@ -278,19 +291,27 @@ export default function PaymentManagementPage() {
     }).format(amount);
   };
 
-  const totalRevenue = mockPayments
-    .filter((p) => p.status === "completed")
+  const totalRevenue = payments
+    .filter((p) => p.status === PaymentStatus.PAID)
     .reduce((sum, p) => sum + p.amount, 0);
 
-  const completedPayments = mockPayments.filter(
-    (p) => p.status === "completed"
+  const completedPayments = payments.filter(
+    (p) => p.status === PaymentStatus.PAID
   ).length;
-  const pendingPayments = mockPayments.filter(
-    (p) => p.status === "pending"
+  const pendingPayments = payments.filter(
+    (p) => p.status === PaymentStatus.PENDING
   ).length;
-  const failedPayments = mockPayments.filter(
-    (p) => p.status === "failed"
+  const failedPayments = payments.filter(
+    (p) => p.status === PaymentStatus.FAILED
   ).length;
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div>Error loading payments</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -388,136 +409,135 @@ export default function PaymentManagementPage() {
                 <Input
                   placeholder="Tìm kiếm theo ID, khách hàng, homestay..."
                   className="pl-8"
+                  value={filters.search}
+                  onChange={(e) => handleSearch(e.target.value)}
                 />
               </div>
             </div>
-            <Select>
+            <Select value={filters.status} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="completed">Thành công</SelectItem>
-                <SelectItem value="pending">Đang xử lý</SelectItem>
-                <SelectItem value="failed">Thất bại</SelectItem>
-                <SelectItem value="refunded">Đã hoàn tiền</SelectItem>
+                <SelectItem value={PaymentStatus.PAID}>Thành công</SelectItem>
+                <SelectItem value={PaymentStatus.PENDING}>Đang xử lý</SelectItem>
+                <SelectItem value={PaymentStatus.FAILED}>Thất bại</SelectItem>
+                <SelectItem value={PaymentStatus.REFUNDED}>Đã hoàn tiền</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={filters.method} onValueChange={handleMethodChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Phương thức" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="stripe">Stripe</SelectItem>
-                <SelectItem value="qr">QR Code</SelectItem>
-                <SelectItem value="bank">Bank Transfer</SelectItem>
+                <SelectItem value={PaymentMethod.CREDIT_CARD}>Credit Card</SelectItem>
+                <SelectItem value={PaymentMethod.BANK_TRANSFER}>Bank Transfer</SelectItem>
+                <SelectItem value={PaymentMethod.CASH}>Cash</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Lọc
-            </Button>
           </div>
 
-          {/* Payments Table */}
+          {/* Payments Table with Infinite Scroll */}
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Khách hàng</TableHead>
-                  <TableHead>Homestay</TableHead>
-                  <TableHead>Phương thức</TableHead>
-                  <TableHead>Số tiền</TableHead>
-                  <TableHead>Ngày</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{payment.id}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{payment.customer}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {payment.email}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{payment.homestay}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getMethodIcon(payment.method)}
-                        {payment.method}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(payment.amount)}
-                    </TableCell>
-                    <TableCell>{payment.date}</TableCell>
-                    <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleViewDetails(payment)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-                          {payment.status === "completed" && (
-                            <DropdownMenuItem
-                              onClick={() => handleRefund(payment)}
-                            >
-                              <RefreshCw className="w-4 h-4 mr-2" />
-                              Hoàn tiền
-                            </DropdownMenuItem>
-                          )}
-                          {payment.status === "pending" && (
-                            <DropdownMenuItem
-                              onClick={() => handleConfirmPayment(payment.id)}
-                              disabled={isProcessing}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Xác nhận
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => handleDownloadInvoice(payment)}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Tải hóa đơn
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <InfiniteScroll
+              dataLength={payments.length}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              loader={
+                <div className="text-center py-4">
+                  {isFetchingNextPage ? "Đang tải..." : ""}
+                </div>
+              }
+              endMessage={
+                <div className="text-center py-4 text-muted-foreground">
+                  Không còn dữ liệu để tải
+                </div>
+              }
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Khách hàng</TableHead>
+                    <TableHead>Homestay</TableHead>
+                    <TableHead>Phương thức</TableHead>
+                    <TableHead>Số tiền</TableHead>
+                    <TableHead>Ngày</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between space-x-2 py-4">
-            <div className="text-sm text-muted-foreground">
-              Hiển thị 1-{mockPayments.length} của {mockPayments.length} kết quả
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" disabled>
-                Trước
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                Sau
-              </Button>
-            </div>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">{payment.transactionId}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{payment.booking.customer.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {payment.booking.customer.email}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{payment.booking.homestay.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getMethodIcon(payment.method)}
+                          {payment.method}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(payment.amount)}
+                      </TableCell>
+                      <TableCell>{payment.date}</TableCell>
+                      <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleViewDetails(payment)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Xem chi tiết
+                            </DropdownMenuItem>
+                            {payment.status === PaymentStatus.PAID && (
+                              <DropdownMenuItem
+                                onClick={() => handleRefund(payment)}
+                              >
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                Hoàn tiền
+                              </DropdownMenuItem>
+                            )}
+                            {payment.status === PaymentStatus.PENDING && (
+                              <DropdownMenuItem
+                                onClick={() => handleConfirmPayment(payment.id)}
+                                disabled={isProcessing}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Xác nhận
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => handleDownloadInvoice(payment)}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Tải hóa đơn
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </InfiniteScroll>
           </div>
         </CardContent>
       </Card>
@@ -646,6 +666,45 @@ export default function PaymentManagementPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               {isProcessing ? "Đang xử lý..." : "Xác nhận hoàn tiền"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+            {/* Refund Success Modal */}
+            <Dialog open={showRefundSuccessModal} onOpenChange={setShowRefundSuccessModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="w-5 h-5" />
+              Hoàn tiền thành công
+            </DialogTitle>
+            <DialogDescription>Giao dịch hoàn tiền đã được xử lý thành công.</DialogDescription>
+          </DialogHeader>
+          {selectedPayment && (
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Mã thanh toán:</span>
+                  <span>{selectedPayment.id}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Khách hàng:</span>
+                  <span>{selectedPayment.customer}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Số tiền đã hoàn:</span>
+                  <span className="font-semibold text-green-600">{formatCurrency(selectedPayment.amount)}</span>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Khách hàng sẽ nhận được tiền hoàn trong vòng 3-5 ngày làm việc.
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowRefundSuccessModal(false)} className="bg-green-600 hover:bg-green-700">
+              Đóng
             </Button>
           </DialogFooter>
         </DialogContent>
