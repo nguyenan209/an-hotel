@@ -6,6 +6,7 @@ export async function GET() {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    console.log("today", today);
 
     // Find all bookings with status PAID and checkout date is today
     const bookings = await prisma.booking.findMany({
