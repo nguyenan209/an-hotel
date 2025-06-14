@@ -18,6 +18,7 @@ import {
   UserCog,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -74,13 +75,13 @@ export function Sidebar({ className }: SidebarProps) {
     {
       label: "Dashboard",
       icon: LayoutDashboard,
-      href: "/admin",
-      active: pathname === "/admin",
+      href: pathname === "/owner" ? "/owner" : "/admin",
+      active: pathname === "/owner" || pathname === "/admin",
     },
     {
       label: "Homestays",
       icon: Hotel,
-      href: "/admin/homestays",
+      href: pathname === "/owner" ? "/owner/homestays" : "/admin/homestays",
       active: pathname === "/admin/homestays" || pathname.startsWith("/admin/homestays/"),
     },
     {
@@ -88,81 +89,89 @@ export function Sidebar({ className }: SidebarProps) {
       icon: CheckCircle,
       href: "/admin/approvals",
       active: pathname === "/admin/approvals" || pathname.startsWith("/admin/approvals/"),
+      hidden: pathname.startsWith("/owner")
     },
     {
       label: "Homestay Owners",
       icon: UserCog,
       href: "/admin/owners",
       active: pathname === "/admin/owners" || pathname.startsWith("/admin/owners/"),
+      hidden: pathname.startsWith("/owner")
     },
     {
       label: "Rooms",
       icon: Home,
-      href: "/admin/rooms",
-      active: pathname === "/admin/rooms" || pathname.startsWith("/admin/rooms/"),
+      href: pathname === "/owner" ? "/owner/rooms" : "/admin/rooms",
+      active: pathname === "/admin/rooms" || pathname.startsWith("/admin/rooms/") || pathname.startsWith("/owner/rooms/"),
     },
     {
       label: "Customers",
       icon: Users,
-      href: "/admin/customers",
-      active: pathname === "/admin/customers" || pathname.startsWith("/admin/customers/"),
+      href: pathname === "/owner" ? "/owner/customers" : "/admin/customers",
+      active: pathname === "/admin/customers" || pathname.startsWith("/admin/customers/") || pathname.startsWith("/owner/customers/"),
     },
     {
       label: "Bookings",
       icon: ShoppingCart,
-      href: "/admin/bookings",
-      active: pathname === "/admin/bookings" || pathname.startsWith("/admin/bookings/"),
+      href: pathname === "/owner" ? "/owner/bookings" : "/admin/bookings",
+      active: pathname === "/admin/bookings" || pathname.startsWith("/admin/bookings/") || pathname.startsWith("/owner/bookings/"),
+    },
+    {
+      label: "Payments",
+      icon: CreditCard,
+      href: pathname === "/owner" ? "/owner/payments" : "/admin/payments",
+      active: pathname === "/admin/payments" || pathname.startsWith("/admin/payments/") || pathname.startsWith("/owner/payments/"),
     },
     {
       label: "Reviews",
       icon: Star,
-      href: "/admin/reviews",
-      active: pathname === "/admin/reviews" || pathname.startsWith("/admin/reviews/"),
+      href: pathname === "/owner" ? "/owner/reviews" : "/admin/reviews",
+      active: pathname === "/admin/reviews" || pathname.startsWith("/admin/reviews/") || pathname.startsWith("/owner/reviews/"),
     },
     {
       label: "Complaints",
       icon: AlertCircle,
-      href: "/admin/complaints",
-      active: pathname === "/admin/complaints" || pathname.startsWith("/admin/complaints/"),
+      href: pathname === "/owner" ? "/owner/complaints" : "/admin/complaints",
+      active: pathname === "/admin/complaints" || pathname.startsWith("/admin/complaints/") || pathname.startsWith("/owner/complaints/"),
     },
     {
       label: "Reports",
       icon: BarChart3,
-      href: "/admin/reports",
-      active: pathname === "/admin/reports" || pathname.startsWith("/admin/reports/"),
+      href: pathname === "/owner" ? "/owner/reports" : "/admin/reports",
+      active: pathname === "/admin/reports" || pathname.startsWith("/admin/reports/") || pathname.startsWith("/owner/reports/"),
       subItems: [
         {
           label: "Revenue",
-          href: "/admin/reports/revenue",
-          active: pathname === "/admin/reports/revenue",
+          href: pathname === "/owner" ? "/owner/reports/revenue" : "/admin/reports/revenue",
+          active: pathname === "/admin/reports/revenue" || pathname.startsWith("/owner/reports/revenue/"),
         },
         {
           label: "Booking Stats",
-          href: "/admin/reports/bookings",
-          active: pathname === "/admin/reports/bookings",
+          href: pathname === "/owner" ? "/owner/reports/bookings" : "/admin/reports/bookings",
+          active: pathname === "/admin/reports/bookings" || pathname.startsWith("/owner/reports/bookings/"),
         },
         {
           label: "Room Usage",
-          href: "/admin/reports/room-usage",
-          active: pathname === "/admin/reports/room-usage",
+          href: pathname === "/owner" ? "/owner/reports/room-usage" : "/admin/reports/room-usage",
+          active: pathname === "/admin/reports/room-usage" || pathname.startsWith("/owner/reports/room-usage/"),
         },
         {
           label: "Customer Demographics",
-          href: "/admin/reports/demographics",
-          active: pathname === "/admin/reports/demographics",
+          href: pathname === "/owner" ? "/owner/reports/demographics" : "/admin/reports/demographics",
+          active: pathname === "/admin/reports/demographics" || pathname.startsWith("/owner/reports/demographics/"),
         },
         {
           label: "Reviews Analysis",
-          href: "/admin/reports/reviews",
-          active: pathname === "/admin/reports/reviews",
+          href: pathname === "/owner" ? "/owner/reports/reviews" : "/admin/reports/reviews",
+          active: pathname === "/admin/reports/reviews" || pathname.startsWith("/owner/reports/reviews/"),
         },
       ],
     },
     {
       label: "Settings",
       icon: Settings,
-      href: "/admin/settings",
-      active: pathname === "/admin/settings",
+      href: pathname === "/owner" ? "/owner/settings" : "/admin/settings",
+      active: pathname === "/admin/settings" || pathname.startsWith("/owner/settings/"),
     },
   ]
 
@@ -199,7 +208,7 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
         <ScrollArea className="flex-1 py-2">
           <nav className="grid gap-1 px-2">
-            {routes.map((route, i) => (
+            {routes.filter(route => !route.hidden).map((route, i) => (
               <div key={i}>
                 {isCollapsed ? (
                   <Tooltip>
