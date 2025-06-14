@@ -3,18 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  BookOpen,
-  HelpCircle,
-  LogOut,
-  MessageCircle,
-  ShoppingCart,
-  User,
-  UserCircle,
-} from "lucide-react";
+import { ShoppingCart, HelpCircle, BookOpen, LogOut, MessageCircle, UserCircle } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
-import { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
@@ -24,82 +14,146 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 import { formatCurrency } from "@/lib/utils";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export function Header() {
+export function HeroHeader() {
   const pathname = usePathname();
   const cartItems = useCartStore((state) => state.items);
   const totalHomestays = cartItems.length;
-  const totalItems = cartItems.reduce(
-    (acc: any, item: any) => acc + (item.quantity || 0),
-    0
-  );
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { user, logout } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { user, logout, isLoggedIn } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [user]);
+  const { scrollY } = useScroll();
+  const headerBackground = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.95)"]
+  );
+  const headerBorder = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(255, 255, 255, 0)", "rgba(229, 231, 235, 1)"]
+  );
+  const textColor = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]
+  );
+
+  useEffect(() => {      
+    const unsubscribe = scrollY.onChange((latest) => {
+      setIsScrolled(latest > 50);
+    });
+    return unsubscribe;
+  }, [scrollY]);
 
   const handleLogout = () => {
     logout();
-
-    // Chuyển hướng người dùng đến trang đăng nhập
     router.push("/login");
   };
 
   return (
-    <header className="border-b bg-white">
+    <motion.header
+      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md"
+      style={{
+        backgroundColor: headerBackground,
+        borderBottomColor: headerBorder,
+        borderBottomWidth: 1,
+      }}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logo.png"
-              alt="An's Homestay"
-              height={56}
-              width={56}
-              className="h-14 w-auto"
-              priority
-            />
+          <Link href="/" className="text-xl font-bold">
+            <motion.span style={{ color: textColor }}>
+              <Image
+                src={isScrolled ? "/images/black-logo.png" : "/images/white-logo.png"}
+                alt="An's Homestay"
+                height={56}
+                width={56}
+                className="h-14 w-auto transition-all duration-300"
+                priority
+              />
+            </motion.span>
           </Link>
           <nav className="hidden md:flex gap-4">
             <Link
-              href="/search"
-              className={`text-sm font-medium ${
-                pathname === "/search"
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              href="/"
+              className={`text-sm font-medium transition-colors ${
+                pathname === "/" ? "text-primary" : ""
               }`}
             >
-              Tìm kiếm
+              <motion.span
+                style={{ color: pathname === "/" ? undefined : textColor }}
+                className={
+                  pathname === "/" ? "text-primary" : "hover:text-primary"
+                }
+              >
+                Trang chủ
+              </motion.span>
+            </Link>
+            <Link
+              href="/search"
+              className={`text-sm font-medium transition-colors ${
+                pathname === "/search" ? "text-primary" : ""
+              }`}
+            >
+              <motion.span
+                style={{
+                  color: pathname === "/search" ? undefined : textColor,
+                }}
+                className={
+                  pathname === "/search" ? "text-primary" : "hover:text-primary"
+                }
+              >
+                Tìm kiếm
+              </motion.span>
             </Link>
             <Link
               href="/contact"
-              className={`text-sm font-medium ${
-                pathname === "/contact"
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`text-sm font-medium transition-colors ${
+                pathname === "/contact" ? "text-primary" : ""
               }`}
             >
-              Liên hệ
+              <motion.span
+                style={{
+                  color: pathname === "/contact" ? undefined : textColor,
+                }}
+                className={
+                  pathname === "/contact"
+                    ? "text-primary"
+                    : "hover:text-primary"
+                }
+              >
+                Liên hệ
+              </motion.span>
             </Link>
             <Link
               href="/support"
-              className={`text-sm font-medium ${
-                pathname === "/support"
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`text-sm font-medium transition-colors ${
+                pathname === "/support" ? "text-primary" : ""
               }`}
             >
-              Hỗ trợ
+              <motion.span
+                style={{
+                  color: pathname === "/support" ? undefined : textColor,
+                }}
+                className={
+                  pathname === "/support"
+                    ? "text-primary"
+                    : "hover:text-primary"
+                }
+              >
+                Hỗ trợ
+              </motion.span>
             </Link>
           </nav>
         </div>
@@ -108,9 +162,13 @@ export function Header() {
             <Link href="/host/register" className="hidden md:block">
               <Button
                 variant="outline"
-                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                className={`transition-all ${
+                  isScrolled
+                    ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                    : "bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm"
+                }`}
               >
-                Become host
+                Trở thành host
               </Button>
             </Link>
           )}
@@ -119,9 +177,17 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative border border-gray-200 bg-white hover:bg-gray-50"
+                className={`relative transition-all ${
+                  isScrolled
+                    ? "border border-gray-200 bg-white hover:bg-gray-50"
+                    : "border border-white/30 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+                }`}
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart
+                  className={`h-5 w-5 ${
+                    isScrolled ? "text-gray-700" : "text-white"
+                  }`}
+                />
                 {totalHomestays > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-white text-[10px]">
                     {totalHomestays}
@@ -189,7 +255,11 @@ export function Header() {
           </DropdownMenu>
           <Link href="/support" className="md:hidden">
             <Button variant="ghost" size="icon">
-              <HelpCircle className="h-5 w-5" />
+              <HelpCircle
+                className={`h-5 w-5 ${
+                  isScrolled ? "text-gray-700" : "text-white"
+                }`}
+              />
             </Button>
           </Link>
           {isLoggedIn ? (
@@ -204,10 +274,10 @@ export function Header() {
                   >
                     <Avatar>
                       <AvatarImage
-                        src="https://github.com/shadcn.png"
+                        src={user?.avatar || "https://github.com/shadcn.png"}
                         alt="User avatar"
                       />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
                     </Avatar>
                     <span className="sr-only">User menu</span>
                   </Button>
@@ -269,6 +339,6 @@ export function Header() {
           )}
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }
