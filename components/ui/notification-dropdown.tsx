@@ -21,14 +21,20 @@ import { getNotificationIcon, getTimeAgo } from "@/lib/utils";
 
 interface NotificationDropdownProps {
   variant?: "admin" | "user";
+  isScrolled?: boolean;
 }
 
 export function NotificationDropdown({
   variant = "user",
+  isScrolled = false,
 }: NotificationDropdownProps) {
   const router = useRouter();
   const { isLoggedIn, isLoading, user } = useAuth();
   const pathname = usePathname();
+  
+  if (pathname !== "/") {
+    isScrolled = true;
+  }
 
   // Sử dụng notificationStore
   const { notifications, globalUnreadCount, fetchNotifications, markAsRead } =
@@ -111,8 +117,18 @@ export function NotificationDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`relative transition-all ${
+            isScrolled
+              ? "border border-gray-200 bg-white hover:bg-gray-50"
+              : "border border-white/30 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+          }`}
+        >
+          <Bell
+            className={`h-5 w-5 ${isScrolled ? "text-gray-700" : "text-white"}`}
+          />
           <span className="sr-only">Toggle notification menu</span>
           {globalUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">

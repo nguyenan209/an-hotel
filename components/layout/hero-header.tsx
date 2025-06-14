@@ -264,7 +264,7 @@ export function HeroHeader() {
           </Link>
           {isLoggedIn ? (
             <>
-              <NotificationDropdown variant="user" />
+              <NotificationDropdown variant="user" isScrolled={isScrolled} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
