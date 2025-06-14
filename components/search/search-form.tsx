@@ -9,8 +9,9 @@ import { Card } from "@/components/ui/card"
 import { Search, MapPin, Calendar, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { SearchParams } from "@/lib/types"
 
-export function SearchForm() {
+export function SearchForm({ params }: { params: SearchParams }) {
   const router = useRouter()
   const [location, setLocation] = useState("")
   const [checkIn, setCheckIn] = useState<Date>()

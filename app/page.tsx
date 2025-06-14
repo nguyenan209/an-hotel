@@ -73,7 +73,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="mb-12"
           >
-            <SearchForm />
+            <SearchForm params={{}} />
           </motion.div>
         </div>
         {/* Scroll Indicator */}
