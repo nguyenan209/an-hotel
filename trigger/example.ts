@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export const firstScheduledTask = schedules.task({
   id: "first-scheduled-task",
   // Every hour
-  cron: "* * * * *",
+  cron: "0 14 * * *",
   // Set an optional maxDuration to prevent tasks from running indefinitely
   maxDuration: 300, // Stop executing after 300 secs (5 mins) of compute
   run: async (payload, { ctx }) => {
