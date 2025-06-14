@@ -27,10 +27,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/components/ui/use-toast";
 import { Camera, Loader2 } from "lucide-react";
 import Loading from "@/components/loading";
 import { passwordFormSchema, profileFormSchema } from "@/lib/schema";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const { updateUserAvatar } = useAuth();
 
   // Profile form
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
@@ -66,7 +68,9 @@ export default function ProfilePage() {
     // Fetch user profile from real API
     const fetchUserData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/profile`
+        );
         if (!res.ok) throw new Error("Failed to fetch profile");
         const data = await res.json();
         setUser(data.user);
@@ -80,10 +84,8 @@ export default function ProfilePage() {
         });
       } catch (error) {
         console.error("Failed to fetch user data:", error);
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: "Failed to load profile data. Please try again.",
-          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -96,27 +98,27 @@ export default function ProfilePage() {
     setIsUpdating(true);
     try {
       // Gọi API thật để update profile
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       if (!res.ok) throw new Error("Failed to update profile");
       const result = await res.json();
 
       // Update local user state
       setUser(result.user);
 
-      toast({
-        title: "Profile Updated",
+      toast.success("Profile Updated", {
         description: "Your profile information has been updated successfully.",
       });
     } catch (error) {
       console.error("Failed to update profile:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to update profile. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
@@ -126,28 +128,29 @@ export default function ProfilePage() {
   const onPasswordSubmit = async (data: z.infer<typeof passwordFormSchema>) => {
     setIsChangingPassword(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/change-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          oldPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile/change-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            oldPassword: data.currentPassword,
+            newPassword: data.newPassword,
+          }),
+        }
+      );
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.error || "Failed to change password");
       }
       passwordForm.reset();
-      toast({
-        title: "Password Changed",
+      toast.success("Password Changed", {
         description: "Your password has been updated successfully.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to change password",
-        variant: "destructive",
+      toast.error("Error", {
+        description:
+          error instanceof Error ? error.message : "Failed to change password",
       });
     } finally {
       setIsChangingPassword(false);
@@ -176,35 +179,39 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("files", avatarFile);
 
-      const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      const uploadRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       if (!uploadRes.ok) throw new Error("Upload failed");
       const { urls } = await uploadRes.json();
       const avatarUrl = urls[0];
 
       // 2. Gọi API cập nhật profile với avatar mới
-      const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatar: avatarUrl }),
-      });
+      const updateRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatar: avatarUrl }),
+        }
+      );
       if (!updateRes.ok) throw new Error("Update profile failed");
 
       // 3. Cập nhật lại state user/avatar nếu cần
       const { user } = await updateRes.json();
       setUser(user);
+      updateUserAvatar(avatarUrl);
 
-      toast({
-        title: "Avatar updated",
+      toast.success("Avatar updated", {
         description: "Your profile picture has been updated.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to update avatar.",
-        variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
@@ -389,7 +396,10 @@ export default function ProfilePage() {
                         )}
                       />
 
-                      <Button type="submit" disabled={isUpdating || !profileForm.formState.isDirty}>
+                      <Button
+                        type="submit"
+                        disabled={isUpdating || !profileForm.formState.isDirty}
+                      >
                         {isUpdating ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

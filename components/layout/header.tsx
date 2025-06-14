@@ -204,7 +204,7 @@ export function Header() {
                   >
                     <Avatar>
                       <AvatarImage
-                        src="https://github.com/shadcn.png"
+                        src={user?.avatar || "https://github.com/shadcn.png"}
                         alt="User avatar"
                       />
                       <AvatarFallback>JD</AvatarFallback>

@@ -12,6 +12,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   customerId: string | null;
   isLoading: boolean;
+  updateUserAvatar: (avatarUrl: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,9 +57,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setAuthState(false, null);
   };
 
+  const updateUserAvatar = (avatarUrl: string) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, avatar: avatarUrl };
+      Cookies.set("user", JSON.stringify(updated), { expires: 7, path: "/" });
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isLoggedIn, customerId, isLoading }}
+      value={{ user, login, logout, isLoggedIn, customerId, isLoading, updateUserAvatar }}
     >
       {children}
     </AuthContext.Provider>
