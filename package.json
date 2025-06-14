@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "trigger:dev": "pnpm dlx trigger.dev@latest dev",
+    "trigger:deploy": "pnpm dlx trigger.dev@latest deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "latest",
@@ -45,6 +47,7 @@
     "@tanstack/react-query": "^5.76.1",
     "@tinymce/miniature": "^6.0.0",
     "@tinymce/tinymce-react": "^6.2.0",
+    "@trigger.dev/sdk": "^3.3.17",
     "autoprefixer": "^10.4.20",
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^3.0.2",
@@ -91,6 +94,7 @@
     "zustand": "latest"
   },
   "devDependencies": {
+    "@trigger.dev/build": "^3.3.17",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.16",
@@ -100,5 +104,6 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }
