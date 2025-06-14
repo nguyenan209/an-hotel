@@ -43,6 +43,8 @@ import Loading from "@/components/loading";
 import { ReviewForm } from "@/components/review/review-form";
 import { ComplaintForm } from "@/components/complaint/complaint-form";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from 'sonner'
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function BookingDetailsPage() {
   const params = useParams();
@@ -54,6 +56,7 @@ export default function BookingDetailsPage() {
   const [isComplaintDialogOpen, setIsComplaintDialogOpen] = useState(false);
   const { user, isLoggedIn } = useAuth();
   const [hasComplaint, setHasComplaint] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -106,15 +109,37 @@ export default function BookingDetailsPage() {
   }, [isLoggedIn, user, booking]);
 
   const handleCancelBooking = async () => {
+    if (!booking) return;
+    
     try {
       setIsCancelling(true);
-      // In a real app, this would be an API call to cancel the booking
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${booking.id}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to cancel booking");
+      }
+
+      toast.success("Hủy đặt phòng thành công");
+
+      // Invalidate bookings query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
 
       // Navigate back to bookings page after successful cancellation
       router.push("/bookings");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to cancel booking:", error);
+      toast.error(error.message || "Không thể hủy đặt phòng. Vui lòng thử lại sau.");
+    } finally {
       setIsCancelling(false);
     }
   };
@@ -309,7 +334,7 @@ export default function BookingDetailsPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              {booking.status === BookingStatus.UPCOMING && (
+              {booking.status === BookingStatus.PAID && (
                 <Button
                   className="w-full"
                   variant="destructive"
