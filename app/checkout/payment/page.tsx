@@ -35,8 +35,6 @@ export default function PaymentPage() {
   const [qrPaymentStatus, setQrPaymentStatus] = useState<QRPaymentStatus>(
     QRPaymentStatus.PENDING
   );
-  const [creditCardPaymentDetails, setCreditCardPaymentDetails] =
-    useState<any>(null);
   const { items, getTotalPrice, clearCart } = useCartStore();
 
   const totalPrice = getTotalPrice();
@@ -91,7 +89,6 @@ export default function PaymentPage() {
 
   // Xử lý khi thanh toán thẻ thành công
   const handleCreditCardSuccess = (paymentDetails: any) => {
-    setCreditCardPaymentDetails(paymentDetails);
     // Hoàn thành đặt phòng với phương thức thanh toán thẻ
     handleCompleteBooking(PaymentMethod.CREDIT_CARD, paymentDetails);
   };
@@ -197,7 +194,6 @@ export default function PaymentPage() {
     setPaymentMethod(method);
     // Reset states when changing payment method
     if (method !== PaymentMethod.CREDIT_CARD) {
-      setCreditCardPaymentDetails(null);
     }
     if (method !== PaymentMethod.BANK_TRANSFER) {
       setQrPaymentStatus(QRPaymentStatus.PENDING);
@@ -220,7 +216,7 @@ export default function PaymentPage() {
             onQRSuccess={handleQRSuccess}
           />
 
-          {(paymentMethod !== PaymentMethod.CREDIT_CARD ||
+          {(paymentMethod === PaymentMethod.CASH ||
             qrPaymentStatus === "confirmed") && (
             <div className="flex justify-end">
               <Button

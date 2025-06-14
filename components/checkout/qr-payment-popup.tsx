@@ -10,7 +10,7 @@ import { pusherClient } from "@/lib/pusher/pusher-client";
 import { useCartStore } from "@/lib/store/cartStore";
 import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
-import { AlertCircle, Check, QrCode } from "lucide-react";
+import { AlertCircle, Check, QrCode, Loader2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 interface QRPaymentPopupProps {
@@ -181,11 +181,17 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
               <>
                 {/* Phần 1: QR Code */}
                 <div className="bg-gray-100 p-4 rounded-lg flex items-center justify-center w-full max-w-[300px]">
-                  <QrCodePayment
-                    className="w-[250px] h-[250px]"
-                    sessionId={paymentSessionId}
-                    sessionUrl={sessionUrl}
-                  />
+                  {sessionUrl ? (
+                    <QrCodePayment
+                      className="w-[250px] h-[250px]"
+                      sessionId={paymentSessionId}
+                      sessionUrl={sessionUrl}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center w-[250px] h-[250px]">
+                      <Loader2 className="w-8 h-8 animate-spin text-pink-500 mb-2" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Số tiền và hướng dẫn */}

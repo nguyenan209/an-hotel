@@ -130,7 +130,7 @@ export function PaymentMethodSelector({
           }`}
         >
           <div className="flex items-start">
-            <RadioGroupItem value="qr_code" id="qr_code" className="mt-1" />
+            <RadioGroupItem value={PaymentMethod.BANK_TRANSFER} id="qr_code" className="mt-1" />
             <div className="ml-3 flex-1">
               <Label
                 htmlFor="qr_code"
