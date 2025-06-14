@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import Cookies from "js-cookie";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -13,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { BookingWithHomestay } from "@/lib/types";
@@ -22,56 +20,47 @@ import moment from "moment";
 import { getStatusBadge } from "@/components/booking/status-badge";
 import { calculateNights } from "@/lib/utils";
 import Loading from "@/components/loading";
+import { useQuery } from "@tanstack/react-query";
+
+async function fetchBookings() {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch bookings");
+  }
+
+  return response.json();
+}
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState<BookingWithHomestay[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái kiểm tra xác thực
-  const router = useRouter();
-  const { user } = useAuth();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3);
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const { data: bookings = [], isLoading, error } = useQuery({
+    queryKey: ["bookings"],
+    queryFn: fetchBookings,
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (user !== undefined) {
-      setIsLoggedIn(true); // Đánh dấu quá trình xác thực đã hoàn tất
+      setIsLoggedIn(true);
     }
   }, [user]);
 
   useEffect(() => {
     if (isLoggedIn && !user) {
-      router.push("/login"); // Chuyển hướng nếu không có user
+      router.push("/login");
     }
   }, [isLoggedIn, user, router]);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/me`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch bookings");
-        }
-
-        const data = await response.json();
-        setBookings(data);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-        setError("Không thể tải danh sách đặt phòng");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBookings();
-  }, []);
 
   const viewBookingDetails = (bookingId: string) => {
     router.push(`/bookings/${bookingId}`);
@@ -79,7 +68,7 @@ export default function BookingsPage() {
 
   const filterBookings = (status: BookingStatus | "all") => {
     if (status === "all") return bookings;
-    return bookings.filter((booking) => booking.status === status);
+    return bookings.filter((booking: BookingWithHomestay) => booking.status === status);
   };
 
   const paginateBookings = (
@@ -93,20 +82,17 @@ export default function BookingsPage() {
   };
 
   useEffect(() => {
-    // Reset to first page when changing tabs
     setCurrentPage(1);
   }, [useSearchParams().get("tab")]);
 
   if (isLoading) {
-    return (
-      <Loading />
-    );
+    return <Loading />;
   }
 
   if (error) {
     return (
       <div className="container mx-auto py-10 text-center">
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className="text-red-500 mb-4">{(error as Error).message || "Không thể tải danh sách đặt phòng"}</p>
         <Button onClick={() => router.refresh()}>Thử lại</Button>
       </div>
     );
@@ -119,18 +105,18 @@ export default function BookingsPage() {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="all">All Bookings</TabsTrigger>
-          <TabsTrigger value={BookingStatus.UPCOMING}>Upcoming</TabsTrigger>
           <TabsTrigger value={BookingStatus.COMPLETED}>Completed</TabsTrigger>
           <TabsTrigger value={BookingStatus.CANCELLED}>Cancelled</TabsTrigger>
           <TabsTrigger value={BookingStatus.PENDING}>Pending</TabsTrigger>
+          <TabsTrigger value={BookingStatus.PAID}>Paid</TabsTrigger>
         </TabsList>
 
         {[
           "all",
-          BookingStatus.UPCOMING,
           BookingStatus.COMPLETED,
           BookingStatus.CANCELLED,
           BookingStatus.PENDING,
+          BookingStatus.PAID,
         ].map((status) => {
           const filteredBookings = filterBookings(status as BookingStatus | "all");
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);

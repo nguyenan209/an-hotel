@@ -259,6 +259,8 @@ enum BookingStatus {
   CANCELLED
   NO_SHOW
   PAID
+  UPCOMING
+  REFUNDED
 }
 
 enum PaymentStatus {
