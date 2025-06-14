@@ -92,6 +92,10 @@ export default function OwnerLoginPage() {
       setIsLoading(false);
     }
   };
+    
+  const handleGoHome = () => {
+    router.push("/");
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -107,14 +111,28 @@ export default function OwnerLoginPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/50"></div>
       </div>
 
-      {/* Back to home link */}
-      <Link
-        href="/"
-        className="absolute top-6 left-6 z-20 inline-flex items-center text-white/80 hover:text-white transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Về trang chủ
-      </Link>
+      {/* Navigation */}
+      <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => window.history.back()}
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Quay lại</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleGoHome}
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
+        >
+          <Home className="h-5 w-5" />
+          <span>Trang chủ</span>
+        </Button>
+      </div>
 
       {/* Content Overlay */}
       <div className="relative z-10 min-h-screen flex items-center justify-between px-8 lg:px-16">
