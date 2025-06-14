@@ -102,7 +102,7 @@ export function AuthForm({ type }: AuthFormProps) {
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{
-          backgroundImage: "url('/images/login-page.png')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1604762512566-f0be0fd668ff?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
           backgroundSize: "object-fit",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -124,7 +124,7 @@ export function AuthForm({ type }: AuthFormProps) {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-center w-full h-full px-4">
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-end w-full h-full px-[100px]">
         {/* Left column - Welcome content */}
         <div className="hidden md:flex flex-col text-white max-w-md px-8 mb-10 md:mb-0">
           <h1 className="text-4xl font-bold mb-4">

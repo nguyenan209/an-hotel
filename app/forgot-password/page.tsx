@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -63,15 +64,16 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-r from-pink-500/20 to-pink-700/30">
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center z-0"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2053&q=80')",
-          backgroundBlendMode: "overlay",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40" />
+      {/* Background Image - Lakeside Villa có bầu trời rộng bên phải */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/forgotpassword.jpg"
+          alt="Lakeside landscape"
+          fill
+          className="object-cover object-[center_30%]"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/50"></div>
       </div>
 
       {/* Navigation */}
@@ -98,7 +100,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-center w-full h-full px-4">
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-start w-full h-full px-[100px]">
         {/* Left column - Info content */}
         <div className="hidden md:flex flex-col text-white max-w-md px-8 mb-10 md:mb-0">
           <h1 className="text-4xl font-bold mb-4">Khôi phục mật khẩu</h1>

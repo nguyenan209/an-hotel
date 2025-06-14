@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Eye,
   EyeOff,
-  Home,
+  Shield,
   ArrowLeft,
   Facebook,
   Twitter,
@@ -20,19 +20,17 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
 
-export default function OwnerLoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { login } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -44,10 +42,8 @@ export default function OwnerLoginPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email là bắt buộc";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ";
+    if (!formData.username.trim()) {
+      newErrors.username = "Username là bắt buộc";
     }
 
     if (!formData.password) {
@@ -70,21 +66,16 @@ export default function OwnerLoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-      const result = await res.json();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      if (res.ok) {
-        login(result.user, result.token);
-        router.push("/owner");
+      if (formData.username === "admin" && formData.password === "admin123") {
+        localStorage.setItem(
+          "adminAuth",
+          JSON.stringify({ username: formData.username, role: "admin" })
+        );
+        router.push("/admin");
       } else {
-        setErrors({ submit: result.message || "Email hoặc mật khẩu không đúng" });
+        setErrors({ submit: "Username hoặc mật khẩu không đúng" });
       }
     } catch (error) {
       setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" });
@@ -98,10 +89,10 @@ export default function OwnerLoginPage() {
       {/* Background Image - Lakeside Villa có bầu trời rộng bên phải */}
       <div className="absolute inset-0">
         <Image
-          src="/images/owner-login.jpg"
+          src="/images/admin-login.jpg"
           alt="Lakeside landscape"
           fill
-          className="object-cover object-[center_30%]"
+          className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/50"></div>
@@ -123,22 +114,22 @@ export default function OwnerLoginPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                <Home className="h-5 w-5 text-white" />
+                <Shield className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold">HomeStay</h1>
+              <h1 className="text-xl font-bold">HomeStay Admin</h1>
             </div>
           </div>
 
           <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            Welcome
+            Admin
             <br />
-            Back
+            Portal
           </h2>
 
           <p className="text-lg text-white/90 mb-8 leading-relaxed max-w-md">
-            Quản lý homestay của bạn một cách dễ dàng và hiệu quả. Theo dõi đặt
-            phòng, khách hàng và doanh thu mọi lúc mọi nơi với hệ thống quản lý
-            thông minh.
+            Quản lý toàn bộ hệ thống HomeStay với quyền hạn cao nhất. Theo dõi
+            người dùng, phê duyệt homestay và phân tích dữ liệu một cách toàn
+            diện.
           </p>
 
           {/* Social Media Icons */}
@@ -158,31 +149,33 @@ export default function OwnerLoginPage() {
           </div>
         </div>
 
-        {/* Right Side - Login Form với background tối hơn */}
+        {/* Right Side - Login Form với size nhỏ hơn */}
         <div className="flex-1 max-w-sm ml-8">
           {/* Thêm backdrop tối cho khu vực form */}
           <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
             <div className="text-white mb-6">
-              <h3 className="text-2xl font-bold mb-2">Sign in</h3>
+              <h3 className="text-2xl font-bold mb-2">Admin Sign in</h3>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/90 text-sm">
-                  Email Address
+                <Label htmlFor="username" className="text-white/90 text-sm">
+                  Username
                 </Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="owner@homestay.com"
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) =>
+                    handleInputChange("username", e.target.value)
+                  }
+                  placeholder="admin"
                   className={`h-10 bg-white border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-pink-400 ${
-                    errors.email ? "ring-2 ring-red-500" : ""
+                    errors.username ? "ring-2 ring-red-500" : ""
                   }`}
                 />
-                {errors.email && (
-                  <p className="text-red-300 text-sm">{errors.email}</p>
+                {errors.username && (
+                  <p className="text-red-300 text-sm">{errors.username}</p>
                 )}
               </div>
 
@@ -266,37 +259,31 @@ export default function OwnerLoginPage() {
 
               <div className="text-center">
                 <p className="text-white/70 text-xs leading-relaxed">
-                  By clicking on "Sign in now" you agree to{" "}
+                  Chỉ dành cho quản trị viên hệ thống{" "}
                   <Link
                     href="/terms"
                     className="text-pink-200 underline hover:text-pink-100"
                   >
                     Terms of Service
-                  </Link>{" "}
-                  |{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-pink-200 underline hover:text-pink-100"
-                  >
-                    Privacy Policy
                   </Link>
                 </p>
               </div>
-            </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-white/80 mb-3 text-sm">
-                Chưa có tài khoản Host?
-              </p>
-              <Link href="/host/register">
-                <Button
-                  variant="outline"
-                  className="w-full h-10 border-2 border-pink-300/50 text-pink-200 bg-transparent hover:bg-pink-500/20 hover:border-pink-300 font-semibold transition-all duration-200"
-                >
-                  Đăng ký trở thành Host
-                </Button>
-              </Link>
-            </div>
+              {/* Demo credentials */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                <p className="text-white/90 text-sm font-semibold mb-2">
+                  Demo Credentials:
+                </p>
+                <div className="text-white/80 text-xs space-y-1">
+                  <p>
+                    <strong>Username:</strong> admin
+                  </p>
+                  <p>
+                    <strong>Password:</strong> admin123
+                  </p>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
