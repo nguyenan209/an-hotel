@@ -121,7 +121,7 @@ export function BookingSummary({ items, totalPrice }: BookingSummaryProps) {
 
       <div className="flex justify-between text-xl font-bold mb-3 text-gray-800 bg-white p-3 rounded-lg border border-gray-200">
         <span>Tổng cộng:</span>
-        <span className="text-blue-600">{formatCurrency(totalPrice)}</span>
+        <span className="text-pink-600">{formatCurrency(totalPrice)}</span>
       </div>
 
       <div className="text-center text-sm text-gray-500 bg-gray-100 p-2 rounded-md">

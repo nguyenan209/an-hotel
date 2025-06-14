@@ -88,8 +88,9 @@ export function calculateCartTotal(
     nights: number;
   }>
 ): number {
+  console.log("cartItems", cartItems);
   return cartItems.reduce((total, cartItem) => {
-    const itemTotal = cartItem.rooms
+    const itemTotal = cartItem.rooms?.length
       ? cartItem.rooms.reduce(
           (roomTotal, room) => roomTotal + room.price * cartItem.nights,
           0
