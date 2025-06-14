@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/cron/update-booking-status",
+      "path": "/api/crontab/update-booking-status",
       "schedule": "* * * * *"
     }
   ]
