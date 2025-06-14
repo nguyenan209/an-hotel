@@ -77,7 +77,6 @@ export function getTokenData(request: NextRequest) {
 
     // Giải mã token bằng secret key
     const decoded = verify(token, process.env.NEXT_PUBLIC_JWT_SECRET || "default_secret") as Token;
-    console.log("decoded", decoded);
     return decoded; // Trả về thông tin từ token
   } catch (error) {
     console.error("Error decoding token:", error);

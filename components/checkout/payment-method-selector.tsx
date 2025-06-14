@@ -14,7 +14,7 @@ import { QRPaymentPopup } from "@/components/checkout/qr-payment-popup";
 import { PaymentMethod } from "@prisma/client";
 import { BookingPayload } from "@/lib/types";
 import { useCartStore } from "@/lib/store/cartStore";
-import { calculateCartTotal } from "@/lib/utils";
+import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 
 // Khởi tạo Stripe với public key
 const stripePromise = loadStripe(
@@ -38,6 +38,7 @@ export function PaymentMethodSelector({
   const [amountInUSD, setAmountInUSD] = useState<number>(0);
   const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(false);
   const { toast } = useToast();
+  const { items } = useCartStore();
   const totalPrice = useCartStore((state) => state.getTotalPrice());
 
   // Tạo payment intent khi chọn phương thức thanh toán thẻ
@@ -50,6 +51,11 @@ export function PaymentMethodSelector({
       const createPaymentIntent = async () => {
         setIsLoadingClientSecret(true);
         try {
+          const cartItemIds = items.map((item) => item.id);
+          const bookingNumber = generateBookingNumber({
+            cartItemIds,
+          });
+
           // Gọi API để tạo payment intent
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-payment-intent`,
@@ -60,6 +66,11 @@ export function PaymentMethodSelector({
               },
               body: JSON.stringify({
                 amount: totalPrice,
+                metadata: {
+                  cartItemIds,
+                  type: PaymentMethod.CREDIT_CARD,
+                  paymentSessionId: bookingNumber,
+                },
               }),
             }
           );

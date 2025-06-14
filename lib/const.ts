@@ -1,1 +1,2 @@
 export const CHANNEL_PAYMENT_CONFIRM="payment-process"
+export const STRIPE_PAYMENT_INTENT_TYPE="PAYMENT_FOR_BOOKING"
