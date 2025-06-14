@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Home, Mail, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -15,19 +16,43 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Gửi email thất bại");
+      }
       setSent(true);
-    }, 2000);
+      toast.success("Đã gửi email khôi phục mật khẩu!");
+    } catch (err: any) {
+      toast.error(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Gửi lại email thất bại");
+      }
+      toast.success("Đã gửi lại email khôi phục!");
+    } catch (err: any) {
+      toast.error(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (

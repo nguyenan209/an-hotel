@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Home,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import jwt from "jsonwebtoken";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -27,21 +28,38 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const { token } = useParams();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   // Validate token on mount
   useEffect(() => {
     const validateToken = async () => {
-      // In a real app, you would verify the token with your API
-      // For demo, we'll simulate a token check
-      setTimeout(() => {
-        if (token && token.length > 10) {
-          setTokenValid(true);
-        } else {
-          setTokenValid(false);
-          setError("Link khôi phục mật khẩu không hợp lệ hoặc đã hết hạn");
+      if (!token) {
+        setTokenValid(false);
+        setError("Link khôi phục mật khẩu không hợp lệ");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/auth/verify-reset-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Token không hợp lệ");
         }
-      }, 1000);
+
+        setTokenValid(true);
+      } catch (error) {
+        setTokenValid(false);
+        setError(error instanceof Error ? error.message : "Link khôi phục mật khẩu không hợp lệ hoặc đã hết hạn");
+      }
     };
 
     validateToken();
@@ -77,9 +95,22 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      // In a real app, you would call your API to reset the password
-      // For demo, we'll simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Có lỗi xảy ra khi đặt lại mật khẩu");
+      }
 
       setSuccess(true);
 
@@ -88,7 +119,7 @@ export default function ResetPasswordPage() {
         router.push("/login");
       }, 3000);
     } catch (err) {
-      setError("Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại.");
+      setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }

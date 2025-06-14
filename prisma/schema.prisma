@@ -39,6 +39,7 @@ model User {
   HelpfulReviews    HelpfulReview[]
   ReviewReports     ReviewReport[]
   hostRegistrations HostRegistration[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 enum UserRole {
@@ -669,4 +670,14 @@ model HostPayment {
   status          HostPaymentTransactionStatus @default(PENDING)
   createdAt       DateTime                     @default(now())
   metadata        Json?
+}
+
+model PasswordResetToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  token      String   @unique
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
