@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
       }
 
       try {
-        const response = await fetch("/api/auth/verify-reset-token", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify-reset-token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -139,22 +139,26 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Navigation */}
-      <div className="absolute top-6 left-6 right-6 z-10 flex justify-between items-center">
-        <button
+      <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
+        <Button
+          type="button"
+          variant="ghost"
           onClick={() => window.history.back()}
-          className="text-white hover:text-pink-200 transition-colors flex items-center gap-2"
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Quay lại</span>
-        </button>
+        </Button>
 
-        <button
-          onClick={() => (window.location.href = "/")}
-          className="text-white hover:text-pink-200 transition-colors flex items-center gap-2"
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => router.push("/")}
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
         >
           <Home className="h-5 w-5" />
           <span>Trang chủ</span>
-        </button>
+        </Button>
       </div>
 
       {/* Main content */}

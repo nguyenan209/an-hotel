@@ -7,11 +7,13 @@ import { ArrowLeft, Home, Mail, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+    const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +56,10 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   };
+  
+  const handleGoHome = () => {
+    router.push("/");
+  };
 
   return (
     <div className="fixed inset-0 bg-gradient-to-r from-pink-500/20 to-pink-700/30">
@@ -69,22 +75,26 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Navigation */}
-      <div className="absolute top-6 left-6 right-6 z-10 flex justify-between items-center">
-        <button
+      <div className="fixed top-6 left-6 right-6 z-50 flex justify-between items-center">
+        <Button
+          type="button"
+          variant="ghost"
           onClick={() => window.history.back()}
-          className="text-white hover:text-pink-200 transition-colors flex items-center gap-2"
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Quay lại</span>
-        </button>
+        </Button>
 
-        <button
-          onClick={() => (window.location.href = "/")}
-          className="text-white hover:text-pink-200 transition-colors flex items-center gap-2"
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleGoHome}
+          className="text-white hover:text-pink-200 hover:bg-white/10 transition-colors flex items-center gap-2 px-3 py-2"
         >
           <Home className="h-5 w-5" />
           <span>Trang chủ</span>
-        </button>
+        </Button>
       </div>
 
       {/* Main content */}
