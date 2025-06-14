@@ -268,21 +268,6 @@ export default function AdminLoginPage() {
                   </Link>
                 </p>
               </div>
-
-              {/* Demo credentials */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                <p className="text-white/90 text-sm font-semibold mb-2">
-                  Demo Credentials:
-                </p>
-                <div className="text-white/80 text-xs space-y-1">
-                  <p>
-                    <strong>Username:</strong> admin
-                  </p>
-                  <p>
-                    <strong>Password:</strong> admin123
-                  </p>
-                </div>
-              </div>
             </form>
           </div>
         </div>
