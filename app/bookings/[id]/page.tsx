@@ -40,7 +40,6 @@ import { calculateNights, CANCELLATION_POLICIES } from "@/lib/utils";
 import moment from "moment";
 import { BookingStatus } from "@prisma/client";
 import Loading from "@/components/loading";
-import { ReviewSection } from "@/components/review/review-section";
 import { ReviewForm } from "@/components/review/review-form";
 import { ComplaintForm } from "@/components/complaint/complaint-form";
 import { useAuth } from "@/context/AuthContext";
@@ -52,10 +51,6 @@ export default function BookingDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [userReview, setUserReview] = useState<AdminReviewsResponse | null>(
-    null
-  ); // Lưu review của người dùng
-  const [hasReviewed, setHasReviewed] = useState(false);
   const [isComplaintDialogOpen, setIsComplaintDialogOpen] = useState(false);
   const { user, isLoggedIn } = useAuth();
   const [hasComplaint, setHasComplaint] = useState(false);
@@ -80,24 +75,6 @@ export default function BookingDetailsPage() {
 
         const data = await response.json();
         setBooking(data);
-
-        // Fetch review của người dùng cho homestay này
-        const reviewResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/review?homestayId=${data.homestayId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (reviewResponse.ok) {
-          const reviewData = await reviewResponse.json();
-
-          setUserReview(reviewData); // Lưu review nếu trạng thái là APPROVED
-          setHasReviewed(true);
-        }
       } catch (error) {
         console.error("Failed to fetch booking or review details:", error);
       } finally {
@@ -114,7 +91,9 @@ export default function BookingDetailsPage() {
     const checkComplaint = async () => {
       if (!isLoggedIn || !user?.customerId || !booking) return;
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/complaints?bookingId=${booking.id}&customerId=${user.customerId}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/complaints?bookingId=${booking.id}&customerId=${user.customerId}`
+        );
         if (res.ok) {
           const data = await res.json();
           setHasComplaint(data.complaints && data.complaints.length > 0);
@@ -342,19 +321,24 @@ export default function BookingDetailsPage() {
               <ContactHostButton
                 hostPhone={booking.homestay.owner.phone || ""}
               />
-              {booking && (hasComplaint ? (
-                <Button variant="outline" className="w-full flex items-center" disabled>
-                  <AlertCircle className="mr-2 h-4 w-4" /> Đã gửi khiếu nại
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="w-full flex items-center"
-                  onClick={() => setIsComplaintDialogOpen(true)}
-                >
-                  <AlertCircle className="mr-2 h-4 w-4" /> Report an Issue
-                </Button>
-              ))}
+              {booking &&
+                (hasComplaint ? (
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center"
+                    disabled
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" /> Đã gửi khiếu nại
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center"
+                    onClick={() => setIsComplaintDialogOpen(true)}
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" /> Report an Issue
+                  </Button>
+                ))}
             </CardFooter>
           </Card>
 
@@ -433,9 +417,12 @@ export default function BookingDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-            {/* Complaint Dialog */}
-            <Dialog open={isComplaintDialogOpen} onOpenChange={setIsComplaintDialogOpen}>
+
+      {/* Complaint Dialog */}
+      <Dialog
+        open={isComplaintDialogOpen}
+        onOpenChange={setIsComplaintDialogOpen}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center">
@@ -443,7 +430,8 @@ export default function BookingDetailsPage() {
               Report an Issue
             </DialogTitle>
             <DialogDescription>
-              Please provide details about the issue you're experiencing with your booking.
+              Please provide details about the issue you're experiencing with
+              your booking.
             </DialogDescription>
           </DialogHeader>
 
