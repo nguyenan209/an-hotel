@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatDateWithTime } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 
@@ -173,7 +173,7 @@ export default function ComplaintDetailPage() {
             >
               {complaint?.customer?.user?.name || "-"}
             </Link>{" "}
-            on {formatDate(complaint?.createdAt)}
+            on {formatDateWithTime(complaint?.createdAt)}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -235,11 +235,11 @@ export default function ComplaintDetailPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-in</p>
-                    <p className="text-sm">{complaint?.booking?.checkIn}</p>
+                    <p className="text-sm">{complaint?.booking?.checkIn ? formatDate(complaint.booking.checkIn) : "-"}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-out</p>
-                    <p className="text-sm">{complaint?.booking?.checkOut}</p>
+                    <p className="text-sm">{complaint?.booking?.checkOut ? formatDate(complaint.booking.checkOut) : "-"}</p>
                   </div>
                 </div>
               </div>

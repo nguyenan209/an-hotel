@@ -28,6 +28,18 @@ export function formatDate(dateString: string | Date): string {
   }).format(date);
 }
 
+export function formatDateWithTime(dateString: string | Date): string {
+  const date = typeof dateString === "string" ? new Date(dateString) : dateString;
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  }).format(date);
+}
+
 export const debounceSearch = (fn: (query: string) => void, delay: number) => {
   let timeoutId: NodeJS.Timeout;
   return (query: string) => {
