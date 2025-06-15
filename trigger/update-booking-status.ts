@@ -5,8 +5,8 @@ import { PrismaClient } from "@prisma/client";
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
-export const firstScheduledTask = schedules.task({
-  id: "first-scheduled-task",
+export const updateBookingStatus = schedules.task({
+  id: "update-booking-status",
   // Every hour
   cron: "0 14 * * *",
   // Set an optional maxDuration to prevent tasks from running indefinitely
