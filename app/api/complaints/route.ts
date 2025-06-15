@@ -50,12 +50,24 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    let customerId = searchParams.get("customerId");
     const bookingId = searchParams.get("bookingId");
-    const customerId = searchParams.get("customerId");
+    // Nếu không truyền customerId thì lấy từ token
+    if (!customerId) {
+      const decoded = getTokenData(req);
+      customerId = decoded?.customerId ?? null;
+    }
     const where: any = {};
     if (bookingId) where.bookingId = bookingId;
     if (customerId) where.customerId = customerId;
-    const complaints = await prisma.complaint.findMany({ where });
+    const complaints = await prisma.complaint.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        booking: { select: { id: true, homestay: { select: { name: true } } } },
+        responses: { orderBy: { createdAt: "asc" } },
+      },
+    });
     return NextResponse.json({ complaints });
   } catch (error) {
     console.error("Get complaints error:", error);
