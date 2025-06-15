@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { CheckCircle, Eye, Filter, Search, Star, Trash, X } from "lucide-react";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { AdminReviewsResponse } from "@/lib/types";
 import { ReviewStatus } from "@prisma/client";
 import { debounce } from "lodash";
 import {
@@ -35,162 +35,134 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+interface Review {
+  id: string;
+  homestayId: string;
+  homestay: {
+    id: string;
+    name: string;
+    address: string;
+    images: string[];
+  };
+  customerId: string;
+  customer: {
+    id: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+    };
+  };
+  rating: number;
+  comment: string;
+  status: ReviewStatus;
+  createdAt: string;
+  ownerReply: string | null;
+  ownerReplyDate: string | null;
+}
+
+interface ReviewsResponse {
+  reviews: Review[];
+  hasMore: boolean;
+}
 
 export default function ReviewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [ratingFilter, setRatingFilter] = useState("all");
-  const [reviews, setReviews] = useState<AdminReviewsResponse[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [replyText, setReplyText] = useState("");
 
-  // Debounce logic
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        setDebouncedSearchQuery(query);
-      }, 300), // Delay 300ms
-    []
-  );
+  const queryClient = useQueryClient();
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    debouncedSearch(e.target.value);
-  };
-
-  const fetchReviews = async (skip = 0, append = false) => {
-    try {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+  } = useInfiniteQuery<ReviewsResponse>({
+    queryKey: ["owner-reviews", searchQuery, statusFilter, ratingFilter],
+    queryFn: async ({ pageParam = 0 }) => {
       const response = await fetch(
-        `/api/admin/reviews?search=${debouncedSearchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${skip}&limit=10`
+        `/api/owner/reviews?search=${searchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${pageParam}&limit=10`
       );
-
       if (!response.ok) {
         throw new Error("Failed to fetch reviews");
       }
+      return response.json();
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => {
+      if (!lastPage.hasMore) return undefined;
+      return pages.length * 10;
+    },
+  });
 
-      const data = await response.json();
-      setReviews((prev) => {
-        if (!append) {
-          // Khi append = false, thay thế toàn bộ danh sách reviews
-          return data.reviews;
-        }
-
-        // Khi append = true, thêm các bản ghi mới vào danh sách hiện tại
-        const reviewIds = new Set(prev.map((review) => review.id));
-        const uniqueReviews = data.reviews.filter(
-          (review: AdminReviewsResponse) => !reviewIds.has(review.id)
-        );
-
-        return [...prev, ...uniqueReviews];
-      });
-      setHasMore(data.hasMore);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load reviews");
-    }
-  };
-
-  useEffect(() => {
-    const fetchWithDebounce = async () => {
-      console.log("Debounced Search Query:", debouncedSearchQuery);
-      // Xóa danh sách reviews trước khi gọi API mới
-      setReviews([]);
-      setHasMore(true);
-      await fetchReviews(0, false);
-    };
-
-    fetchWithDebounce();
-  }, [debouncedSearchQuery, statusFilter, ratingFilter]);
-
-  const loadMoreReviews = async () => {
-    if (!hasMore) return;
-
-    const nextSkip = reviews.length;
-    await fetchReviews(nextSkip, true); // Gọi API với skip = reviews.length và append = true
-  };
-  useEffect(() => {
-    console.log("Reviews State:", reviews);
-  }, [reviews]);
-
-  const handleApprove = async (id: string) => {
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
+  const updateReviewMutation = useMutation({
+    mutationFn: async ({ reviewId, ownerReply }: { reviewId: string; ownerReply: string }) => {
+      const response = await fetch("/api/owner/reviews", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: "APPROVED" }),
+        body: JSON.stringify({ reviewId, ownerReply }),
       });
-
       if (!response.ok) {
-        throw new Error("Failed to approve review");
+        throw new Error("Failed to update review");
       }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["owner-reviews"] });
+      setReplyDialogOpen(false);
+      setSelectedReview(null);
+      setReplyText("");
+    },
+  });
 
-      const data = await response.json();
+  const handleSearchChange = debounce((value: string) => {
+    setSearchQuery(value);
+  }, 300);
 
-      // Cập nhật trạng thái review trong state
-      setReviews(
-        reviews.map((review) =>
-          review.id === id ? { ...review, status: data.data.status } : review
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to approve review");
+  const handleReply = (review: Review) => {
+    setSelectedReview(review);
+    setReplyText(review.ownerReply || "");
+    setReplyDialogOpen(true);
+  };
+
+  const handleSubmitReply = () => {
+    if (selectedReview) {
+      updateReviewMutation.mutate({
+        reviewId: selectedReview.id,
+        ownerReply: replyText,
+      });
     }
   };
 
-  const handleFlag = async (id: string) => {
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "REJECTED" }),
-      });
+  const reviews = data?.pages.flatMap((page) => page.reviews) || [];
 
-      if (!response.ok) {
-        throw new Error("Failed to flag review");
-      }
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-      const data = await response.json();
-
-      // Cập nhật trạng thái review trong state
-      setReviews(
-        reviews.map((review) =>
-          review.id === id ? { ...review, status: data.data.status } : review
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to flag review");
-    }
-  };
-
-  const handleRemove = async (id: string) => {
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to remove review");
-      }
-
-      // Xóa review khỏi state
-      setReviews(reviews.filter((review) => review.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Failed to remove review");
-    } finally {
-      setDeleteDialogOpen(false);
-      setHomestayToDelete(null);
-    }
-  };
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -234,7 +206,7 @@ export default function ReviewsPage() {
         <CardHeader>
           <CardTitle>Customer Reviews</CardTitle>
           <CardDescription>
-            Manage and moderate customer reviews for all homestays.
+            Manage and respond to customer reviews for your homestays.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -243,8 +215,7 @@ export default function ReviewsPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search reviews..."
-                value={searchQuery}
-                onChange={handleSearchChange}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-8 max-w-sm"
               />
             </div>
@@ -253,8 +224,8 @@ export default function ReviewsPage() {
           <div className="rounded-md border">
             <InfiniteScroll
               dataLength={reviews.length}
-              next={loadMoreReviews}
-              hasMore={hasMore}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
               loader={<p className="text-center py-4">Loading...</p>}
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
@@ -279,20 +250,19 @@ export default function ReviewsPage() {
                     <TableRow key={review.id}>
                       <TableCell>
                         <Link
-                          href={`/admin/homestays/${review.homestayId}`}
+                          href={`/owner/homestays/${review.homestayId}`}
                           className="text-blue-600 hover:underline"
                         >
                           {review.homestay.name}
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Link
-                          href={`/admin/customers/${review.customerId}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {review.customer.user.name} (
-                          {review.customer.user.email})
-                        </Link>
+                        <div className="flex flex-col">
+                          <span>{review.customer.user.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {review.customer.user.email}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
@@ -300,10 +270,17 @@ export default function ReviewsPage() {
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        <div
-                          dangerouslySetInnerHTML={{ __html: review.comment }}
-                        />
+                      <TableCell className="max-w-xs">
+                        <div className="space-y-2">
+                          <div
+                            dangerouslySetInnerHTML={{ __html: review.comment }}
+                          />
+                          {review.ownerReply && (
+                            <div className="mt-2 text-sm text-muted-foreground">
+                              <strong>Your reply:</strong> {review.ownerReply}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{formatDate(review.createdAt)}</TableCell>
                       <TableCell>
@@ -322,45 +299,13 @@ export default function ReviewsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/admin/reviews/${review.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Button>
-                          </Link>
-                          {review.status === ReviewStatus.PENDING && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-green-600"
-                              onClick={() => handleApprove(review.id)}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              <span className="sr-only">Approve</span>
-                            </Button>
-                          )}
-                          {review.status !== ReviewStatus.REJECTED && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-yellow-600"
-                              onClick={() => handleFlag(review.id)}
-                            >
-                              <X className="h-4 w-4" />
-                              <span className="sr-only">Rejected</span>
-                            </Button>
-                          )}
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-600"
-                            onClick={() => {
-                              setHomestayToDelete(review.id);
-                              setDeleteDialogOpen(true);
-                            }}
+                            onClick={() => handleReply(review)}
                           >
-                            <Trash className="h-4 w-4" />
-                            <span className="sr-only">Remove</span>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Reply</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -372,17 +317,53 @@ export default function ReviewsPage() {
           </div>
         </CardContent>
       </Card>
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDeleteDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setHomestayToDelete(null);
-        }}
-        onConfirm={() => homestayToDelete && handleRemove(homestayToDelete)}
-        itemName="this homestay"
-        isDeleting={false}
-      />
+
+      {/* Reply Dialog */}
+      <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reply to Review</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Customer Review:</h4>
+              <div
+                className="text-sm text-muted-foreground"
+                dangerouslySetInnerHTML={{
+                  __html: selectedReview?.comment || "",
+                }}
+              />
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Your Reply:</h4>
+              <Textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Write your reply here..."
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReplyDialogOpen(false);
+                  setSelectedReview(null);
+                  setReplyText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitReply}
+                disabled={updateReviewMutation.isPending}
+              >
+                {updateReviewMutation.isPending ? "Sending..." : "Send Reply"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
