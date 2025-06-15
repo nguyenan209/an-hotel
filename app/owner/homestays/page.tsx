@@ -29,10 +29,9 @@ import {
 } from "@/components/ui/table";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import Loading from "@/components/loading";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AdminHomestayRepsonse } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function HomestaysPage() {
   const [homestays, setHomestays] = useState<AdminHomestayRepsonse[]>([]);
@@ -45,7 +44,6 @@ export default function HomestaysPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // State cho debounce
-  const { toast } = useToast();
 
   // Xử lý debounce cho searchQuery
   useEffect(() => {
@@ -61,11 +59,8 @@ export default function HomestaysPage() {
   const fetchHomestays = async (reset = false) => {
     try {
       setLoading(true);
-
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${searchQuery}&status=${statusFilter}&skip=${
-          reset ? 0 : skip
-        }&limit=${itemsPerPage}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/homestays?search=${searchQuery}&status=${statusFilter}&skip=${reset ? 0 : skip}&limit=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -73,13 +68,10 @@ export default function HomestaysPage() {
           },
         }
       );
-
       if (!response.ok) {
         throw new Error("Failed to fetch homestays");
       }
-
       const data = await response.json();
-
       setHomestays((prev) =>
         reset ? data.homestays : [...prev, ...data.homestays]
       );
@@ -88,11 +80,7 @@ export default function HomestaysPage() {
         reset ? data.homestays.length : prev + data.homestays.length
       );
     } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load homestays",
-      });
+      toast.error("Failed to load homestays");
     } finally {
       setLoading(false);
     }
@@ -122,16 +110,9 @@ export default function HomestaysPage() {
 
       setHomestays((prev) => prev.filter((h) => h.id !== homestayId));
 
-      toast({
-        title: "Success",
-        description: result.message,
-      });
+      toast.success(result.message);
     } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete homestay",
-      });
+      toast.error("Failed to delete homestay");
     } finally {
       setDeleteDialogOpen(false);
       setHomestayToDelete(null);
