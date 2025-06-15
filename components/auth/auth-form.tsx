@@ -68,7 +68,15 @@ export function AuthForm({ type }: AuthFormProps) {
         }
 
         login(result.user, result.token);
-        router.push("/");
+        
+        // Redirect based on user role
+        if (result.user.role === "OWNER") {
+          router.push("/owner");
+        } else if (result.user.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       } else {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
           method: "POST",

@@ -22,29 +22,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const setAuthState = useCartStore((state) => state.setAuthState);
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Thêm state isLoading
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Kiểm tra token trong cookies khi ứng dụng khởi chạy
   useEffect(() => {
     const token = Cookies.get("token");
+    const userCookie = Cookies.get("user");
 
-    if (token) {
-      const customerId = Cookies.get("customerId");
-      setIsLoggedIn(true);
-      setUser(JSON.parse(Cookies.get("user") || "{}"));
-      setCustomerId(customerId || null);
-      setAuthState(true, customerId || null);
+    if (token && userCookie) {
+      try {
+        const userData = JSON.parse(userCookie);
+        console.log("User data from cookie:", userData);
+        setIsLoggedIn(true);
+        setUser(userData);
+        setCustomerId(userData.customerId || null);
+        setAuthState(true, userData.customerId || null);
+      } catch (error) {
+        console.error("Error parsing user cookie:", error);
+      }
     }
     setIsLoading(false);
   }, [setAuthState]);
 
   const login = (user: Token, token: string) => {
+    console.log("Login with user data:", user);
     setUser(user);
     setIsLoggedIn(true);
-    setCustomerId(user.id);
+    setCustomerId(user.customerId);
     Cookies.set("user", JSON.stringify(user), { expires: 7, path: "/" });
     Cookies.set("token", token, { expires: 7, path: "/" });
-    Cookies.set("customerId", user.id, { expires: 7, path: "/" });
+    Cookies.set("customerId", user.customerId, { expires: 7, path: "/" });
   };
 
   const logout = () => {

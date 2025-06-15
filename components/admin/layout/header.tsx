@@ -25,7 +25,7 @@ interface HeaderProps {
 
 export function Header({ title = "Dashboard" }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
-
+  
   return (
     <header className="w-full border-b bg-white sticky top-0 z-40 flex h-14 items-center gap-4 px-4 sm:px-6">
       <div className="flex items-center gap-2 lg:hidden">

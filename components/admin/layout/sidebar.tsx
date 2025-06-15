@@ -75,7 +75,7 @@ export function Sidebar({ className }: SidebarProps) {
     {
       label: "Dashboard",
       icon: LayoutDashboard,
-      href: pathname === "/owner" ? "/owner" : "/admin",
+      href: pathname.startsWith("/owner") ? "/owner" : "/admin",
       active: pathname === "/owner" || pathname === "/admin",
     },
     {
@@ -187,7 +187,7 @@ export function Sidebar({ className }: SidebarProps) {
       >
         <div className="flex h-14 items-center border-b px-4">
           {!isCollapsed && (
-            <Link href="/admin" className="flex items-center gap-2 font-semibold">
+            <Link href={pathname.startsWith("/owner") ? "/owner" : "/admin"} className="flex items-center gap-2 font-semibold">
               <Hotel className="h-6 w-6" />
               <span className="font-bold text-xl">HomeStay</span>
             </Link>
