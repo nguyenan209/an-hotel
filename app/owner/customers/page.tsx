@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Edit, Plus, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,81 +33,140 @@ import {
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatDate, getStatusColor } from "@/lib/utils";
 import Loading from "@/components/loading";
+import {
+  Dialog,
+  DialogFooter,
+  DialogTitle,
+  DialogContent,
+  DialogHeader,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+type Customer = {
+  id: string;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+    status: string;
+  };
+  totalBookings: number;
+  createdAt: string;
+};
+
+type CustomersResponse = {
+  customers: Customer[];
+  hasMore: boolean;
+};
+
+async function fetchCustomers({
+  search,
+  status,
+  skip,
+  limit,
+}: {
+  search: string;
+  status: string;
+  skip: number;
+  limit: number;
+}): Promise<CustomersResponse> {
+  const params = new URLSearchParams({
+    search: search || "",
+    status: status || "all",
+    skip: skip.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers?${params}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch customers");
+  }
+  return response.json();
+}
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<
-    {
-      id: string;
-      user: { name: string; email: string; phone: string; status: string };
-      totalBookings: number;
-      createdAt: string;
-    }[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null
+  );
 
-  const fetchCustomers = async (reset = false) => {
-    if (isLoading || isLoadingMore) return;
+  const limit = 10;
 
-    if (reset) {
-      setPage(1);
-      setHasMore(true);
-    }
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<CustomersResponse>({
+    queryKey: ["customers", searchQuery, statusFilter],
+    queryFn: ({ pageParam = 0 }) =>
+      fetchCustomers({
+        search: searchQuery,
+        status: statusFilter,
+        skip: (pageParam as number) * limit,
+        limit,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasMore) return undefined;
+      return lastPage.customers.length / limit;
+    },
+  });
 
-    const currentPage = reset ? 1 : page;
+  const customers = data?.pages.flatMap((page) => page.customers) || [];
 
+  const loadMoreCustomers = async () => {
+    if (isFetchingNextPage || !hasNextPage) return;
+    await fetchNextPage();
+  };
+
+  const queryClient = useQueryClient();
+
+  const handleDeleteCustomer = async (customerId: string) => {
     try {
-      if (reset) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
-
+      setIsDeleting(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/customers?search=${searchQuery}&status=${statusFilter}&page=${currentPage}&limit=10`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers/${customerId}`,
+        {
+          method: "DELETE",
+        }
       );
-      if (!response.ok) {
-        throw new Error("Failed to fetch customers");
-      }
-      const data = await response.json();
 
-      setCustomers((prev) =>
-        reset ? data.customers : [...prev, ...data.customers]
-      );
-      setHasMore(data.customers.length > 0);
+      if (!response.ok) throw new Error("Failed to delete customer");
+
+      // Refetch customers after deletion
+      await queryClient.invalidateQueries({ queryKey: ["customers"] });
+      setDeleteDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
     } catch (error) {
-      console.error("Error fetching customers:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete customer",
+        variant: "destructive",
+      });
     } finally {
-      if (reset) {
-        setIsLoading(false);
-      } else {
-        setIsLoadingMore(false);
-      }
+      setIsDeleting(false);
     }
   };
-
-  useEffect(() => {
-    fetchCustomers(true); // Reset data khi searchQuery hoặc statusFilter thay đổi
-  }, [searchQuery, statusFilter]);
-
-  const loadMore = () => {
-    setPage((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-    if (page > 1) {
-      fetchCustomers();
-    }
-  }, [page]);
 
   if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <Loading />
+        <div>{(error as Error).message || "Failed to load customers"}</div>
       </div>
     );
   }
@@ -114,19 +175,14 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
-        <Link href="/admin/customers/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Customer
-          </Button>
-        </Link>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Manage Customers</CardTitle>
           <CardDescription>
-            You have a total of {customers.length} customers in the system.
+            You have a total of {customers.length} customers who have booked
+            your homestays.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,13 +250,20 @@ export default function CustomersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/admin/customers/${customer.id}`}>
+                          <Link href={`/owner/customers/${customer.id}`}>
                             <Button variant="ghost" size="icon">
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedCustomerId(customer.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
                             <Trash className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
                           </Button>
@@ -213,12 +276,41 @@ export default function CustomersPage() {
             </Table>
           </div>
           <InfiniteScroll
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
+            onLoadMore={loadMoreCustomers}
+            hasMore={hasNextPage || false}
+            isLoading={isFetchingNextPage}
           />
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this customer? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteCustomer(selectedCustomerId!)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

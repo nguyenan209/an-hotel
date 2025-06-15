@@ -8,54 +8,72 @@ export async function GET(req: NextRequest) {
     if (!decoded || !decoded.id || decoded.role !== "OWNER") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    
-    console.log("decoded", decoded);
 
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") || "";
     const skip = parseInt(searchParams.get("skip") || "0", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || "all";
 
+    // Build where clause
     const where: any = {
       ownerId: decoded.id,
-      isDeleted: false,
     };
+
     if (search) {
-      where.name = { contains: search, mode: 'insensitive' };
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { address: { contains: search, mode: "insensitive" } },
+      ];
     }
-    if (status && status !== "all") {
+
+    if (status !== "all") {
       where.status = status;
     }
 
-    const [homestays, total] = await Promise.all([
-      prisma.homestay.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          address: true,
-          price: true,
-          rating: true,
-          status: true,
-          images: true,
+    // Get homestays from database
+    const homestays = await prisma.homestay.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        status: true,
+        createdAt: true,
+        images: true,
+        price: true,
+        _count: {
+          select: {
+            rooms: true,
+            bookings: true,
+          },
         },
-      }),
-      prisma.homestay.count({ where }),
-    ]);
-    
-    console.log("where", where, limit, skip);
-    
-
-    return NextResponse.json({
-      homestays,
-      hasMore: skip + homestays.length < total,
+      },
     });
+
+    // Transform the data to include totalRooms and totalBookings
+    const transformedHomestays = homestays.map(homestay => ({
+      ...homestay,
+      totalRooms: homestay._count.rooms,
+      totalBookings: homestay._count.bookings,
+      _count: undefined
+    }));
+
+    // Count total homestays for pagination
+    const totalHomestays = await prisma.homestay.count({ where });
+    const hasMore = skip + homestays.length < totalHomestays;
+
+    return NextResponse.json({ homestays: transformedHomestays, hasMore });
   } catch (error) {
     console.error("Error fetching owner homestays:", error);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch homestays" },
+      { status: 500 }
+    );
   }
 } 
