@@ -36,29 +36,39 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set('x-user-role', decoded.role);
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
+
   const adminPath = /^\/admin(\/.*)?$/;
+  const ownerPath = /^\/owner(\/.*)?$/;
   const loginPath = '/login';
 
   // Get cookie from the request headers
-  // Replace 'your-auth-cookie-name' with the actual name of your authentication cookie
-  const isAuthenticated = request.cookies.has('token');
+  const token = request.cookies.get('token')?.value;
+  const isAuthenticated = !!token;
 
-  // If the user is trying to access an admin path AND is not authenticated
-  if (request.nextUrl.pathname.match(adminPath) && !isAuthenticated) {
-    // Redirect them to the login page
+  // If not authenticated, redirect to login
+  if (!isAuthenticated && (request.nextUrl.pathname.match(adminPath) || request.nextUrl.pathname.match(ownerPath))) {
     const loginUrl = new URL(loginPath, request.url);
-    // Optional: Add a redirect back parameter so the user is sent to the page they wanted after logging in
-    // loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Allow the request to continue if accessing non-admin paths or is authenticated
+  // If authenticated, check role for owner path
+  if (isAuthenticated && request.nextUrl.pathname.match(ownerPath)) {
+    const decoded = decodeJwt(token);
+    if (!decoded || decoded.role !== 'OWNER') {
+      // Redirect to home page if not an owner
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  // Allow the request to continue if all checks pass
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/admin/:path*', // Apply middleware to all paths under /admin
-    // Add other paths if needed, e.g., '/api/admin/:path*'
+    '/admin/:path*',
+    '/owner/:path*',
+    '/api/:path*'
   ],
 }; 
