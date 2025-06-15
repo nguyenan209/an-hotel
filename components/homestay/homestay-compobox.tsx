@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/context/AuthContext"
 
 interface HomestayOption {
   id: string
@@ -32,36 +33,6 @@ interface FetchHomestaysParams {
   limit?: number;
 }
 
-const fetchHomestays = async (params: FetchHomestaysParams = {}) => {
-  const { search = "", skip = 0, limit = 10 } = params;
-
-  try {
-    // Gọi API thực tế
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${encodeURIComponent(search)}&skip=${skip}&limit=${limit}`
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch homestays");
-    }
-
-    const data = await response.json();
-
-    return {
-      homestays: data.homestays || [],
-      totalItems: data.totalItems || 0,
-      hasMore: data.hasMore || false,
-    };
-  } catch (error) {
-    console.error("Error fetching homestays:", error);
-    return {
-      homestays: [],
-      totalItems: 0,
-      hasMore: false,
-    };
-  }
-};
-
 export function HomestayCombobox({
   value,
   onValueChange,
@@ -72,6 +43,7 @@ export function HomestayCombobox({
   triggerClassName,
   disabled = false,
 }: HomestayComboboxProps) {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [homestays, setHomestays] = useState<HomestayOption[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -176,6 +148,38 @@ export function HomestayCombobox({
     const homestay = homestays.find((h) => h.id === id)
     return homestay ? homestay.name : placeholder
   }
+
+  // fetchHomestays sử dụng user từ closure
+  const fetchHomestays = async (params: FetchHomestaysParams = {}) => {
+    const { search = "", skip = 0, limit = 10 } = params;
+    let url = "";
+    if (user?.role === "OWNER") {
+      url = `${process.env.NEXT_PUBLIC_API_URL}/api/owner/homestays?search=${encodeURIComponent(search)}&skip=${skip}&limit=${limit}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${encodeURIComponent(search)}&skip=${skip}&limit=${limit}`;
+    }
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch homestays");
+      const data = await response.json();
+      return {
+        homestays: data.homestays || [],
+        totalItems: data.totalItems || 0,
+        hasMore: data.hasMore || false,
+      };
+    } catch (error) {
+      console.error("Error fetching homestays:", error);
+      return {
+        homestays: [],
+        totalItems: 0,
+        hasMore: false,
+      };
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

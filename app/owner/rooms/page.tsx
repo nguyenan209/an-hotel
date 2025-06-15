@@ -1,10 +1,16 @@
 "use client";
 
-import { Edit, Loader2, Plus, Trash } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { HomestayCombobox } from "@/components/homestay/homestay-compobox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,109 +35,90 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { getHomestays, getRooms } from "@/lib/data";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import Loading from "@/components/loading";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Edit, Loader2, Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { toast } from "sonner";
 
 export default function RoomsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [homestayFilter, setHomestayFilter] = useState("all");
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchRooms = async (skip = 0, append = false) => {
-    setIsLoading(true);
-    try {
-      const data = await getRooms({
-        search: searchQuery,
-        status: statusFilter,
-        skip,
-        limit: 10,
-      });
-
-      setRooms((prev) => {
-        if (!append) {
-          // Khi append = false, thay thế toàn bộ danh sách rooms
-          return data.rooms;
-        }
-
-        // Khi append = true, thêm các bản ghi mới vào danh sách hiện tại
-        const roomIds = new Set(prev.map((room) => room.id));
-        const uniqueRooms = data.rooms.filter((room) => !roomIds.has(room.id));
-
-        return [...prev, ...uniqueRooms];
-      });
-
-      setHasMore(data.hasMore);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load rooms");
-    } finally {
-      setIsLoading(false);
+  // Fetch rooms with react-query infinite
+  const fetchRooms = async ({ pageParam = 0 }) => {
+    const params = new URLSearchParams({
+      search: searchQuery,
+      status: statusFilter,
+      skip: pageParam.toString(),
+      limit: "10",
+    });
+    if (homestayFilter !== "all") {
+      params.set("homestayId", homestayFilter);
     }
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/owner/rooms?${params.toString()}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Failed to load rooms");
+    }
+    return response.json();
   };
 
-  const loadMoreRooms = async () => {
-    if (!hasMore || isLoading) return;
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["owner-rooms", searchQuery, statusFilter, homestayFilter],
+    queryFn: fetchRooms,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((acc, page) => acc + page.rooms.length, 0);
+      return lastPage.hasMore ? loaded : undefined;
+    },
+    refetchOnWindowFocus: false,
+  });
 
-    const nextSkip = rooms.length;
-    await fetchRooms(nextSkip, true); // Gọi API với skip = rooms.length và append = true
-  };
+  // Flatten rooms
+  const rooms = data?.pages?.flatMap((page) => page.rooms) || [];
 
-  useEffect(() => {
-    fetchRooms(0, false); // Gọi API lần đầu tiên
-  }, [searchQuery, statusFilter]);
-
+  // Handle delete
   const handleDelete = async (roomId: string | null) => {
     if (!roomId) return;
-
     try {
       setIsDeleting(true);
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-
       if (!response.ok) {
         throw new Error("Failed to delete room");
       }
-
-      // Xóa phòng khỏi danh sách hiện tại
-      setRooms((prevRooms) => prevRooms.filter((room) => room.id !== roomId));
-      useToast().toast({
-        title: "Room deleted",
-        description: "The room has been successfully deleted.",
-      });
+      toast.success("Room deleted");
+      // Refetch rooms
+      refetch();
     } catch (error) {
-      console.error("Error deleting room:", error);
-      useToast().toast({
-        title: "Error",
-        description: "Failed to delete the room. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete the room. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -141,7 +128,7 @@ export default function RoomsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Rooms</h2>
-        <Link href="/admin/rooms/new">
+        <Link href="/owner/rooms/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Room
@@ -192,10 +179,10 @@ export default function RoomsPage() {
 
           <div className="rounded-md border">
             <InfiniteScroll
-              dataLength={rooms.length} // Số lượng bản ghi hiện tại
-              next={loadMoreRooms} // Hàm tải thêm dữ liệu
-              hasMore={hasMore} // Xác định có còn dữ liệu để tải không
-              loader={<p className="text-center py-4">Loading...</p>} // Hiển thị khi đang tải
+              dataLength={rooms.length}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              loader={<p className="text-center py-4">Loading...</p>}
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
                   No more rooms to load.
@@ -240,7 +227,7 @@ export default function RoomsPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Link href={`/admin/rooms/${room.id}`}>
+                            <Link href={`/owner/rooms/${room.id}`}>
                               <Button variant="ghost" size="icon">
                                 <Edit className="h-4 w-4" />
                                 <span className="sr-only">Edit</span>
