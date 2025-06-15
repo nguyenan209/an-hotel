@@ -23,12 +23,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   if (pathname.startsWith('/api/')) {
-    const token = request.headers.get('authorization')?.split(' ')[1];
+    // Lấy token từ header hoặc cookie
+    let token = request.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = request.cookies.get('token')?.value;
+    }
     if (!token) {
       return NextResponse.json({ message: 'No token provided' }, { status: 401 });
     }
     const decoded = decodeJwt(token);
-    if (!decoded || !decoded.userId || !decoded.role) {
+    if (!decoded || !decoded.id || !decoded.role) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
     const requestHeaders = new Headers(request.headers);
