@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, MessageSquare, User } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,49 +25,65 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
-import { useParams } from "next/navigation";
-
+import { useAuth } from "@/context/AuthContext";
+import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 
 export default function ComplaintDetailPage() {
     const params = useParams();
     const { id } = params;
-    const [complaint, setComplaint] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [status, setStatus] = useState("");
-    const [priority, setPriority] = useState("");
-    const [assignedTo, setAssignedTo] = useState("");
+    const queryClient = useQueryClient();
     const [newMessage, setNewMessage] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuth();
+    const searchParams = useSearchParams();
+    const showConversation = searchParams.get("chat") === "true";
 
-    useEffect(() => {
-        const fetchComplaint = async () => {
-            setIsLoading(true);
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/complaints/${id}`);
-                if (!res.ok) throw new Error("Failed to fetch complaint");
-                const data = await res.json();
-                setComplaint(data);
-                setStatus(data.status);
-                setPriority(data.priority);
-                setAssignedTo(data.assignedTo || "");
-            } catch (e) {
-                setComplaint(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        if (id) fetchComplaint();
-    }, [id]);
+    const { data: complaint, isLoading } = useQuery({
+        queryKey: ['complaint', id],
+        queryFn: async () => {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}`);
+            if (!res.ok) throw new Error("Failed to fetch complaint");
+            return res.json();
+        }
+    });
+
+    const updateStatusMutation = useMutation({
+        mutationFn: async (newStatus: string) => {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (!res.ok) throw new Error("Failed to update status");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+        }
+    });
+
+    const sendMessageMutation = useMutation({
+        mutationFn: async (message: string) => {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error("Failed to send message");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+            setNewMessage("");
+        }
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open":
+      case ComplaintStatus.OPEN:
         return "bg-red-100 text-red-800";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800";
-      case "resolved":
+      case ComplaintStatus.RESOLVED:
         return "bg-green-100 text-green-800";
-      case "closed":
+      case ComplaintStatus.CLOSED:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -74,11 +92,11 @@ export default function ComplaintDetailPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
+      case ComplaintPriority.HIGH:
         return "bg-red-100 text-red-800";
-      case "medium":
+      case ComplaintPriority.MEDIUM:
         return "bg-yellow-100 text-yellow-800";
-      case "low":
+      case ComplaintPriority.LOW:
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -87,71 +105,52 @@ export default function ComplaintDetailPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "in_progress":
-        return "In Progress";
+      case ComplaintStatus.OPEN:
+        return "Open";
+      case ComplaintStatus.RESOLVED:
+        return "Resolved";
+      case ComplaintStatus.CLOSED:
+        return "Closed";
       default:
         return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
-
-  const handleStatusChange = (newStatus: string) => {
-    setStatus(newStatus);
-    // In a real app, you would call an API to update the complaint status
-  };
-
-  const handlePriorityChange = (newPriority: string) => {
-    setPriority(newPriority);
-    // In a real app, you would call an API to update the complaint priority
-  };
-
-  const handleAssignedToChange = (newAssignedTo: string) => {
-    setAssignedTo(newAssignedTo);
-    // In a real app, you would call an API to update the assigned admin
+  
+  const formatPriority = (priority: string) => {
+    switch (priority) {
+      case ComplaintPriority.HIGH:
+        return "High";
+      case ComplaintPriority.MEDIUM:
+        return "Medium";
+      case ComplaintPriority.LOW:
+        return "Low";
+      default:
+        return priority.charAt(0).toUpperCase() + priority.slice(1);
+    }
   };
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
-
-    setIsSubmitting(true);
-    // In a real app, you would call an API to send the message
-    setTimeout(() => {
-      setNewMessage("");
-      setIsSubmitting(false);
-      // Here you would typically update the messages list with the new message
-      // For this demo, we're just clearing the input
-    }, 1000);
+    sendMessageMutation.mutate(newMessage);
   };
 
   const handleResolve = () => {
-    setIsSubmitting(true);
-    // In a real app, you would call an API to resolve the complaint
-    setTimeout(() => {
-      setStatus("resolved");
-      setIsSubmitting(false);
-    }, 1000);
+    updateStatusMutation.mutate(ComplaintStatus.RESOLVED);
   };
 
   const handleClose = () => {
-    setIsSubmitting(true);
-    // In a real app, you would call an API to close the complaint
-    setTimeout(() => {
-      setStatus("closed");
-      setIsSubmitting(false);
-    }, 1000);
+    updateStatusMutation.mutate(ComplaintStatus.CLOSED);
   };
 
-  // Mock admin list for assignment
-  const adminList = [
-    { id: "admin1", name: "Nguyễn Admin" },
-    { id: "admin2", name: "Trần Quản Lý" },
-    { id: "admin3", name: "Lê Support" },
-  ];
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/admin/complaints">
+          <Link href="/owner/complaints">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Link>
@@ -161,20 +160,20 @@ export default function ComplaintDetailPage() {
           <p className="text-muted-foreground">
             Submitted by{" "}
             <Link
-              href={`/admin/customers/${complaint?.customerId}`}
+              href={`/owner/customers/${complaint?.customerId}`}
               className="text-blue-600 hover:underline"
             >
-              {complaint?.customerName}
+              {complaint?.customer?.user?.name || "-"}
             </Link>{" "}
             on {formatDate(complaint?.createdAt)}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Badge className={getStatusColor(status)}>
-            {formatStatus(status)}
+          <Badge className={getStatusColor(complaint?.status)}>
+            {formatStatus(complaint?.status)}
           </Badge>
-          <Badge className={getPriorityColor(priority)}>
-            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+          <Badge className={getPriorityColor(complaint?.priority)}>
+            {formatPriority(complaint?.priority)}
           </Badge>
         </div>
       </div>
@@ -193,7 +192,10 @@ export default function ComplaintDetailPage() {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Description
                 </h3>
-                <p className="text-base mt-1">{complaint?.description}</p>
+                <div
+                  className="text-base mt-1"
+                  dangerouslySetInnerHTML={{ __html: complaint?.description || "" }}
+                />
               </div>
 
               <Separator />
@@ -206,102 +208,107 @@ export default function ComplaintDetailPage() {
                   <div>
                     <p className="text-xs text-muted-foreground">Booking ID</p>
                     <Link
-                      href={`/admin/bookings/${complaint?.bookingId}`}
+                      href={`/owner/bookings/${complaint?.booking?.id}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      {complaint?.bookingId}
+                      {complaint?.booking?.id}
                     </Link>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Homestay</p>
                     <Link
-                      href={`/admin/homestays/${complaint?.homestayId}`}
+                      href={`/owner/homestays/${complaint?.booking?.homestay?.id}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
-                      {complaint?.homestayName}
+                      {complaint?.booking?.homestay?.name}
                     </Link>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-in</p>
-                    <p className="text-sm">{complaint?.checkIn}</p>
+                    <p className="text-sm">{complaint?.booking?.checkIn}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Check-out</p>
-                    <p className="text-sm">{complaint?.checkOut}</p>
+                    <p className="text-sm">{complaint?.booking?.checkOut}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Conversation</CardTitle>
-              <CardDescription>
-                Communication history regarding this complaint
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                {(complaint?.messages && complaint.messages.length > 0) ? (
-                  complaint.messages.map((message: any) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.senderType === "admin"
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`rounded-lg p-4 max-w-[80%] ${
-                          message.senderType === "admin"
-                            ? "bg-blue-100 text-blue-800"
-                            : message.senderType === "owner"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <User className="h-4 w-4" />
-                          <p className="text-sm font-medium">
-                            {message.senderName}
-                          </p>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(message.createdAt)}
-                          </span>
+          {showConversation && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Conversation</CardTitle>
+                <CardDescription>
+                  Communication history regarding this complaint
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  {(complaint?.responses && complaint.responses.length > 0) ? (
+                    complaint.responses.map((message: any) => {
+                      const isCurrentUser =
+                        message.responderType === "OWNER" &&
+                        user &&
+                        message.responderName === user.name;
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                        >
+                          <div
+                            className={`rounded-lg p-4 max-w-[80%] ${
+                              isCurrentUser
+                                ? "bg-green-100 text-green-800"
+                                : message.responderType === "ADMIN"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <User className="h-4 w-4" />
+                              <p className="text-sm font-medium">
+                                {message.responderName}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDate(message.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-sm">{message.message}</p>
+                          </div>
                         </div>
-                        <p className="text-sm">{message.message}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-muted-foreground">No conversation yet.</div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Reply</h3>
-                <Textarea
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  rows={4}
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={isSubmitting || !newMessage.trim()}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Send Message
-                  </Button>
+                      );
+                    })
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No conversation yet.</div>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Reply</h3>
+                  <Textarea
+                    placeholder="Type your message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    rows={4}
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Send Message
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -314,19 +321,19 @@ export default function ComplaintDetailPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
                   <p className="text-base font-medium">
-                    {complaint?.customerName}
+                    {complaint?.customer?.user?.name || "-"}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-base">{complaint?.customerEmail}</p>
+                  <p className="text-base">{complaint?.customer?.user?.email || "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="text-base">{complaint?.customerPhone}</p>
+                  <p className="text-base">{complaint?.customer?.user?.phone || "-"}</p>
                 </div>
               </div>
-              <Link href={`/admin/customers/${complaint?.customerId}`}>
+              <Link href={`/owner/customers/${complaint?.customerId}`}>
                 <Button variant="outline" className="w-full">
                   View Customer
                 </Button>
@@ -334,85 +341,36 @@ export default function ComplaintDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Complaint Management</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
-                <Select value={status} onValueChange={handleStatusChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Priority</label>
-                <Select value={priority} onValueChange={handlePriorityChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Assigned To</label>
-                <Select
-                  value={assignedTo}
-                  onValueChange={handleAssignedToChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select admin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {adminList.map((admin) => (
-                      <SelectItem key={admin.id} value={admin.id}>
-                        {admin.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                {status !== "resolved" && status !== "closed" && (
-                  <Button
-                    className="w-full bg-green-600 text-white hover:bg-green-700"
-                    onClick={handleResolve}
-                    disabled={isSubmitting}
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Mark as Resolved
-                  </Button>
-                )}
-                {status !== "closed" && (
+          {complaint?.status !== ComplaintStatus.CLOSED && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Separator />
+                <div className="space-y-2">
+                  {complaint?.status !== ComplaintStatus.RESOLVED && (
+                    <Button
+                      className="w-full bg-green-600 text-white hover:bg-green-700"
+                      onClick={handleResolve}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Mark as Resolved
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="w-full"
                     onClick={handleClose}
-                    disabled={isSubmitting}
+                    disabled={updateStatusMutation.isPending}
                   >
                     Close Complaint
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

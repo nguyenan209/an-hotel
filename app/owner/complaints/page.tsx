@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle, Eye, Filter, Search } from "lucide-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { CheckCircle, Eye, Filter, Search, X } from "lucide-react";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 
 const PAGE_SIZE = 20;
 
@@ -40,7 +41,7 @@ export default function ComplaintsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  // Infinite query for complaints
+  // Infinite query for complaints (OWNER)
   const {
     data,
     isLoading,
@@ -50,7 +51,7 @@ export default function ComplaintsPage() {
     refetch,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["admin-complaints", searchQuery, statusFilter, priorityFilter],
+    queryKey: ["owner-complaints", searchQuery, statusFilter, priorityFilter],
     queryFn: async ({ pageParam = 1 }: { pageParam?: number }) => {
       const params = new URLSearchParams();
       if (searchQuery) params.set("search", searchQuery);
@@ -58,7 +59,7 @@ export default function ComplaintsPage() {
       if (priorityFilter !== "all") params.set("priority", priorityFilter);
       params.set("limit", PAGE_SIZE.toString());
       params.set("page", pageParam.toString());
-      const res = await fetch(`/api/admin/complaints?${params.toString()}`);
+      const res = await fetch(`/api/owner/complaints?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch complaints");
       return res.json();
     },
@@ -76,16 +77,14 @@ export default function ComplaintsPage() {
   const total = data?.pages[0]?.total || 0;
 
   // Filtered counts for badges (tính trên toàn bộ complaints đã load)
-  const openCount = complaints.filter((c: any) => c.status === "OPEN").length;
-  const inProgressCount = complaints.filter((c: any) => c.status === "IN_PROGRESS").length;
-  const resolvedCount = complaints.filter((c: any) => c.status === "RESOLVED").length;
+  const openCount = complaints.filter((c: any) => c.status === ComplaintStatus.OPEN).length;
+  const resolvedCount = complaints.filter((c: any) => c.status === ComplaintStatus.RESOLVED).length;
+  const closedCount = complaints.filter((c: any) => c.status === ComplaintStatus.CLOSED).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "OPEN":
         return "bg-red-100 text-red-800";
-      case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800";
       case "RESOLVED":
         return "bg-green-100 text-green-800";
       case "CLOSED":
@@ -97,11 +96,11 @@ export default function ComplaintsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "HIGH":
+      case ComplaintPriority.HIGH:
         return "bg-red-100 text-red-800";
-      case "MEDIUM":
+      case ComplaintPriority.MEDIUM:
         return "bg-yellow-100 text-yellow-800";
-      case "LOW":
+      case ComplaintPriority.LOW:
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -110,12 +109,31 @@ export default function ComplaintsPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "IN_PROGRESS":
-        return "In Progress";
+      case ComplaintStatus.OPEN:
+        return "Open";
+      case ComplaintStatus.RESOLVED:
+        return "Resolved";
+      case ComplaintStatus.CLOSED:
+        return "Closed";
       default:
         return status.charAt(0) + status.slice(1).toLowerCase();
     }
   };
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`/api/owner/complaints/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: () => {
+      refetch();
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -134,10 +152,9 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="OPEN">Open</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="RESOLVED">Resolved</SelectItem>
-              <SelectItem value="CLOSED">Closed</SelectItem>
+              <SelectItem value={ComplaintStatus.OPEN}>Open</SelectItem>
+              <SelectItem value={ComplaintStatus.RESOLVED}>Resolved</SelectItem>
+              <SelectItem value={ComplaintStatus.CLOSED}>Closed</SelectItem>
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -146,9 +163,9 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="HIGH">High</SelectItem>
-              <SelectItem value="MEDIUM">Medium</SelectItem>
-              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value={ComplaintPriority.HIGH}>High</SelectItem>
+              <SelectItem value={ComplaintPriority.MEDIUM}>Medium</SelectItem>
+              <SelectItem value={ComplaintPriority.LOW}>Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -183,7 +200,7 @@ export default function ComplaintsPage() {
                 variant="outline"
                 className="bg-blue-50 text-blue-700 text-sm font-normal"
               >
-                {inProgressCount} In Progress
+                {closedCount} Closed
               </Badge>
               <Badge
                 variant="outline"
@@ -233,7 +250,7 @@ export default function ComplaintsPage() {
                         </TableCell>
                         <TableCell>
                           <Link
-                            href={`/admin/customers/${complaint.customerId}`}
+                            href={`/owner/customers/${complaint.customerId}`}
                             className="text-blue-600 hover:underline"
                           >
                             {complaint.customer?.user?.name || "-"}
@@ -252,12 +269,40 @@ export default function ComplaintsPage() {
                         <TableCell>{formatDate(complaint.createdAt)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Link href={`/admin/complaints/${complaint.id}`}>
+                            <Link href={`/owner/complaints/${complaint.id}`}>
                               <Button variant="ghost" size="icon">
                                 <Eye className="h-4 w-4" />
                                 <span className="sr-only">View</span>
                               </Button>
                             </Link>
+                            {complaint.status !== ComplaintStatus.CLOSED && (
+                              <>
+                                {complaint.status !== ComplaintStatus.RESOLVED && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-green-600"
+                                    title="Mark as Resolved"
+                                    disabled={updateStatusMutation.isPending}
+                                    onClick={() => updateStatusMutation.mutate({ id: complaint.id, status: ComplaintStatus.RESOLVED })}
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span className="sr-only">Mark as Resolved</span>
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-yellow-600"
+                                  title="Close Complaint"
+                                  disabled={updateStatusMutation.isPending}
+                                  onClick={() => updateStatusMutation.mutate({ id: complaint.id, status: ComplaintStatus.CLOSED })}
+                                >
+                                  <X className="h-4 w-4" />
+                                  <span className="sr-only">Rejected</span>
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
