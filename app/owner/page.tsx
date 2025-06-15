@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BarChart3, Hotel, ShoppingCart, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   Card,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils";
+import Loading from "@/components/loading";
 
 // Import chart components
 import {
@@ -25,36 +27,37 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+type DashboardStats = {
+  totalRevenue: number;
+  totalBookings: number;
+  totalCustomers: number;
+  totalHomestays: number;
+  revenueData: {
+    name: string;
+    revenue: number;
+  }[];
+};
+
+async function fetchDashboardData(range: string): Promise<DashboardStats> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/owner/dashboard?range=${range}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch dashboard data");
+  }
+  return response.json();
+}
+
 export default function Page() {
   const [dateRange, setDateRange] = useState("7d");
-  const [stats, setStats] = useState<any | null>(null);
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard?range=${dateRange}`);
-        const data = await res.json();
-        setStats(data.stats);
-        setRevenueData(data.revenueData);
-      } catch (e) {
-        setStats(null);
-        setRevenueData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, [dateRange]);
+  const { data: stats, isLoading } = useQuery<DashboardStats>({
+    queryKey: ["dashboard", dateRange],
+    queryFn: () => fetchDashboardData(dateRange),
+  });
 
   if (isLoading || !stats) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading dashboard...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -88,7 +91,7 @@ export default function Page() {
               {formatCurrency(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              Revenue from your homestays
             </p>
           </CardContent>
         </Card>
@@ -102,7 +105,7 @@ export default function Page() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
             <p className="text-xs text-muted-foreground">
-              +12.5% from last month
+              Total bookings received
             </p>
           </CardContent>
         </Card>
@@ -116,7 +119,7 @@ export default function Page() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +8.2% from last month
+              Unique customers booked
             </p>
           </CardContent>
         </Card>
@@ -130,7 +133,7 @@ export default function Page() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalHomestays}</div>
             <p className="text-xs text-muted-foreground">
-              +4.5% from last month
+              Your active homestays
             </p>
           </CardContent>
         </Card>
@@ -146,7 +149,7 @@ export default function Page() {
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={revenueData}>
+              <LineChart data={stats.revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis
