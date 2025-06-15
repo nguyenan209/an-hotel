@@ -102,7 +102,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { reviewId, ownerReply } = body;
+    const { reviewId, ownerReply, status } = body;
 
     if (!reviewId) {
       return NextResponse.json(
@@ -128,19 +128,75 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedReview = await prisma.review.update({
-      where: { id: reviewId },
-      data: {
-        ownerReply,
-        ownerReplyDate: new Date(),
-      },
-    });
+    // Nếu có status thì cập nhật trạng thái review
+    if (status) {
+      const updatedReview = await prisma.review.update({
+        where: { id: reviewId },
+        data: { status },
+      });
+      return NextResponse.json(updatedReview);
+    }
 
-    return NextResponse.json(updatedReview);
+    // Nếu có ownerReply thì cập nhật phản hồi của chủ nhà
+    if (ownerReply !== undefined) {
+      const updatedReview = await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          ownerReply,
+          ownerReplyDate: new Date(),
+        },
+      });
+      return NextResponse.json(updatedReview);
+    }
+
+    return NextResponse.json(
+      { error: "No valid update field provided" },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Error updating review:", error);
     return NextResponse.json(
       { error: "Failed to update review" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const decoded = getTokenData(request);
+    if (!decoded || !decoded.id || decoded.role !== "OWNER") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const body = await request.json();
+    const { reviewId } = body;
+    if (!reviewId) {
+      return NextResponse.json(
+        { error: "Review ID is required" },
+        { status: 400 }
+      );
+    }
+    // Kiểm tra quyền owner
+    const review = await prisma.review.findFirst({
+      where: {
+        id: reviewId,
+        homestay: {
+          ownerId: decoded.id
+        }
+      }
+    });
+    if (!review) {
+      return NextResponse.json(
+        { error: "Review not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+    await prisma.review.delete({ where: { id: reviewId } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return NextResponse.json(
+      { error: "Failed to delete review" },
       { status: 500 }
     );
   }

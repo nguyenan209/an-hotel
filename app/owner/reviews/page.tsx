@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { CheckCircle, Eye, Filter, Search, Star, Trash, X } from "lucide-react";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { AdminReviewsResponse } from "@/lib/types";
 import { ReviewStatus } from "@prisma/client";
 import { debounce } from "lodash";
 import {
@@ -35,134 +36,148 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { toast } from "sonner";
 
-interface Review {
-  id: string;
-  homestayId: string;
-  homestay: {
-    id: string;
-    name: string;
-    address: string;
-    images: string[];
-  };
-  customerId: string;
-  customer: {
-    id: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      phone: string;
-    };
-  };
-  rating: number;
-  comment: string;
-  status: ReviewStatus;
-  createdAt: string;
-  ownerReply: string | null;
-  ownerReplyDate: string | null;
-}
+const PAGE_SIZE = 10;
 
-interface ReviewsResponse {
-  reviews: Review[];
-  hasMore: boolean;
+// Thêm hàm helper để cắt ngắn HTML
+function truncateHtml(html: string, maxLength: number) {
+  if (!html) return "";
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+  const text = tempDiv.textContent || tempDiv.innerText || "";
+  if (text.length <= maxLength) return html;
+  return text.substring(0, maxLength) + "...";
 }
 
 export default function ReviewsPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
-  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [replyText, setReplyText] = useState("");
+  const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-  const queryClient = useQueryClient();
+  // Debounce logic
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setDebouncedSearchQuery(query);
+      }, 300),
+    []
+  );
 
+  // React Query infinite fetch
   const {
     data,
+    isLoading,
+    isError,
     fetchNextPage,
     hasNextPage,
+    refetch,
     isFetchingNextPage,
-    isLoading,
-    error,
-  } = useInfiniteQuery<ReviewsResponse>({
-    queryKey: ["owner-reviews", searchQuery, statusFilter, ratingFilter],
+  } = useInfiniteQuery({
+    queryKey: [
+      "owner-reviews",
+      debouncedSearchQuery,
+      statusFilter,
+      ratingFilter,
+    ],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await fetch(
-        `/api/owner/reviews?search=${searchQuery}&status=${statusFilter}&rating=${ratingFilter}&skip=${pageParam}&limit=10`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
-      return response.json();
+      const pageNumber = typeof pageParam === "number" ? pageParam : 0;
+      const params = new URLSearchParams({
+        search: debouncedSearchQuery,
+        status: statusFilter,
+        rating: ratingFilter,
+        skip: (pageNumber * PAGE_SIZE).toString(),
+        limit: PAGE_SIZE.toString(),
+      });
+      const res = await fetch(`/api/owner/reviews?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch reviews");
+      return res.json();
     },
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage && lastPage.hasMore ? allPages.length : undefined;
+    },
+    enabled: !!user && !authLoading,
     initialPageParam: 0,
-    getNextPageParam: (lastPage, pages) => {
-      if (!lastPage.hasMore) return undefined;
-      return pages.length * 10;
-    },
   });
 
-  const updateReviewMutation = useMutation({
-    mutationFn: async ({ reviewId, ownerReply }: { reviewId: string; ownerReply: string }) => {
-      const response = await fetch("/api/owner/reviews", {
+  const reviews = useMemo(() => {
+    const all = data?.pages.flatMap((page: any) => page.reviews) || [];
+    const unique: Record<string, AdminReviewsResponse> = {};
+    all.forEach((r: AdminReviewsResponse) => {
+      unique[r.id] = r;
+    });
+    return Object.values(unique);
+  }, [data]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    debouncedSearch(e.target.value);
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      const response = await fetch(`/api/owner/reviews`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ reviewId, ownerReply }),
+        body: JSON.stringify({ reviewId: id, status: "APPROVED" }),
       });
       if (!response.ok) {
-        throw new Error("Failed to update review");
+        throw new Error("Failed to approve review");
       }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["owner-reviews"] });
-      setReplyDialogOpen(false);
-      setSelectedReview(null);
-      setReplyText("");
-    },
-  });
-
-  const handleSearchChange = debounce((value: string) => {
-    setSearchQuery(value);
-  }, 300);
-
-  const handleReply = (review: Review) => {
-    setSelectedReview(review);
-    setReplyText(review.ownerReply || "");
-    setReplyDialogOpen(true);
-  };
-
-  const handleSubmitReply = () => {
-    if (selectedReview) {
-      updateReviewMutation.mutate({
-        reviewId: selectedReview.id,
-        ownerReply: replyText,
-      });
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to approve review");
     }
   };
 
-  const reviews = data?.pages.flatMap((page) => page.reviews) || [];
+  const handleFlag = async (id: string) => {
+    try {
+      const response = await fetch(`/api/owner/reviews`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reviewId: id, status: "REJECTED" }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to flag review");
+      }
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to flag review");
+    }
+  };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+  const handleRemove = async (id: string) => {
+    try {
+      const response = await fetch(`/api/owner/reviews`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reviewId: id }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to remove review");
+      }
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to remove review");
+    } finally {
+      setDeleteDialogOpen(false);
+      setHomestayToDelete(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -206,7 +221,7 @@ export default function ReviewsPage() {
         <CardHeader>
           <CardTitle>Customer Reviews</CardTitle>
           <CardDescription>
-            Manage and respond to customer reviews for your homestays.
+            Manage and moderate customer reviews for all homestays.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -215,7 +230,8 @@ export default function ReviewsPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search reviews..."
-                onChange={(e) => handleSearchChange(e.target.value)}
+                value={searchQuery}
+                onChange={handleSearchChange}
                 className="pl-8 max-w-sm"
               />
             </div>
@@ -246,7 +262,7 @@ export default function ReviewsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reviews.map((review) => (
+                  {reviews.map((review: AdminReviewsResponse) => (
                     <TableRow key={review.id}>
                       <TableCell>
                         <Link
@@ -257,12 +273,13 @@ export default function ReviewsPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span>{review.customer.user.name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {review.customer.user.email}
-                          </span>
-                        </div>
+                        <Link
+                          href={`/owner/customers/${review.customerId}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {review.customer.user.name} (
+                          {review.customer.user.email})
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
@@ -270,17 +287,13 @@ export default function ReviewsPage() {
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="space-y-2">
-                          <div
-                            dangerouslySetInnerHTML={{ __html: review.comment }}
-                          />
-                          {review.ownerReply && (
-                            <div className="mt-2 text-sm text-muted-foreground">
-                              <strong>Your reply:</strong> {review.ownerReply}
-                            </div>
-                          )}
-                        </div>
+                      <TableCell className="max-w-xs truncate">
+                        <div
+                          className="text-sm line-clamp-3"
+                          dangerouslySetInnerHTML={{
+                            __html: truncateHtml(review.comment || "", 150),
+                          }}
+                        />
                       </TableCell>
                       <TableCell>{formatDate(review.createdAt)}</TableCell>
                       <TableCell>
@@ -299,13 +312,45 @@ export default function ReviewsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Link href={`/owner/reviews/${review.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">View</span>
+                            </Button>
+                          </Link>
+                          {review.status === ReviewStatus.PENDING && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-green-600"
+                              onClick={() => handleApprove(review.id)}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="sr-only">Approve</span>
+                            </Button>
+                          )}
+                          {review.status !== ReviewStatus.REJECTED && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-yellow-600"
+                              onClick={() => handleFlag(review.id)}
+                            >
+                              <X className="h-4 w-4" />
+                              <span className="sr-only">Rejected</span>
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleReply(review)}
+                            className="text-red-600"
+                            onClick={() => {
+                              setHomestayToDelete(review.id);
+                              setDeleteDialogOpen(true);
+                            }}
                           >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Reply</span>
+                            <Trash className="h-4 w-4" />
+                            <span className="sr-only">Remove</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -317,53 +362,17 @@ export default function ReviewsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Reply Dialog */}
-      <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reply to Review</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Customer Review:</h4>
-              <div
-                className="text-sm text-muted-foreground"
-                dangerouslySetInnerHTML={{
-                  __html: selectedReview?.comment || "",
-                }}
-              />
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Your Reply:</h4>
-              <Textarea
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write your reply here..."
-                rows={4}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setReplyDialogOpen(false);
-                  setSelectedReview(null);
-                  setReplyText("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmitReply}
-                disabled={updateReviewMutation.isPending}
-              >
-                {updateReviewMutation.isPending ? "Sending..." : "Send Reply"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setHomestayToDelete(null);
+        }}
+        onConfirm={() => homestayToDelete && handleRemove(homestayToDelete)}
+        itemName="this homestay"
+        isDeleting={false}
+      />
     </div>
   );
 }
