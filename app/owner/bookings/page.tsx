@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Calendar, Eye, Home, Hotel, Plus } from "lucide-react";
+import { Calendar, Eye, Home, Hotel } from "lucide-react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,99 +31,86 @@ import {
 } from "@/components/ui/table";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { fetchBookings } from "@/lib/booking";
 import { Booking, BookingStatus, BookingType } from "@prisma/client";
 import moment from "moment";
 import {
   BookingHomestayAndCustomer,
   BookingsResponse,
-  BookingWithHomestay,
 } from "@/lib/types";
+import Loading from "@/components/loading";
+
+async function fetchBookings({
+  search,
+  status,
+  bookingType,
+  skip,
+  limit,
+}: {
+  search: string;
+  status: BookingStatus | "all";
+  bookingType: BookingType | "all";
+  skip: number;
+  limit: number;
+}): Promise<BookingsResponse> {
+  const params = new URLSearchParams({
+    search: search || "",
+    status: status || "all",
+    bookingType: bookingType || "all",
+    skip: skip.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/bookings?${params}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch bookings");
+  }
+  return response.json();
+}
 
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">(
-    "all"
-  );
-  const [bookingTypeFilter, setBookingTypeFilter] = useState<
-    BookingType | "all"
-  >("all");
-  const [bookings, setBookings] = useState<BookingHomestayAndCustomer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">("all");
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<BookingType | "all">("all");
+  const limit = 10;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const { bookings: initialBookings, hasMore } = await fetchBookings({
-          search: searchQuery,
-          status: statusFilter,
-          bookingType: bookingTypeFilter,
-          skip: 0,
-          limit: 10,
-        });
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<BookingsResponse>({
+    queryKey: ["bookings", searchQuery, statusFilter, bookingTypeFilter],
+    queryFn: ({ pageParam = 0 }) => fetchBookings({
+      search: searchQuery,
+      status: statusFilter,
+      bookingType: bookingTypeFilter,
+      skip: pageParam as number * limit,
+      limit,
+    }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasMore) return undefined;
+      return lastPage.bookings.length / limit;
+    },
+  });
 
-        setBookings(initialBookings);
-        setHasMore(hasMore);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-        setError("Failed to load bookings");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [searchQuery, statusFilter, bookingTypeFilter]);
+  const bookings = data?.pages.flatMap((page) => page.bookings) || [];
 
   const loadMoreBookings = async () => {
-    if (isLoadingMore || !hasMore) return;
-
-    try {
-      setIsLoadingMore(true);
-
-      const nextSkip = bookings.length;
-      const { bookings: newBookings, hasMore: moreAvailable } =
-        await fetchBookings({
-          search: searchQuery,
-          status: statusFilter,
-          bookingType: bookingTypeFilter,
-          skip: nextSkip,
-          limit: 10,
-        });
-
-      // Loại bỏ các booking trùng lặp dựa trên id
-      setBookings((prev) => {
-        const bookingIds = new Set(prev.map((booking) => booking.id));
-        const uniqueBookings = newBookings.filter(
-          (booking: any) => !bookingIds.has(booking.id)
-        );
-        return [...prev, ...uniqueBookings];
-      });
-
-      setHasMore(moreAvailable);
-    } catch (error) {
-      console.error("Error loading more bookings:", error);
-    } finally {
-      setIsLoadingMore(false);
-    }
+    if (isFetchingNextPage || !hasNextPage) return;
+    await fetchNextPage();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <div>Loading...</div>
-      </div>
-    );
+  if (isLoading) {
+    return <Loading />;
   }
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <div>{error}</div>
+        <div>{(error as Error).message || "Failed to load bookings"}</div>
       </div>
     );
   }
@@ -131,12 +119,6 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Bookings</h2>
-        <Link href="/admin/bookings/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Booking
-          </Button>
-        </Link>
       </div>
 
       <Card>
@@ -224,7 +206,7 @@ export default function BookingsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  bookings.map((booking) => (
+                  bookings.map((booking: BookingHomestayAndCustomer) => (
                     <TableRow key={booking.id}>
                       <TableCell className="font-medium">
                         #{booking.bookingNumber}
@@ -270,7 +252,7 @@ export default function BookingsPage() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/admin/bookings/${booking.id}`}>
+                        <Link href={`/owner/bookings/${booking.id}`}>
                           <Button variant="ghost" size="icon">
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">View</span>
@@ -285,8 +267,8 @@ export default function BookingsPage() {
           </div>
           <InfiniteScroll
             onLoadMore={loadMoreBookings}
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
+            hasMore={hasNextPage || false}
+            isLoading={isFetchingNextPage}
           />
         </CardContent>
       </Card>
