@@ -63,8 +63,14 @@ export default function ComplaintsPage() {
       if (!res.ok) throw new Error("Failed to fetch complaints");
       return res.json();
     },
-    getNextPageParam: (lastPage: { complaints: any[]; total: number }, allPages: { complaints: any[]; total: number }[]) => {
-      const loaded = allPages.reduce((acc, page) => acc + page.complaints.length, 0);
+    getNextPageParam: (
+      lastPage: { complaints: any[]; total: number },
+      allPages: { complaints: any[]; total: number }[]
+    ) => {
+      const loaded = allPages.reduce(
+        (acc, page) => acc + page.complaints.length,
+        0
+      );
       if (loaded < lastPage.total) {
         return allPages.length + 1;
       }
@@ -77,17 +83,23 @@ export default function ComplaintsPage() {
   const total = data?.pages[0]?.total || 0;
 
   // Filtered counts for badges (tính trên toàn bộ complaints đã load)
-  const openCount = complaints.filter((c: any) => c.status === ComplaintStatus.OPEN).length;
-  const resolvedCount = complaints.filter((c: any) => c.status === ComplaintStatus.RESOLVED).length;
-  const closedCount = complaints.filter((c: any) => c.status === ComplaintStatus.CLOSED).length;
+  const openCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.OPEN
+  ).length;
+  const resolvedCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.RESOLVED
+  ).length;
+  const acknowledgedCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.ACKNOWLEDGED
+  ).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "OPEN":
+      case ComplaintStatus.OPEN:
         return "bg-red-100 text-red-800";
-      case "RESOLVED":
+      case ComplaintStatus.RESOLVED:
         return "bg-green-100 text-green-800";
-      case "CLOSED":
+      case ComplaintStatus.ACKNOWLEDGED:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -113,8 +125,8 @@ export default function ComplaintsPage() {
         return "Open";
       case ComplaintStatus.RESOLVED:
         return "Resolved";
-      case ComplaintStatus.CLOSED:
-        return "Closed";
+      case ComplaintStatus.ACKNOWLEDGED:
+        return "Acknowledged";
       default:
         return status.charAt(0) + status.slice(1).toLowerCase();
     }
@@ -154,7 +166,9 @@ export default function ComplaintsPage() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value={ComplaintStatus.OPEN}>Open</SelectItem>
               <SelectItem value={ComplaintStatus.RESOLVED}>Resolved</SelectItem>
-              <SelectItem value={ComplaintStatus.CLOSED}>Closed</SelectItem>
+              <SelectItem value={ComplaintStatus.ACKNOWLEDGED}>
+                Acknowledged
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -200,7 +214,7 @@ export default function ComplaintsPage() {
                 variant="outline"
                 className="bg-blue-50 text-blue-700 text-sm font-normal"
               >
-                {closedCount} Closed
+                {acknowledgedCount} Acknowledged
               </Badge>
               <Badge
                 variant="outline"
@@ -214,7 +228,9 @@ export default function ComplaintsPage() {
           {isLoading ? (
             <div className="text-center py-8">Loading complaints...</div>
           ) : isError ? (
-            <div className="text-center py-8 text-red-500">Failed to load complaints.</div>
+            <div className="text-center py-8 text-red-500">
+              Failed to load complaints.
+            </div>
           ) : (
             <InfiniteScroll
               dataLength={complaints.length}
@@ -257,8 +273,11 @@ export default function ComplaintsPage() {
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getPriorityColor(complaint.priority)}>
-                            {complaint.priority.charAt(0) + complaint.priority.slice(1).toLowerCase()}
+                          <Badge
+                            className={getPriorityColor(complaint.priority)}
+                          >
+                            {complaint.priority.charAt(0) +
+                              complaint.priority.slice(1).toLowerCase()}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -275,19 +294,28 @@ export default function ComplaintsPage() {
                                 <span className="sr-only">View</span>
                               </Button>
                             </Link>
-                            {complaint.status !== ComplaintStatus.CLOSED && (
+                            {complaint.status !==
+                              ComplaintStatus.ACKNOWLEDGED && (
                               <>
-                                {complaint.status !== ComplaintStatus.RESOLVED && (
+                                {complaint.status !==
+                                  ComplaintStatus.RESOLVED && (
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     className="text-green-600"
                                     title="Mark as Resolved"
                                     disabled={updateStatusMutation.isPending}
-                                    onClick={() => updateStatusMutation.mutate({ id: complaint.id, status: ComplaintStatus.RESOLVED })}
+                                    onClick={() =>
+                                      updateStatusMutation.mutate({
+                                        id: complaint.id,
+                                        status: ComplaintStatus.RESOLVED,
+                                      })
+                                    }
                                   >
                                     <CheckCircle className="h-4 w-4" />
-                                    <span className="sr-only">Mark as Resolved</span>
+                                    <span className="sr-only">
+                                      Mark as Resolved
+                                    </span>
                                   </Button>
                                 )}
                                 <Button
@@ -296,7 +324,12 @@ export default function ComplaintsPage() {
                                   className="text-yellow-600"
                                   title="Close Complaint"
                                   disabled={updateStatusMutation.isPending}
-                                  onClick={() => updateStatusMutation.mutate({ id: complaint.id, status: ComplaintStatus.CLOSED })}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      id: complaint.id,
+                                      status: ComplaintStatus.ACKNOWLEDGED,
+                                    })
+                                  }
                                 >
                                   <X className="h-4 w-4" />
                                   <span className="sr-only">Rejected</span>

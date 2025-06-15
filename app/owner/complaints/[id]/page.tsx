@@ -29,53 +29,61 @@ import { useAuth } from "@/context/AuthContext";
 import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 
 export default function ComplaintDetailPage() {
-    const params = useParams();
-    const { id } = params;
-    const queryClient = useQueryClient();
-    const [newMessage, setNewMessage] = useState("");
-    const { user } = useAuth();
-    const searchParams = useSearchParams();
-    const showConversation = searchParams.get("chat") === "true";
+  const params = useParams();
+  const { id } = params;
+  const queryClient = useQueryClient();
+  const [newMessage, setNewMessage] = useState("");
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const showConversation = searchParams.get("chat") === "true";
 
-    const { data: complaint, isLoading } = useQuery({
-        queryKey: ['complaint', id],
-        queryFn: async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}`);
-            if (!res.ok) throw new Error("Failed to fetch complaint");
-            return res.json();
-        }
-    });
+  const { data: complaint, isLoading } = useQuery({
+    queryKey: ["complaint", id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch complaint");
+      return res.json();
+    },
+  });
 
-    const updateStatusMutation = useMutation({
-        mutationFn: async (newStatus: string) => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-            if (!res.ok) throw new Error("Failed to update status");
-            return res.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
         }
-    });
+      );
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["complaint", id] });
+    },
+  });
 
-    const sendMessageMutation = useMutation({
-        mutationFn: async (message: string) => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/messages`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
-            });
-            if (!res.ok) throw new Error("Failed to send message");
-            return res.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
-            setNewMessage("");
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/complaints/${id}/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
         }
-    });
+      );
+      if (!res.ok) throw new Error("Failed to send message");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["complaint", id] });
+      setNewMessage("");
+    },
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -83,7 +91,7 @@ export default function ComplaintDetailPage() {
         return "bg-red-100 text-red-800";
       case ComplaintStatus.RESOLVED:
         return "bg-green-100 text-green-800";
-      case ComplaintStatus.CLOSED:
+      case ComplaintStatus.ACKNOWLEDGED:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -109,13 +117,13 @@ export default function ComplaintDetailPage() {
         return "Open";
       case ComplaintStatus.RESOLVED:
         return "Resolved";
-      case ComplaintStatus.CLOSED:
-        return "Closed";
+      case ComplaintStatus.ACKNOWLEDGED:
+        return "Acknowledged";
       default:
         return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
-  
+
   const formatPriority = (priority: string) => {
     switch (priority) {
       case ComplaintPriority.HIGH:
@@ -139,7 +147,7 @@ export default function ComplaintDetailPage() {
   };
 
   const handleClose = () => {
-    updateStatusMutation.mutate(ComplaintStatus.CLOSED);
+    updateStatusMutation.mutate(ComplaintStatus.ACKNOWLEDGED);
   };
 
   if (isLoading) {
@@ -194,7 +202,9 @@ export default function ComplaintDetailPage() {
                 </h3>
                 <div
                   className="text-base mt-1"
-                  dangerouslySetInnerHTML={{ __html: complaint?.description || "" }}
+                  dangerouslySetInnerHTML={{
+                    __html: complaint?.description || "",
+                  }}
                 />
               </div>
 
@@ -246,7 +256,7 @@ export default function ComplaintDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
-                  {(complaint?.responses && complaint.responses.length > 0) ? (
+                  {complaint?.responses && complaint.responses.length > 0 ? (
                     complaint.responses.map((message: any) => {
                       const isCurrentUser =
                         message.responderType === "OWNER" &&
@@ -255,15 +265,17 @@ export default function ComplaintDetailPage() {
                       return (
                         <div
                           key={message.id}
-                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          className={`flex ${
+                            isCurrentUser ? "justify-end" : "justify-start"
+                          }`}
                         >
                           <div
                             className={`rounded-lg p-4 max-w-[80%] ${
                               isCurrentUser
                                 ? "bg-green-100 text-green-800"
                                 : message.responderType === "ADMIN"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-gray-100 text-gray-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             <div className="flex items-center gap-2 mb-1">
@@ -281,7 +293,9 @@ export default function ComplaintDetailPage() {
                       );
                     })
                   ) : (
-                    <div className="text-sm text-muted-foreground">No conversation yet.</div>
+                    <div className="text-sm text-muted-foreground">
+                      No conversation yet.
+                    </div>
                   )}
                 </div>
 
@@ -299,7 +313,9 @@ export default function ComplaintDetailPage() {
                   <div className="flex justify-end">
                     <Button
                       onClick={handleSendMessage}
-                      disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                      disabled={
+                        sendMessageMutation.isPending || !newMessage.trim()
+                      }
                     >
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Send Message
@@ -326,11 +342,15 @@ export default function ComplaintDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-base">{complaint?.customer?.user?.email || "-"}</p>
+                  <p className="text-base">
+                    {complaint?.customer?.user?.email || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="text-base">{complaint?.customer?.user?.phone || "-"}</p>
+                  <p className="text-base">
+                    {complaint?.customer?.user?.phone || "-"}
+                  </p>
                 </div>
               </div>
               <Link href={`/owner/customers/${complaint?.customerId}`}>
@@ -341,7 +361,7 @@ export default function ComplaintDetailPage() {
             </CardContent>
           </Card>
 
-          {complaint?.status !== ComplaintStatus.CLOSED && (
+          {complaint?.status !== ComplaintStatus.ACKNOWLEDGED && (
             <Card>
               <CardHeader>
                 <CardTitle>Actions</CardTitle>
