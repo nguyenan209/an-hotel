@@ -58,27 +58,60 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PaymentMethod, PaymentStatus } from "@prisma/client";
 import Loading from "@/components/loading";
 import { toast } from "sonner";
 
 interface Payment {
   id: string;
-  customer: string;
-  email: string;
-  homestay: string;
-  amount: number;
-  method: string;
-  status: string;
-  date: string;
   transactionId: string;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  createdAt: string;
+  booking: {
+    customer: {
+      name: string;
+      email: string;
+    };
+    homestay: {
+      name: string;
+    };
+  };
 }
 
 interface PaymentsResponse {
   payments: Payment[];
-  total: number;
   hasMore: boolean;
+}
+
+async function fetchPayments({
+  pageParam = 0,
+  status,
+  method,
+  search,
+}: {
+  pageParam: number;
+  status: string;
+  method: string;
+  search: string;
+}): Promise<PaymentsResponse> {
+  const params = new URLSearchParams({
+    skip: (pageParam * 10).toString(),
+    limit: "10",
+    status: status !== "all" ? status : "",
+    method: method !== "all" ? method : "",
+    search: search,
+  });
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/owner/payments?${params}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch payments");
+  }
+  return response.json();
 }
 
 export default function PaymentManagementPage() {
@@ -90,21 +123,8 @@ export default function PaymentManagementPage() {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showRefundSuccessModal, setShowRefundSuccessModal] = useState(false)
-
-  const fetchPayments = async ({ pageParam = 1 }) => {
-    const params = new URLSearchParams({
-      page: pageParam.toString(),
-      limit: "10",
-      ...filters,
-    });
-    const response = await fetch(`/api/payments?${params}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch payments');
-    }
-    return response.json();
-  };
+  const [showRefundSuccessModal, setShowRefundSuccessModal] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     data,
@@ -115,12 +135,42 @@ export default function PaymentManagementPage() {
     error,
   } = useInfiniteQuery({
     queryKey: ["payments", filters],
-    queryFn: fetchPayments,
-    getNextPageParam: (lastPage, pages) => {
+    queryFn: ({ pageParam }) =>
+      fetchPayments({
+        pageParam,
+        status: filters.status,
+        method: filters.method,
+        search: filters.search,
+      }),
+    getNextPageParam: (lastPage) => {
       if (!lastPage.hasMore) return undefined;
-      return pages.length + 1;
+      return lastPage.payments.length / 10;
     },
-    initialPageParam: 1,
+    initialPageParam: 0,
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: async (paymentId: string) => {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/payments/${paymentId}/refund`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to process refund");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      setShowRefundModal(false);
+      setShowRefundSuccessModal(true);
+      toast.success("Refund processed successfully");
+    },
+    onError: () => {
+      toast.error("Failed to process refund");
+    },
   });
 
   const payments = data?.pages.flatMap((page) => page.payments) ?? [];
@@ -148,7 +198,6 @@ export default function PaymentManagementPage() {
   };
 
   const handleConfirmPayment = async (paymentId: string) => {
-    setIsProcessing(true);
     try {
       // API call to confirm payment
       console.log("Confirming payment:", paymentId);
@@ -157,8 +206,6 @@ export default function PaymentManagementPage() {
     } catch (error) {
       console.error("Error confirming payment:", error);
       alert("Có lỗi xảy ra khi xác nhận thanh toán!");
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -187,13 +234,13 @@ export default function PaymentManagementPage() {
         ...payments.map((payment) =>
           [
             payment.id,
-            `"${payment.customer}"`,
-            payment.email,
-            `"${payment.homestay}"`,
+            `"${payment.booking.customer.name}"`,
+            payment.booking.customer.email,
+            `"${payment.booking.homestay.name}"`,
             payment.amount,
             payment.method,
             payment.status,
-            payment.date,
+            new Date(payment.createdAt).toLocaleDateString(),
             payment.transactionId,
           ].join(",")
         ),
@@ -222,7 +269,6 @@ export default function PaymentManagementPage() {
   const processRefund = async () => {
     if (!selectedPayment) return
 
-    setIsProcessing(true)
     try {
       // API call to process refund
       console.log("Processing refund for:", selectedPayment.id)
@@ -231,8 +277,6 @@ export default function PaymentManagementPage() {
     } catch (error) {
       console.error("Error processing refund:", error)
       alert("Có lỗi xảy ra khi hoàn tiền!")
-    } finally {
-      setIsProcessing(false)
     }
   }
 
@@ -491,7 +535,7 @@ export default function PaymentManagementPage() {
                       <TableCell className="font-medium">
                         {formatCurrency(payment.amount)}
                       </TableCell>
-                      <TableCell>{payment.date}</TableCell>
+                      <TableCell>{new Date(payment.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -518,7 +562,7 @@ export default function PaymentManagementPage() {
                             {payment.status === PaymentStatus.PENDING && (
                               <DropdownMenuItem
                                 onClick={() => handleConfirmPayment(payment.id)}
-                                disabled={isProcessing}
+                                disabled={refundMutation.isPending}
                               >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Xác nhận
@@ -569,19 +613,19 @@ export default function PaymentManagementPage() {
                 <div>
                   <Label className="text-sm font-medium">Khách hàng</Label>
                   <p className="text-sm text-muted-foreground">
-                    {selectedPayment.customer}
+                    {selectedPayment.booking.customer.name}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Email</Label>
                   <p className="text-sm text-muted-foreground">
-                    {selectedPayment.email}
+                    {selectedPayment.booking.customer.email}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Homestay</Label>
                   <p className="text-sm text-muted-foreground">
-                    {selectedPayment.homestay}
+                    {selectedPayment.booking.homestay.name}
                   </p>
                 </div>
                 <div>
@@ -599,7 +643,7 @@ export default function PaymentManagementPage() {
                 <div>
                   <Label className="text-sm font-medium">Ngày thanh toán</Label>
                   <p className="text-sm text-muted-foreground">
-                    {selectedPayment.date}
+                    {new Date(selectedPayment.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
@@ -637,7 +681,7 @@ export default function PaymentManagementPage() {
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">Khách hàng:</span>
-                  <span>{selectedPayment.customer}</span>
+                  <span>{selectedPayment.booking.customer.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Số tiền hoàn:</span>
@@ -662,10 +706,10 @@ export default function PaymentManagementPage() {
             </Button>
             <Button
               onClick={processRefund}
-              disabled={isProcessing}
+              disabled={refundMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isProcessing ? "Đang xử lý..." : "Xác nhận hoàn tiền"}
+              {refundMutation.isPending ? "Đang xử lý..." : "Xác nhận hoàn tiền"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -690,7 +734,7 @@ export default function PaymentManagementPage() {
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">Khách hàng:</span>
-                  <span>{selectedPayment.customer}</span>
+                  <span>{selectedPayment.booking.customer.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Số tiền đã hoàn:</span>
