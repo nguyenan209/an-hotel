@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Notification } from "@/lib/types";
+import Cookies from "js-cookie";
 
 interface NotificationState {
   notifications: Notification[];
@@ -14,6 +15,7 @@ interface NotificationState {
     type: string;
     status: string;
     query: string;
+    role: string;
   }) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAsUnread: (id: string) => Promise<void>;
@@ -30,22 +32,28 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   globalUnreadCount: 0,
   globalTotalNotifications: 0,
 
-  fetchNotifications: async ({ page, limit, type, status, query }) => {
+  fetchNotifications: async ({ page, limit, type, status, query, role }) => {
     set({ isLoading: true });
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`
-      );
+      let apiUrl = "";
+      if (role === "ADMIN") {
+        apiUrl = `/api/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
+      } else if (role === "OWNER") {
+        apiUrl = `/api/owner/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
+      } else {
+        apiUrl = `/api/customer/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
+      }
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error("Failed to fetch notifications");
       }
       const data = await response.json();
       set({
         notifications: data.notifications,
-        totalNotifications: data.pagination.total,
-        globalUnreadCount: data.pagination.globalUnreadCount, // Cập nhật tổng chưa đọc toàn cục
-        globalTotalNotifications: data.pagination.globalTotalNotifications, // Cập nhật tổng thông báo toàn cục
-        totalPages: data.pagination.totalPages,
+        totalNotifications: data.total || (data.pagination && data.pagination.total) || 0,
+        globalUnreadCount: data.notifications.filter((n: any) => !n.isRead).length,
+        globalTotalNotifications: data.total || (data.pagination && data.pagination.globalTotalNotifications) || 0,
+        totalPages: data.totalPages || (data.pagination && data.pagination.totalPages) || 1,
       });
     } catch (error) {
       console.error("Error fetching notifications:", error);

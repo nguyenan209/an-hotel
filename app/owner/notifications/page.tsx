@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
 import { useNotificationStore } from "@/lib/store/notificationStore";
 import {
   getNotificationTypeColor,
@@ -45,10 +44,9 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminNotificationsPage() {
-  const { user } = useAuth();
-  const role = user?.role || "USER";
   const {
     notifications,
     totalNotifications,
@@ -62,6 +60,9 @@ export default function AdminNotificationsPage() {
     globalTotalNotifications,
     globalUnreadCount,
   } = useNotificationStore();
+
+  const { user } = useAuth();
+  const role = user?.role || "USER";
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");

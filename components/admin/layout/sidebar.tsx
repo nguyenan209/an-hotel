@@ -261,27 +261,6 @@ export function Sidebar({ className }: SidebarProps) {
             ))}
           </nav>
         </ScrollArea>
-        <div className="mt-auto p-4">
-          {isCollapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/admin/login">
-                  <Button variant="outline" className="w-full justify-center px-0">
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Log out</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Link href="/admin/login">
-              <Button variant="outline" className="w-full justify-start">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </Button>
-            </Link>
-          )}
-        </div>
       </div>
     </TooltipProvider>
   )
