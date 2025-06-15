@@ -57,6 +57,7 @@ export function NotificationDropdown({
         type: "all",
         status: "all",
         query: "",
+        role: user.role || "USER",
       });
     }
   }, [isLoggedIn, isLoading, fetchNotifications]);
@@ -76,6 +77,7 @@ export function NotificationDropdown({
             type: "all",
             status: "all",
             query: "",
+            role: user.role || "USER",
           });
         }
       );

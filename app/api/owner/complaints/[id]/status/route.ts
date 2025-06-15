@@ -8,7 +8,7 @@ import { NEW_NOTIFICATION_EVENT } from "@/lib/notification/events";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = getTokenData(request);
@@ -16,7 +16,7 @@ export async function PATCH(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { status } = await request.json();
 
     if (!status || !Object.values(ComplaintStatus).includes(status)) {

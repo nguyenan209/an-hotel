@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const decoded = getTokenData(request);
     if (!decoded || !decoded.id || decoded.role !== "OWNER") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     // Tìm complaint thuộc về homestay của owner
     const complaint = await prisma.complaint.findFirst({
       where: {

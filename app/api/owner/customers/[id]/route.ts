@@ -4,7 +4,7 @@ import { getTokenData } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = getTokenData(req);
@@ -14,7 +14,7 @@ export async function GET(
 
     const customer = await prisma.customer.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
         bookings: {
           some: {
             homestay: {
@@ -155,7 +155,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const tokenData = await getTokenData(req);
@@ -167,7 +167,7 @@ export async function DELETE(
     }
 
     const customer = await prisma.customer.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         bookings: {
           where: {
@@ -195,7 +195,7 @@ export async function DELETE(
 
     // Update customer status to deleted
     await prisma.customer.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: { isDeleted: true }
     });
 

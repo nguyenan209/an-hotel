@@ -5,7 +5,7 @@ import { ComplaintPriority } from "@prisma/client";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = getTokenData(request);
@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { priority } = await request.json();
 
     if (!priority || !Object.values(ComplaintPriority).includes(priority)) {

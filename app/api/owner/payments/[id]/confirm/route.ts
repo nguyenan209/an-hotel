@@ -5,7 +5,7 @@ import { PaymentStatus } from "@prisma/client";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const tokenData = await getTokenData(req);
@@ -17,7 +17,7 @@ export async function POST(
     }
 
     const payment = await prisma.payment.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         booking: {
           select: {
@@ -53,7 +53,7 @@ export async function POST(
     }
 
     const updatedPayment = await prisma.payment.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         status: PaymentStatus.PAID
       }

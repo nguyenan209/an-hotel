@@ -4,7 +4,7 @@ import { getTokenData } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = getTokenData(req);
@@ -14,7 +14,7 @@ export async function GET(
 
     const homestay = await prisma.homestay.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
         ownerId: decoded.id,
       },
       select: {

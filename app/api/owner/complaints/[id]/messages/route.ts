@@ -5,7 +5,7 @@ import { ResponderType } from "@prisma/client";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = getTokenData(request);
@@ -13,7 +13,7 @@ export async function POST(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { message } = await request.json();
 
     if (!message?.trim()) {
