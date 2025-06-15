@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ArrowLeft, CheckCircle, MessageSquare, Star, Trash, X } from "lucide-react";
 import Image from "next/image";
-import { ArrowLeft, CheckCircle, MessageSquare, Star, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,23 +16,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/utils";
-import { useParams } from "next/navigation";
-import { AdminReviewsResponse } from "@/lib/types";
 import moment from "moment";
-import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { Editor } from "@tinymce/tinymce-react";
-import TinyMCEEditor from "@/components/tinymce-editor";
+import Loading from "@/components/loading";
+import { ReviewStatus } from "@prisma/client";
+
+const TinyMCEEditor = dynamic(() => import("@/components/tinymce-editor"), { ssr: false });
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [review, setReview] = useState<AdminReviewsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data: review,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["owner-review-detail", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/owner/reviews/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch review");
+      return res.json();
+    },
+    enabled: !!id,
+  });
   const [status, setStatus] = useState("");
   const [ownerResponse, setOwnerResponse] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,112 +52,67 @@ export default function ReviewDetailPage() {
   const [isAddingResponse, setIsAddingResponse] = useState(false);
   const [tempOwnerResponse, setTempOwnerResponse] = useState("");
 
-  // Fetch review data from API
-  useEffect(() => {
-    const fetchReview = async () => {
-      try {
-        const response = await fetch(`/api/admin/reviews/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch review");
-        }
-        const data = await response.json();
-        setReview(data);
-        setStatus(data.status);
-        setOwnerResponse(data.ownerReply || "");
-      } catch (err) {
-        toast.error("Failed to fetch review details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReview();
-  }, [id]);
-
-  if (loading) {
-    return <p>Loading review details...</p>;
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
-
-  if (!review) {
-    return <p>Review not found.</p>;
-  }
-
-  const handleApprove = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
+  const approveMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/owner/reviews`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "published" }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: id, status: "APPROVED" }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to approve review");
-      }
-
-      setStatus("published");
+      if (!res.ok) throw new Error("Failed to approve review");
+      return res.json();
+    },
+    onSuccess: () => {
       toast.success("Review approved successfully.");
-    } catch (err) {
-      toast.error("Failed to approve review.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      refetch();
+    },
+    onError: () => toast.error("Failed to approve review."),
+  });
 
-  const handleFlag = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
+  const rejectMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/owner/reviews`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "flagged" }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: id, status: "REJECTED" }),
       });
+      if (!res.ok) throw new Error("Failed to reject review");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Review rejected successfully.");
+      refetch();
+    },
+    onError: () => toast.error("Failed to reject review."),
+  });
 
-      if (!response.ok) {
-        throw new Error("Failed to flag review");
-      }
+  const removeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/owner/reviews`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: id }),
+      });
+      if (!res.ok) throw new Error("Failed to remove review");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Review removed successfully.");
+      window.location.href = "/owner/reviews";
+    },
+    onError: () => toast.error("Failed to remove review."),
+  });
 
-      setStatus("flagged");
-      toast.success("Review flagged successfully.");
-    } catch (err) {
-      toast.error("Failed to flag review.");
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (review) {
+      setStatus(review.status);
+      setOwnerResponse(review.ownerReply || "");
     }
-  };
-  const handleRemove = async () => {
-    if (
-      confirm(
-        "Are you sure you want to remove this review? This action cannot be undone."
-      )
-    ) {
-      setIsSubmitting(true);
-      try {
-        const response = await fetch(`/api/admin/reviews/${id}`, {
-          method: "DELETE",
-        });
+  }, [review]);
 
-        if (!response.ok) {
-          throw new Error("Failed to remove review");
-        }
-
-        toast.success("Review removed successfully.");
-        window.location.href = "/admin/reviews";
-      } catch (err) {
-        toast.error("Failed to remove review.");
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
+  if (isLoading) return <Loading />;
+  if (isError) return <div className="text-red-500">Error: {(error as Error).message}</div>;
+  if (!review) return <div>Review not found.</div>;
 
   const handleSaveResponse = async () => {
     setIsSubmitting(true);
@@ -267,7 +236,7 @@ export default function ReviewDetailPage() {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Comment
                 </h3>
-                <p className="text-base mt-1">{review.comment}</p>
+                <div className="text-base mt-1" dangerouslySetInnerHTML={{ __html: review.comment }} />
               </div>
 
               <Separator />
@@ -505,46 +474,34 @@ export default function ReviewDetailPage() {
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {status === "pending" && (
+              {status === ReviewStatus.PENDING && (
                 <Button
                   className="w-full bg-green-600 text-white hover:bg-green-700"
-                  onClick={handleApprove}
+                  onClick={() => approveMutation.mutate()}
                   disabled={isSubmitting}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Approve Review
                 </Button>
               )}
-              {status !== "flagged" && (
+              {status !== ReviewStatus.REJECTED && (
                 <Button
                   variant="outline"
                   className="w-full border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
-                  onClick={handleFlag}
+                  onClick={() => rejectMutation.mutate()}
                   disabled={isSubmitting}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-2 h-4 w-4"
-                  >
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                    <line x1="4" x2="4" y1="22" y2="15" />
-                  </svg>
-                  Flag Review
+                  <X className="mr-2 h-4 w-4" />
+                  Reject Review
                 </Button>
               )}
               <Button
                 variant="outline"
                 className="w-full border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                onClick={handleRemove}
+                onClick={() => removeMutation.mutate()}
                 disabled={isSubmitting}
               >
-                <X className="mr-2 h-4 w-4" />
+                <Trash className="mr-2 h-4 w-4" />
                 Remove Review
               </Button>
             </CardContent>
