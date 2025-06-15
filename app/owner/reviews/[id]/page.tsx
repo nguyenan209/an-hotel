@@ -103,6 +103,42 @@ export default function ReviewDetailPage() {
     onError: () => toast.error("Failed to remove review."),
   });
 
+  const saveResponseMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/owner/reviews`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: id, ownerReply: content }),
+      });
+      if (!res.ok) throw new Error("Failed to save owner's response");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Owner's response saved successfully.");
+      setIsEditingResponse(false);
+      refetch();
+    },
+    onError: () => toast.error("Failed to save owner's response."),
+  });
+
+  const deleteResponseMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/owner/reviews`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: id, ownerReply: null }),
+      });
+      if (!res.ok) throw new Error("Failed to delete owner's response");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Owner's response deleted successfully.");
+      setDeleteDialogOpen(false);
+      refetch();
+    },
+    onError: () => toast.error("Failed to delete owner's response."),
+  });
+
   useEffect(() => {
     if (review) {
       setStatus(review.status);
@@ -114,60 +150,11 @@ export default function ReviewDetailPage() {
   if (isError) return <div className="text-red-500">Error: {(error as Error).message}</div>;
   if (!review) return <div>Review not found.</div>;
 
-  const handleSaveResponse = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ownerReply: tempOwnerResponse }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save owner's response");
-      }
-
-      setIsEditingResponse(false);
-      toast.success("Owner's response saved successfully.");
-    } catch (err) {
-      toast.error("Failed to save owner's response.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteResponse = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ownerReply: null }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete owner's response");
-      }
-
-      setOwnerResponse("");
-      setDeleteDialogOpen(false);
-      toast.success("Owner's response deleted successfully.");
-    } catch (err) {
-      toast.error("Failed to delete owner's response.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/admin/reviews">
+          <Link href="/owner/reviews">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Link>
@@ -177,14 +164,14 @@ export default function ReviewDetailPage() {
           <p className="text-muted-foreground">
             Review for{" "}
             <Link
-              href={`/admin/homestays/${review.homestayId}`}
+              href={`/owner/homestays/${review.homestayId}`}
               className="text-blue-600 hover:underline"
             >
               {review.homestay.name}
             </Link>{" "}
             by{" "}
             <Link
-              href={`/admin/customers/${review.customerId}`}
+              href={`/owner/customers/${review.customerId}`}
               className="text-blue-600 hover:underline"
             >
               {review.customer.user.name}
@@ -355,8 +342,8 @@ export default function ReviewDetailPage() {
                         <Button
                           size="sm"
                           onClick={() => {
-                            setOwnerResponse(tempOwnerResponse); // Cập nhật state chính thức
-                            handleSaveResponse();
+                            setOwnerResponse(tempOwnerResponse);
+                            saveResponseMutation.mutate(tempOwnerResponse);
                           }}
                           disabled={isSubmitting || !tempOwnerResponse.trim()}
                         >
@@ -404,9 +391,10 @@ export default function ReviewDetailPage() {
                           Cancel
                         </Button>
                         <Button
+                          size="sm"
                           onClick={() => {
-                            setOwnerResponse(tempOwnerResponse); // Cập nhật state chính thức
-                            handleSaveResponse();
+                            setOwnerResponse(tempOwnerResponse);
+                            saveResponseMutation.mutate(tempOwnerResponse);
                           }}
                           disabled={isSubmitting || !tempOwnerResponse.trim()}
                         >
@@ -436,7 +424,7 @@ export default function ReviewDetailPage() {
                 />
               </div>
               <h3 className="text-lg font-medium">{review.homestay.name}</h3>
-              <Link href={`/admin/homestays/${review.homestayId}`}>
+              <Link href={`/owner/homestays/${review.homestayId}`}>
                 <Button variant="outline" className="w-full">
                   View Homestay
                 </Button>
@@ -461,7 +449,7 @@ export default function ReviewDetailPage() {
                   <p className="text-base">{review.customer.user.email}</p>
                 </div>
               </div>
-              <Link href={`/admin/customers/${review.customerId}`}>
+              <Link href={`/owner/customers/${review.customerId}`}>
                 <Button variant="outline" className="w-full">
                   View Customer
                 </Button>
@@ -512,7 +500,7 @@ export default function ReviewDetailPage() {
       <ConfirmDeleteDialog
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDeleteResponse}
+        onConfirm={() => deleteResponseMutation.mutate()}
         itemName="this response"
         isDeleting={isSubmitting}
       />
