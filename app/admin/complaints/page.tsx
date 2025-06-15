@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { CheckCircle, Eye, Filter, Search } from "lucide-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Eye, Filter, Search } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,8 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 
 const PAGE_SIZE = 20;
 
@@ -62,8 +63,14 @@ export default function ComplaintsPage() {
       if (!res.ok) throw new Error("Failed to fetch complaints");
       return res.json();
     },
-    getNextPageParam: (lastPage: { complaints: any[]; total: number }, allPages: { complaints: any[]; total: number }[]) => {
-      const loaded = allPages.reduce((acc, page) => acc + page.complaints.length, 0);
+    getNextPageParam: (
+      lastPage: { complaints: any[]; total: number },
+      allPages: { complaints: any[]; total: number }[]
+    ) => {
+      const loaded = allPages.reduce(
+        (acc, page) => acc + page.complaints.length,
+        0
+      );
       if (loaded < lastPage.total) {
         return allPages.length + 1;
       }
@@ -76,19 +83,23 @@ export default function ComplaintsPage() {
   const total = data?.pages[0]?.total || 0;
 
   // Filtered counts for badges (tính trên toàn bộ complaints đã load)
-  const openCount = complaints.filter((c: any) => c.status === "OPEN").length;
-  const inProgressCount = complaints.filter((c: any) => c.status === "IN_PROGRESS").length;
-  const resolvedCount = complaints.filter((c: any) => c.status === "RESOLVED").length;
+  const openCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.OPEN
+  ).length;
+  const resolvedCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.RESOLVED
+  ).length;
+  const acknowledgedCount = complaints.filter(
+    (c: any) => c.status === ComplaintStatus.ACKNOWLEDGED
+  ).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "OPEN":
+      case ComplaintStatus.OPEN:
         return "bg-red-100 text-red-800";
-      case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800";
-      case "RESOLVED":
+      case ComplaintStatus.RESOLVED:
         return "bg-green-100 text-green-800";
-      case "CLOSED":
+      case ComplaintStatus.ACKNOWLEDGED:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -97,11 +108,11 @@ export default function ComplaintsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "HIGH":
+      case ComplaintPriority.HIGH:
         return "bg-red-100 text-red-800";
-      case "MEDIUM":
+      case ComplaintPriority.MEDIUM:
         return "bg-yellow-100 text-yellow-800";
-      case "LOW":
+      case ComplaintPriority.LOW:
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -110,8 +121,12 @@ export default function ComplaintsPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "IN_PROGRESS":
-        return "In Progress";
+      case ComplaintStatus.OPEN:
+        return "Open";
+      case ComplaintStatus.RESOLVED:
+        return "Resolved";
+      case ComplaintStatus.ACKNOWLEDGED:
+        return "Acknowledged";
       default:
         return status.charAt(0) + status.slice(1).toLowerCase();
     }
@@ -134,10 +149,11 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="OPEN">Open</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="RESOLVED">Resolved</SelectItem>
-              <SelectItem value="CLOSED">Closed</SelectItem>
+              <SelectItem value={ComplaintStatus.OPEN}>Open</SelectItem>
+              <SelectItem value={ComplaintStatus.RESOLVED}>Resolved</SelectItem>
+              <SelectItem value={ComplaintStatus.ACKNOWLEDGED}>
+                Acknowledged
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -146,9 +162,9 @@ export default function ComplaintsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="HIGH">High</SelectItem>
-              <SelectItem value="MEDIUM">Medium</SelectItem>
-              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value={ComplaintPriority.HIGH}>High</SelectItem>
+              <SelectItem value={ComplaintPriority.MEDIUM}>Medium</SelectItem>
+              <SelectItem value={ComplaintPriority.LOW}>Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -183,7 +199,7 @@ export default function ComplaintsPage() {
                 variant="outline"
                 className="bg-blue-50 text-blue-700 text-sm font-normal"
               >
-                {inProgressCount} In Progress
+                {acknowledgedCount} Acknowledged
               </Badge>
               <Badge
                 variant="outline"
@@ -197,7 +213,9 @@ export default function ComplaintsPage() {
           {isLoading ? (
             <div className="text-center py-8">Loading complaints...</div>
           ) : isError ? (
-            <div className="text-center py-8 text-red-500">Failed to load complaints.</div>
+            <div className="text-center py-8 text-red-500">
+              Failed to load complaints.
+            </div>
           ) : (
             <InfiniteScroll
               dataLength={complaints.length}
@@ -240,8 +258,11 @@ export default function ComplaintsPage() {
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getPriorityColor(complaint.priority)}>
-                            {complaint.priority.charAt(0) + complaint.priority.slice(1).toLowerCase()}
+                          <Badge
+                            className={getPriorityColor(complaint.priority)}
+                          >
+                            {complaint.priority.charAt(0) +
+                              complaint.priority.slice(1).toLowerCase()}
                           </Badge>
                         </TableCell>
                         <TableCell>

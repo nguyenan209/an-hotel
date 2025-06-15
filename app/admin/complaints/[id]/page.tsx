@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
 import { ArrowLeft, CheckCircle, MessageSquare, User } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,9 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -22,7 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
+import { ComplaintPriority, ComplaintStatus } from "@prisma/client";
 import { useParams } from "next/navigation";
 
 
@@ -59,13 +60,11 @@ export default function ComplaintDetailPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open":
+      case ComplaintStatus.OPEN:
         return "bg-red-100 text-red-800";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800";
-      case "resolved":
+      case ComplaintStatus.RESOLVED:
         return "bg-green-100 text-green-800";
-      case "closed":
+      case ComplaintStatus.ACKNOWLEDGED:
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -74,11 +73,11 @@ export default function ComplaintDetailPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
+      case ComplaintPriority.HIGH:
         return "bg-red-100 text-red-800";
-      case "medium":
+      case ComplaintPriority.MEDIUM:
         return "bg-yellow-100 text-yellow-800";
-      case "low":
+      case ComplaintPriority.LOW:
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -87,8 +86,12 @@ export default function ComplaintDetailPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "in_progress":
-        return "In Progress";
+      case ComplaintStatus.OPEN:
+        return "Open";
+      case ComplaintStatus.RESOLVED:
+        return "Resolved";
+      case ComplaintStatus.ACKNOWLEDGED:
+        return "Acknowledged";
       default:
         return status.charAt(0).toUpperCase() + status.slice(1);
     }
@@ -346,10 +349,9 @@ export default function ComplaintDetailPage() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value={ComplaintStatus.OPEN}>Open</SelectItem>
+                    <SelectItem value={ComplaintStatus.RESOLVED}>Resolved</SelectItem>
+                    <SelectItem value={ComplaintStatus.ACKNOWLEDGED}>Acknowledged</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -361,9 +363,9 @@ export default function ComplaintDetailPage() {
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value={ComplaintPriority.HIGH}>High</SelectItem>
+                    <SelectItem value={ComplaintPriority.MEDIUM}>Medium</SelectItem>
+                    <SelectItem value={ComplaintPriority.LOW}>Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -390,7 +392,7 @@ export default function ComplaintDetailPage() {
               <Separator />
 
               <div className="space-y-2">
-                {status !== "resolved" && status !== "closed" && (
+                {status !== ComplaintStatus.RESOLVED && status !== ComplaintStatus.ACKNOWLEDGED && (
                   <Button
                     className="w-full bg-green-600 text-white hover:bg-green-700"
                     onClick={handleResolve}
@@ -400,7 +402,7 @@ export default function ComplaintDetailPage() {
                     Mark as Resolved
                   </Button>
                 )}
-                {status !== "closed" && (
+                {status !== ComplaintStatus.ACKNOWLEDGED && (
                   <Button
                     variant="outline"
                     className="w-full"
