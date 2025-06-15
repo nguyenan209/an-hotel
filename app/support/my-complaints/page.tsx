@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import Loading from "@/components/loading";
 
 export default function MyComplaintsPage() {
   const [activeTab, setActiveTab] = useState("all");
@@ -90,17 +91,17 @@ export default function MyComplaintsPage() {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
+  const truncateHtml = (html: string, maxLength: number) => {
+    if (!html) return "";
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    const text = tempDiv.textContent || tempDiv.innerText || "";
+    if (text.length <= maxLength) return html;
+    return text.substring(0, maxLength) + "...";
+  };
+
   if (queryLoading) {
-    return (
-      <div className="container mx-auto py-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center justify-center min-h-[50vh]">
-            <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 rounded-full animate-spin"></div>
-            <p className="mt-4 text-lg">Loading your complaints...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (isError) {
@@ -230,16 +231,20 @@ export default function MyComplaintsPage() {
               <h4 className="text-sm font-medium text-muted-foreground mb-1">
                 Description
               </h4>
-              <div className="text-sm" dangerouslySetInnerHTML={{ __html: complaint.description || "" }} />
+              <div
+                className="text-sm line-clamp-3"
+                dangerouslySetInnerHTML={{
+                  __html: truncateHtml(complaint.description || "", 150),
+                }}
+              />
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button
-            variant="outline"
             size="sm"
             onClick={() => {
-              window.location.href = `/support/complaints/${complaint.id}`;
+              window.location.href = `/support/my-complaints/${complaint.id}`;
             }}
           >
             View Details

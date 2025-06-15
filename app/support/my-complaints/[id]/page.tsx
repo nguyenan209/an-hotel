@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ComplaintStatus } from "@prisma/client";
 import { useParams } from "next/navigation";
+import Loading from "@/components/loading";
 
 // Types
 interface ComplaintResponse {
@@ -99,18 +100,7 @@ export default function ComplaintDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="h-64 bg-gray-200 rounded mb-8"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
