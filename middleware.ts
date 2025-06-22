@@ -5,6 +5,9 @@ const publicRoutes = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/google',
+  '/api/homestays',
+  '/api/rooms',
+  '/api/reviews',
 ];
 
 function decodeJwt(token: string): any {
@@ -19,7 +22,7 @@ function decodeJwt(token: string): any {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (publicRoutes.includes(pathname)) {
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
   if (pathname.startsWith('/api/')) {
