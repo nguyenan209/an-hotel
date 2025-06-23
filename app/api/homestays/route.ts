@@ -3,6 +3,8 @@ import { getHomestays, searchHomestays } from "@/lib/data";
 import type { SearchParams } from "@/lib/types";
 import prisma from "@/lib/prisma";
 import { homestaySchema } from "@/lib/schema";
+import { getTokenData } from "@/lib/auth";
+import { NextRequest } from "next/server";
 
 export async function GET(request: Request) {
   try {
@@ -35,25 +37,17 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
     // Parse và xác thực body request
-    const body = await request.json();
+    const body = await req.json();
     const data = homestaySchema.parse(body);
-    // Lấy ownerId từ authorization token
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Lấy ownerId từ token
+    const decoded = getTokenData(req);
+    if (!decoded || !decoded.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
-    const token = authHeader.split(" ")[1];
-    const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-    const ownerId = decodedToken.userId;
-
-    if (!ownerId) {
-      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-    }
-
+    const ownerId = decoded.id;
     // Tạo homestay mới trong database
     const homestay = await prisma.homestay.create({
       data: {
@@ -74,7 +68,6 @@ export async function POST(request: Request) {
         rating: 5,
       },
     });
-
     return NextResponse.json(
       { message: "Homestay created successfully", homestay },
       { status: 201 }
