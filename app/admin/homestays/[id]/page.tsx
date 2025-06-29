@@ -1,13 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Check, Search } from "lucide-react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,27 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { homestaySchema } from "@/lib/schema";
 import {
   Command,
   CommandEmpty,
@@ -46,20 +18,46 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { homestaySchema } from "@/lib/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Check, Search } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { debounce } from "lodash";
+import TinyMCEEditor from "@/components/tinymce-editor";
+import ImageUploader from "@/components/upload/ImageUploader";
 import {
   createHomestay,
   fetchAddressResults,
   fetchHomestayData,
 } from "@/lib/homestay";
 import Cookies from "js-cookie";
-import ImageUploader from "@/components/upload/ImageUploader";
-import TinyMCEEditor from "@/components/tinymce-editor";
+import { debounce } from "lodash";
 
 type HomestayFormValues = z.infer<typeof homestaySchema>;
 
@@ -209,22 +207,22 @@ export default function HomestayDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/homestays">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
           {isNewHomestay
-            ? "Add New Homestay"
-            : `Edit Homestay: ${homestay?.name}`}
+            ? "Thêm Homestay Mới"
+            : `Sửa Homestay: ${homestay?.name}`}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="amenities">Amenities</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
+          <TabsTrigger value="details">Chi tiết</TabsTrigger>
+          <TabsTrigger value="images">Ảnh</TabsTrigger>
+          <TabsTrigger value="amenities">Tiện ích</TabsTrigger>
+          <TabsTrigger value="pricing">Giá</TabsTrigger>
         </TabsList>
 
         <Form {...form}>
@@ -232,9 +230,9 @@ export default function HomestayDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle>Thông tin cơ bản</CardTitle>
                   <CardDescription>
-                    Enter the basic details of the homestay.
+                    Nhập thông tin cơ bản của homestay.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -243,9 +241,9 @@ export default function HomestayDetailPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
+                        <FormLabel>Tên</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter homestay name" {...field} />
+                          <Input placeholder="Nhập tên homestay" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -257,7 +255,7 @@ export default function HomestayDetailPage() {
                     name="address"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>Địa chỉ</FormLabel>
                         <Popover
                           open={addressSearchOpen}
                           onOpenChange={setAddressSearchOpen}
@@ -266,7 +264,7 @@ export default function HomestayDetailPage() {
                             <FormControl>
                               <div className="flex items-center relative">
                                 <Input
-                                  placeholder="Search for address"
+                                  placeholder="Tìm kiếm địa chỉ"
                                   {...field}
                                   onChange={(e) => {
                                     field.onChange(e);
@@ -285,11 +283,13 @@ export default function HomestayDetailPage() {
                           >
                             <Command>
                               <CommandInput
-                                placeholder="Search address..."
+                                placeholder="Tìm kiếm địa chỉ..."
                                 onValueChange={searchAddress}
                               />
                               <CommandList>
-                                <CommandEmpty>No results found.</CommandEmpty>
+                                <CommandEmpty>
+                                  Không tìm thấy kết quả
+                                </CommandEmpty>
                                 <CommandGroup>
                                   {addressResults.map((result) => (
                                     <CommandItem
@@ -308,7 +308,7 @@ export default function HomestayDetailPage() {
                           </PopoverContent>
                         </Popover>
                         <FormDescription>
-                          Search for an address or enter it manually
+                          Tìm kiếm địa chỉ hoặc nhập tay
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -320,7 +320,7 @@ export default function HomestayDetailPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Mô tả</FormLabel>
                         <FormControl>
                           <TinyMCEEditor
                             apiKey={
@@ -343,7 +343,7 @@ export default function HomestayDetailPage() {
                       name="maxGuests"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Maximum Guests</FormLabel>
+                          <FormLabel>Số lượng khách tối đa</FormLabel>
                           <FormControl>
                             <Input type="number" min="1" {...field} />
                           </FormControl>
@@ -357,7 +357,7 @@ export default function HomestayDetailPage() {
                       name="totalRooms"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Total Rooms</FormLabel>
+                          <FormLabel>Tổng số phòng</FormLabel>
                           <FormControl>
                             <Input type="number" min="0" {...field} />
                           </FormControl>
@@ -372,22 +372,22 @@ export default function HomestayDetailPage() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>Trạng thái</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                            <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                            <SelectItem value="MAINTENANCE">
-                              MAINTENANCE
+                            <SelectItem value="ACTIVE">HOẠT ĐỘNG</SelectItem>
+                            <SelectItem value="INACTIVE">
+                              KHÔNG HOẠT ĐỘNG
                             </SelectItem>
+                            <SelectItem value="MAINTENANCE">BẢO TRÌ</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -408,9 +408,9 @@ export default function HomestayDetailPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>Featured Homestay</FormLabel>
+                            <FormLabel>Homestay nổi bật</FormLabel>
                             <FormDescription>
-                              This homestay will be displayed on the homepage.
+                              Homestay này sẽ được hiển thị trên trang chủ.
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -429,12 +429,11 @@ export default function HomestayDetailPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Allow Individual Room Bookings
-                            </FormLabel>
+                            <FormLabel>Cho phép đặt phòng riêng lẻ</FormLabel>
                             <FormDescription>
-                              If checked, guests can book individual rooms.
-                              Otherwise, only the entire homestay can be booked.
+                              Nếu được chọn, khách hàng có thể đặt phòng riêng
+                              lẻ. Nếu không, chỉ có toàn bộ homestay có thể được
+                              đặt.
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -448,10 +447,9 @@ export default function HomestayDetailPage() {
             <TabsContent value="images" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Images</CardTitle>
+                  <CardTitle>Ảnh</CardTitle>
                   <CardDescription>
-                    Upload images of the homestay. You can upload multiple
-                    images.
+                    Tải lên ảnh của homestay. Bạn có thể tải lên nhiều ảnh.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -469,9 +467,9 @@ export default function HomestayDetailPage() {
             <TabsContent value="amenities" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Amenities</CardTitle>
+                  <CardTitle>Tiện ích</CardTitle>
                   <CardDescription>
-                    Select the amenities available at this homestay.
+                    Chọn các tiện ích có sẵn tại homestay này.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -529,9 +527,9 @@ export default function HomestayDetailPage() {
             <TabsContent value="pricing" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Pricing</CardTitle>
+                  <CardTitle>Giá</CardTitle>
                   <CardDescription>
-                    Set the pricing details for this homestay.
+                    Thiết lập chi tiết giá cho homestay này.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -541,14 +539,14 @@ export default function HomestayDetailPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Base Price (per night for entire homestay)
+                          Giá cơ bản (cho mỗi đêm cho toàn bộ homestay)
                         </FormLabel>
                         <FormControl>
                           <Input type="number" min={0} {...field} />
                         </FormControl>
                         <FormDescription>
-                          This is the rate for booking the entire homestay.
-                          Individual room prices can be set in the Rooms tab.
+                          Đây là tỷ lệ cho việc đặt toàn bộ homestay. Giá phòng
+                          riêng lẻ có thể được thiết lập trong tab Phòng.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -560,11 +558,11 @@ export default function HomestayDetailPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" asChild>
-                <Link href="/admin/homestays">Cancel</Link>
+                <Link href="/admin/homestays">Hủy</Link>
               </Button>
               <Button type="submit">
                 <Check className="mr-2 h-4 w-4" />
-                {isNewHomestay ? "Create Homestay" : "Save Changes"}
+                {isNewHomestay ? "Tạo Homestay" : "Lưu thay đổi"}
               </Button>
             </div>
           </form>
