@@ -102,21 +102,21 @@ export default function CustomerDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/customers">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
           {isNewCustomer
-            ? "Add New Customer"
-            : `Edit Customer: ${customer?.user?.name}`}
+            ? "Thêm khách hàng mới"
+            : `Sửa khách hàng: ${customer?.user?.name}`}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="details">Chi tiết</TabsTrigger>
           {!isNewCustomer && (
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="bookings">Đặt phòng</TabsTrigger>
           )}
         </TabsList>
 
@@ -125,9 +125,9 @@ export default function CustomerDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Customer Information</CardTitle>
+                  <CardTitle>Thông tin khách hàng</CardTitle>
                   <CardDescription>
-                    Enter the customer's personal information.
+                    Nhập thông tin cá nhân của khách hàng.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -141,9 +141,9 @@ export default function CustomerDetailPage() {
               <TabsContent value="bookings" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Booking History</CardTitle>
+                    <CardTitle>Lịch sử đặt phòng</CardTitle>
                     <CardDescription>
-                      View all bookings made by this customer.
+                      Xem tất cả đặt phòng được khách hàng thực hiện.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -151,10 +151,10 @@ export default function CustomerDetailPage() {
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium">
-                          No bookings found
+                          Không tìm thấy đặt phòng nào
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          This customer hasn't made any bookings yet.
+                          Khách hàng này chưa thực hiện đặt phòng nào.
                         </p>
                       </div>
                     ) : (
@@ -182,7 +182,7 @@ export default function CustomerDetailPage() {
                               </span>
                               <Link href={`/admin/bookings/${booking.id}`}>
                                 <Button variant="outline" size="sm">
-                                  View Details
+                                  Xem chi tiết
                                 </Button>
                               </Link>
                             </div>
@@ -197,11 +197,11 @@ export default function CustomerDetailPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" asChild>
-                <Link href="/admin/customers">Cancel</Link>
+                <Link href="/admin/customers">Hủy</Link>
               </Button>
               <Button type="submit">
                 <Check className="mr-2 h-4 w-4" />
-                {isNewCustomer ? "Create Customer" : "Save Changes"}
+                {isNewCustomer ? "Tạo khách hàng" : "Lưu thay đổi"}
               </Button>
             </div>
           </form>

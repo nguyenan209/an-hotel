@@ -134,23 +134,23 @@ export default function BookingsPage() {
         <Link href="/admin/bookings/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Booking
+            Thêm mới đặt phòng
           </Button>
         </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage Bookings</CardTitle>
+          <CardTitle>Quản lý đặt phòng</CardTitle>
           <CardDescription>
-            You have a total of {bookings.length} bookings in the system.
+            Bạn có tổng cộng {bookings.length} đặt phòng trong hệ thống.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
             <div className="flex-1">
               <Input
-                placeholder="Search bookings..."
+                placeholder="Tìm kiếm đặt phòng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -164,19 +164,21 @@ export default function BookingsPage() {
                 }
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={BookingStatus.PENDING}>Pending</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value={BookingStatus.PENDING}>
+                    Chờ xác nhận
+                  </SelectItem>
                   <SelectItem value={BookingStatus.CONFIRMED}>
-                    Confirmed
+                    Đã xác nhận
                   </SelectItem>
                   <SelectItem value={BookingStatus.COMPLETED}>
-                    Completed
+                    Đã hoàn thành
                   </SelectItem>
                   <SelectItem value={BookingStatus.CANCELLED}>
-                    Cancelled
+                    Đã hủy
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -187,15 +189,15 @@ export default function BookingsPage() {
                 }
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by booking type" />
+                  <SelectValue placeholder="Lọc theo loại đặt phòng" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value={BookingType.WHOLE}>
-                    Whole Homestay
+                    Toàn bộ homestay
                   </SelectItem>
                   <SelectItem value={BookingType.ROOMS}>
-                    Individual Rooms
+                    Phòng riêng lẻ
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -208,19 +210,19 @@ export default function BookingsPage() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Homestay</TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Khách hàng</TableHead>
                   <TableHead>Check-in / Check-out</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Loại</TableHead>
+                  <TableHead>Tổng tiền</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-4">
-                      No bookings found
+                      Không tìm thấy đặt phòng nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -273,7 +275,7 @@ export default function BookingsPage() {
                         <Link href={`/admin/bookings/${booking.id}`}>
                           <Button variant="ghost" size="icon">
                             <Eye className="h-4 w-4" />
-                            <span className="sr-only">View</span>
+                            <span className="sr-only">Xem</span>
                           </Button>
                         </Link>
                       </TableCell>

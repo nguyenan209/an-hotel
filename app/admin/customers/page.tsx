@@ -117,23 +117,23 @@ export default function CustomersPage() {
         <Link href="/admin/customers/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Customer
+            Thêm khách hàng mới
           </Button>
         </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage Customers</CardTitle>
+          <CardTitle>Quản lý khách hàng</CardTitle>
           <CardDescription>
-            You have a total of {customers.length} customers in the system.
+            Bạn có tổng cộng {customers.length} khách hàng trong hệ thống.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
             <div className="flex-1">
               <Input
-                placeholder="Search customers..."
+                placeholder="Tìm kiếm khách hàng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -142,12 +142,12 @@ export default function CustomersPage() {
             <div className="flex items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="ACTIVE">HOẠT ĐỘNG</SelectItem>
+                  <SelectItem value="INACTIVE">KHÔNG HOẠT ĐỘNG</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -157,20 +157,20 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Tên</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Total Bookings</TableHead>
-                  <TableHead>Joined Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Số điện thoại</TableHead>
+                  <TableHead>Tổng đặt phòng</TableHead>
+                  <TableHead>Ngày tham gia</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {customers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
-                      No customers found
+                      Không tìm thấy khách hàng nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -197,12 +197,12 @@ export default function CustomersPage() {
                           <Link href={`/admin/customers/${customer.id}`}>
                             <Button variant="ghost" size="icon">
                               <Edit className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
+                              <span className="sr-only">Sửa</span>
                             </Button>
                           </Link>
                           <Button variant="ghost" size="icon">
                             <Trash className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
+                            <span className="sr-only">Xóa</span>
                           </Button>
                         </div>
                       </TableCell>

@@ -182,11 +182,11 @@ export default function BookingDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/bookings">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isNewBooking ? "Create New Booking" : `Booking #${id}`}
+          {isNewBooking ? "Thêm mới đặt phòng" : `Đặt phòng #${id}`}
         </h2>
       </div>
 
@@ -195,11 +195,11 @@ export default function BookingDetailPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Booking Details</CardTitle>
+                <CardTitle>Chi tiết đặt phòng</CardTitle>
                 <CardDescription>
                   {isNewBooking
-                    ? "Create a new booking by filling out the form below."
-                    : "View and edit the booking details."}
+                    ? "Tạo mới đặt phòng bằng cách điền vào form bên dưới."
+                    : "Xem và chỉnh sửa chi tiết đặt phòng."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -219,7 +219,7 @@ export default function BookingDetailPage() {
                             <HomestayCombobox
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Select homestay"
+                              placeholder="Chọn homestay"
                               showAllOption={false}
                             />
                           ) : (
@@ -246,7 +246,7 @@ export default function BookingDetailPage() {
                   name="customerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer</FormLabel>
+                      <FormLabel>Khách hàng</FormLabel>
                       {isNewBooking ? (
                         <Select
                           onValueChange={field.onChange}
@@ -255,7 +255,7 @@ export default function BookingDetailPage() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select customer" />
+                              <SelectValue placeholder="Chọn khách hàng" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -282,7 +282,7 @@ export default function BookingDetailPage() {
                     name="checkIn"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Check-in Date</FormLabel>
+                        <FormLabel>Ngày check-in</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} disabled={true} />
                         </FormControl>
@@ -296,7 +296,7 @@ export default function BookingDetailPage() {
                     name="checkOut"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Check-out Date</FormLabel>
+                        <FormLabel>Ngày check-out</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} disabled={true} />
                         </FormControl>
@@ -311,7 +311,7 @@ export default function BookingDetailPage() {
                   name="guests"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Number of Guests</FormLabel>
+                      <FormLabel>Số lượng khách</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -330,7 +330,7 @@ export default function BookingDetailPage() {
                   name="bookingType"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel>Booking Type</FormLabel>
+                      <FormLabel>Loại đặt phòng</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -349,7 +349,7 @@ export default function BookingDetailPage() {
                               className="flex items-center"
                             >
                               <Home className="mr-2 h-4 w-4" />
-                              Whole Homestay
+                              Toàn bộ homestay
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -363,7 +363,7 @@ export default function BookingDetailPage() {
                               className="flex items-center"
                             >
                               <Hotel className="mr-2 h-4 w-4" />
-                              Individual Rooms
+                              Phòng riêng lẻ
                             </Label>
                           </div>
                         </RadioGroup>
@@ -379,11 +379,11 @@ export default function BookingDetailPage() {
                     name="selectedRooms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Select Rooms</FormLabel>
+                        <FormLabel>Chọn phòng</FormLabel>
                         <div className="space-y-2">
                           {availableRooms.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                              No rooms available for this homestay
+                              Không có phòng nào có sẵn cho homestay này
                             </p>
                           ) : (
                             availableRooms.map((room) => (
@@ -428,7 +428,7 @@ export default function BookingDetailPage() {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Booking Status</FormLabel>
+                      <FormLabel>Trạng thái đặt phòng</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -436,21 +436,21 @@ export default function BookingDetailPage() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="Chọn trạng thái" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value={BookingStatus.PENDING}>
-                            Pending
+                            Chờ xác nhận
                           </SelectItem>
                           <SelectItem value={BookingStatus.CONFIRMED}>
-                            Confirmed
+                            Đã xác nhận
                           </SelectItem>
                           <SelectItem value={BookingStatus.COMPLETED}>
-                            Completed
+                            Đã hoàn thành
                           </SelectItem>
                           <SelectItem value={BookingStatus.CANCELLED}>
-                            Cancelled
+                            Đã hủy
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -462,14 +462,14 @@ export default function BookingDetailPage() {
                 <Separator />
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Payment Information</h3>
+                  <h3 className="text-lg font-medium">Thông tin thanh toán</h3>
 
                   <FormField
                     control={form.control}
                     name="paymentStatus"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Status</FormLabel>
+                        <FormLabel>Trạng thái thanh toán</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -482,16 +482,16 @@ export default function BookingDetailPage() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value={PaymentStatus.PENDING}>
-                              Pending
+                              Chờ thanh toán
                             </SelectItem>
                             <SelectItem value={PaymentStatus.PAID}>
-                              Paid
+                              Đã thanh toán
                             </SelectItem>
                             <SelectItem value={PaymentStatus.REFUNDED}>
-                              Refunded
+                              Đã hoàn tiền
                             </SelectItem>
                             <SelectItem value={PaymentStatus.FAILED}>
-                              Failed
+                              Đã hủy
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -505,7 +505,7 @@ export default function BookingDetailPage() {
                     name="paymentMethod"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Method</FormLabel>
+                        <FormLabel>Phương thức thanh toán</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -513,18 +513,18 @@ export default function BookingDetailPage() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select payment method" />
+                              <SelectValue placeholder="Chọn phương thức thanh toán" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value={PaymentMethod.CREDIT_CARD}>
-                              Credit Card
+                              Thẻ tín dụng
                             </SelectItem>
                             <SelectItem value={PaymentMethod.BANK_TRANSFER}>
-                              Bank Transfer
+                              Chuyển khoản
                             </SelectItem>
                             <SelectItem value={PaymentMethod.CASH}>
-                              Cash
+                              Tiền mặt
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -539,11 +539,11 @@ export default function BookingDetailPage() {
             {(isNewBooking && (
               <div className="flex justify-end gap-2">
                 <Button variant="outline" asChild>
-                  <Link href="/admin/bookings">Cancel</Link>
+                  <Link href="/admin/bookings">Hủy</Link>
                 </Button>
                 <Button type="submit">
                   <Check className="mr-2 h-4 w-4" />
-                  {isNewBooking ? "Create Booking" : "Save Changes"}
+                  {isNewBooking ? "Tạo đặt phòng" : "Lưu thay đổi"}
                 </Button>
               </div>
             )) ||
@@ -555,9 +555,9 @@ export default function BookingDetailPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Booking Summary</CardTitle>
+                <CardTitle>Tổng quan đặt phòng</CardTitle>
                 <CardDescription>
-                  Overview of the booking details and status.
+                  Tổng quan chi tiết và trạng thái của đặt phòng.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -586,13 +586,13 @@ export default function BookingDetailPage() {
                 <div className="flex items-center gap-4 rounded-lg border p-4">
                   <Calendar className="h-8 w-8 text-muted-foreground" />
                   <div>
-                    <h3 className="font-medium">Stay Duration</h3>
+                    <h3 className="font-medium">Thời gian ở</h3>
                     <p className="text-sm text-muted-foreground">
                       {moment(booking.checkIn).format("YYYY-MM-DD")} to{" "}
                       {moment(booking.checkOut).format("YYYY-MM-DD")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {booking.guests} guests
+                      {booking.guests} khách
                     </p>
                   </div>
                 </div>
@@ -604,17 +604,17 @@ export default function BookingDetailPage() {
                     <Hotel className="h-8 w-8 text-muted-foreground" />
                   )}
                   <div>
-                    <h3 className="font-medium">Booking Type</h3>
+                    <h3 className="font-medium">Loại đặt phòng</h3>
                     <p className="text-sm text-muted-foreground">
                       {booking.bookingType === BookingType.WHOLE
-                        ? "Whole Homestay"
-                        : "Individual Rooms"}
+                        ? "Toàn bộ homestay"
+                        : "Phòng riêng lẻ"}
                     </p>
                     {booking.bookingType === BookingType.ROOMS &&
                       booking.homestay.rooms && (
                         <div className="mt-1">
                           <p className="text-sm text-muted-foreground">
-                            Selected Rooms:
+                            Chọn phòng:
                           </p>
                           <ul className="text-sm text-muted-foreground list-disc list-inside">
                             {booking.homestay.rooms.map((room: any) => (
@@ -631,23 +631,23 @@ export default function BookingDetailPage() {
                 <div className="flex items-center gap-4 rounded-lg border p-4">
                   <CreditCard className="h-8 w-8 text-muted-foreground" />
                   <div>
-                    <h3 className="font-medium">Payment</h3>
+                    <h3 className="font-medium">Thanh toán</h3>
                     <p className="text-sm text-muted-foreground">
                       Status: {booking.status}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Method: {booking.paymentMethod}
+                      Phương thức: {booking.paymentMethod}
                     </p>
                   </div>
                 </div>
 
                 <div className="rounded-lg border p-4">
-                  <h3 className="font-medium mb-2">Price Breakdown</h3>
+                  <h3 className="font-medium mb-2">Bảng giá</h3>
                   <div className="space-y-1 text-sm">
                     {booking.bookingType === BookingType.WHOLE ? (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
-                          Homestay price
+                          Giá homestay
                         </span>
                         <span>{formatCurrency(booking.totalPrice * 0.9)}</span>
                       </div>
@@ -663,13 +663,13 @@ export default function BookingDetailPage() {
                     )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        Taxes & fees
+                        Thuế & phí
                       </span>
                       <span>{formatCurrency(booking.totalPrice * 0.1)}</span>
                     </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between font-medium">
-                      <span>Total</span>
+                      <span>Tổng cộng</span>
                       <span>{formatCurrency(booking.totalPrice)}</span>
                     </div>
                   </div>
