@@ -125,22 +125,24 @@ export default function MyComplaintsPage() {
         <div className="mb-6">
           <Button variant="outline" asChild className="mb-4">
             <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Homepage
+              <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại trang chủ
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold mb-2">My Complaints</h1>
+          <h1 className="text-3xl font-bold mb-2">Khiếu nại của tôi</h1>
           <p className="text-muted-foreground mb-6">
-            Track and manage the complaints you've submitted.
+            Theo dõi và quản lý khiếu nại mà bạn đã gửi.
           </p>
         </div>
 
         <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="all">All Complaints</TabsTrigger>
-            <TabsTrigger value={ComplaintStatus.OPEN}>Open</TabsTrigger>
-            <TabsTrigger value={ComplaintStatus.RESOLVED}>Resolved</TabsTrigger>
+            <TabsTrigger value="all">Tất cả khiếu nại</TabsTrigger>
+            <TabsTrigger value={ComplaintStatus.OPEN}>Mới</TabsTrigger>
+            <TabsTrigger value={ComplaintStatus.RESOLVED}>
+              Đã giải quyết
+            </TabsTrigger>
             <TabsTrigger value={ComplaintStatus.ACKNOWLEDGED}>
-              Acknowledged
+              Đã xác nhận
             </TabsTrigger>
           </TabsList>
 
@@ -148,7 +150,7 @@ export default function MyComplaintsPage() {
             {filteredComplaints.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-muted-foreground">
-                  You haven't submitted any complaints yet.
+                  Bạn chưa gửi khiếu nại nào.
                 </p>
               </div>
             ) : (
@@ -162,7 +164,7 @@ export default function MyComplaintsPage() {
             {filteredComplaints.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-muted-foreground">
-                  You don't have any open complaints.
+                  Bạn không có khiếu nại nào.
                 </p>
               </div>
             ) : (
@@ -176,7 +178,7 @@ export default function MyComplaintsPage() {
             {filteredComplaints.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-muted-foreground">
-                  You don't have any resolved complaints.
+                  Bạn không có khiếu nại nào.
                 </p>
               </div>
             ) : (
@@ -193,7 +195,7 @@ export default function MyComplaintsPage() {
             {filteredComplaints.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-muted-foreground">
-                  You don't have any closed complaints.
+                  Bạn không có khiếu nại nào.
                 </p>
               </div>
             ) : (
@@ -217,7 +219,7 @@ export default function MyComplaintsPage() {
               <div>
                 <CardTitle>{complaint.subject}</CardTitle>
                 <CardDescription>
-                  Regarding booking at {complaint.homestayName} • Submitted on{" "}
+                  Về khiếu nại tại {complaint.homestayName} • Gửi vào{" "}
                   {formatDate(complaint.createdAt)}
                 </CardDescription>
               </div>
@@ -229,7 +231,7 @@ export default function MyComplaintsPage() {
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                Description
+                Mô tả
               </h4>
               <div
                 className="text-sm line-clamp-3"
@@ -247,7 +249,7 @@ export default function MyComplaintsPage() {
               window.location.href = `/support/my-complaints/${complaint.id}`;
             }}
           >
-            View Details
+            Xem chi tiết
           </Button>
         </CardFooter>
       </Card>

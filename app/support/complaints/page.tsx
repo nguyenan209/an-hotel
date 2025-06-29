@@ -1,14 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -20,10 +33,10 @@ const formSchema = z.object({
   complaint: z.string().min(10, {
     message: "Complaint must be at least 10 characters.",
   }),
-})
+});
 
 const ComplaintsPage = () => {
-  const [success, setSuccess] = useState(false)
+  const [success, setSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,24 +45,26 @@ const ComplaintsPage = () => {
       email: "",
       complaint: "",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Simulate a successful submission
-    console.log(values)
-    setSuccess(true)
-    form.reset()
+    console.log(values);
+    setSuccess(true);
+    form.reset();
     setTimeout(() => {
-      setSuccess(false)
-    }, 3000)
+      setSuccess(false);
+    }, 3000);
   }
 
   return (
     <div className="container mx-auto py-10">
       <Card className="w-[500px] mx-auto">
         <CardHeader>
-          <CardTitle>Submit a Complaint</CardTitle>
-          <CardDescription>Please fill out the form below to submit your complaint.</CardDescription>
+          <CardTitle>Gửi khiếu nại</CardTitle>
+          <CardDescription>
+            Vui lòng điền form bên dưới để gửi khiếu nại của bạn.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -59,7 +74,7 @@ const ComplaintsPage = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Tên</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
@@ -85,10 +100,10 @@ const ComplaintsPage = () => {
                 name="complaint"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Complaint</FormLabel>
+                    <FormLabel>Khiếu nại</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Please describe your complaint in detail."
+                        placeholder="Vui lòng mô tả khiếu nại của bạn chi tiết."
                         className="resize-none"
                         {...field}
                       />
@@ -98,14 +113,14 @@ const ComplaintsPage = () => {
                 )}
               />
               <Button type="submit" disabled={success}>
-                {success ? "Complaint Submitted!" : "Submit Complaint"}
+                {success ? "Khiếu nại đã được gửi!" : "Gửi khiếu nại"}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ComplaintsPage
+export default ComplaintsPage;

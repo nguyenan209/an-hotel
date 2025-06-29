@@ -225,7 +225,7 @@ export function Header() {
                       className="w-full flex items-center gap-1 px-3 py-2 cursor-pointer"
                     >
                       <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      My Bookings
+                      Đặt phòng của tôi
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -234,7 +234,7 @@ export function Header() {
                       className="w-full flex items-center gap-1 px-3 py-2 cursor-pointer"
                     >
                       <UserCircle className="h-4 w-4 text-muted-foreground" />
-                      Profile
+                      Hồ sơ của tôi
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -243,7 +243,7 @@ export function Header() {
                       className="w-full flex items-center gap-1 px-3 py-2 cursor-pointer"
                     >
                       <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                      My Complaints
+                      Khiếu nại của tôi
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="my-1" />
@@ -252,7 +252,7 @@ export function Header() {
                     className="flex items-center gap-1 px-3 py-2 cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 text-muted-foreground" />
-                    Logout
+                    Đăng xuất
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -29,10 +29,12 @@ export default function SupportPage() {
     <div className="container mx-auto py-10">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold mb-2">How Can We Help You?</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Làm thế nào để chúng tôi có thể giúp bạn?
+          </h1>
           <p className="text-muted-foreground">
-            Our support team is here to assist you with any questions or issues
-            you may have.
+            Đội ngũ hỗ trợ của chúng tôi sẽ giúp bạn với bất kỳ câu hỏi hoặc vấn
+            đề nào bạn có.
           </p>
         </div>
 
@@ -41,21 +43,22 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <FileText className="mr-2 h-5 w-5 text-primary" />
-                File a Complaint
+                Gửi khiếu nại
               </CardTitle>
               <CardDescription>
-                Report issues with your booking, homestay, or host
+                Báo cáo vấn đề với đặt phòng, homestay, hoặc chủ homestay
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm">
-                If you've experienced any issues with your stay or booking,
-                please file a complaint and our team will address it promptly.
+                Nếu bạn đã gặp phải bất kỳ vấn đề nào với đặt phòng, homestay,
+                hoặc chủ homestay, vui lòng gửi khiếu nại và đội ngũ của chúng
+                tôi sẽ xử lý nó ngay lập tức.
               </p>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href="/support/complaints">Submit a Complaint</Link>
+                <Link href="/support/complaints">Gửi khiếu nại</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -64,21 +67,21 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <MessageSquare className="mr-2 h-5 w-5 text-primary" />
-                Live Chat
+                Chat trực tiếp
               </CardTitle>
               <CardDescription>
-                Chat with our support team in real-time
+                Chat với đội ngũ hỗ trợ của chúng tôi trực tiếp
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm">
-                Get immediate assistance from our support team through our live
-                chat service. Available 24/7.
+                Nhận sự trợ giúp tức thời từ đội ngũ hỗ trợ của chúng tôi thông
+                qua dịch vụ chat trực tiếp. Có sẵn 24/7.
               </p>
             </CardContent>
             <CardFooter>
               <Button variant="outline" className="w-full">
-                Start Chat
+                Bắt đầu chat
               </Button>
             </CardFooter>
           </Card>
@@ -87,21 +90,22 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <HelpCircle className="mr-2 h-5 w-5 text-primary" />
-                FAQs
+                Câu hỏi thường gặp
               </CardTitle>
               <CardDescription>
-                Find answers to common questions
+                Tìm câu trả lời cho các câu hỏi thường gặp
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm">
-                Browse our frequently asked questions to find quick answers to
-                common inquiries about bookings, cancellations, and more.
+                Duyệt qua các câu hỏi thường gặp của chúng tôi để tìm câu trả
+                lời nhanh cho các câu hỏi thường gặp về đặt phòng, hủy đặt
+                phòng, và nhiều hơn nữa.
               </p>
             </CardContent>
             <CardFooter>
               <Button variant="outline" className="w-full">
-                View FAQs
+                Xem câu hỏi thường gặp
               </Button>
             </CardFooter>
           </Card>
@@ -110,48 +114,48 @@ export default function SupportPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
-                My Complaints
+                Khiếu nại của tôi
               </CardTitle>
               <CardDescription>
-                Track the status of your complaints
+                Theo dõi trạng thái của khiếu nại của bạn
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm">
-                View and track the status of complaints you've submitted. Check
-                responses and updates from our team.
+                Xem và theo dõi trạng thái của khiếu nại mà bạn đã gửi. Kiểm tra
+                các phản hồi và cập nhật từ đội ngũ của chúng tôi.
               </p>
             </CardContent>
             <CardFooter>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/support/my-complaints">View My Complaints</Link>
+                <Link href="/support/my-complaints">Xem khiếu nại của tôi</Link>
               </Button>
             </CardFooter>
           </Card>
         </div>
 
         <div className="bg-muted p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+          <h2 className="text-xl font-semibold mb-4">Thông tin liên hệ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start">
               <Phone className="h-5 w-5 mr-3 mt-0.5 text-primary" />
               <div>
-                <p className="font-medium">Phone Support</p>
+                <p className="font-medium">Hỗ trợ điện thoại</p>
                 <p className="text-sm text-muted-foreground">
                   +1 (555) 123-4567
                 </p>
-                <p className="text-xs text-muted-foreground">Available 24/7</p>
+                <p className="text-xs text-muted-foreground">Có sẵn 24/7</p>
               </div>
             </div>
             <div className="flex items-start">
               <Mail className="h-5 w-5 mr-3 mt-0.5 text-primary" />
               <div>
-                <p className="font-medium">Email Support</p>
+                <p className="font-medium">Hỗ trợ email</p>
                 <p className="text-sm text-muted-foreground">
                   support@homestay.com
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Response within 24 hours
+                  Phản hồi trong 24 giờ
                 </p>
               </div>
             </div>

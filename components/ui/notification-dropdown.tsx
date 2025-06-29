@@ -31,7 +31,7 @@ export function NotificationDropdown({
   const router = useRouter();
   const { isLoggedIn, isLoading, user } = useAuth();
   const pathname = usePathname();
-  
+
   if (pathname !== "/") {
     isScrolled = true;
   }
@@ -131,7 +131,7 @@ export function NotificationDropdown({
           <Bell
             className={`h-5 w-5 ${isScrolled ? "text-gray-700" : "text-white"}`}
           />
-          <span className="sr-only">Toggle notification menu</span>
+          <span className="sr-only">Chuyển đổi menu thông báo</span>
           {globalUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
               {globalUnreadCount}
@@ -141,17 +141,17 @@ export function NotificationDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Notifications</span>
+          <span>Thông báo</span>
           {globalUnreadCount > 0 && (
             <span className="text-xs text-muted-foreground">
-              {globalUnreadCount} unread
+              {globalUnreadCount} chưa đọc
             </span>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.length === 0 ? (
           <DropdownMenuItem disabled>
-            <span className="text-muted-foreground">No notifications</span>
+            <span className="text-muted-foreground">Không có thông báo</span>
           </DropdownMenuItem>
         ) : (
           notifications.slice(0, 3).map((notification) => (
@@ -199,7 +199,7 @@ export function NotificationDropdown({
                 router.push(route);
               }}
             >
-              View all notifications
+              Xem tất cả thông báo
             </DropdownMenuItem>
           </>
         )}

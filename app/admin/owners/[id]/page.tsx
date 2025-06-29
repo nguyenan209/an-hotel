@@ -96,7 +96,9 @@ export default function OwnerDetailPage() {
     // Fetch owner details và homestays từ API
     const fetchOwner = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`
+        );
         if (!res.ok) throw new Error("Failed to fetch owner");
         const ownerData = await res.json();
         setOwner(ownerData);
@@ -109,7 +111,9 @@ export default function OwnerDetailPage() {
         });
         setAvatarUrl(ownerData.avatar);
         // Fetch homestays của owner
-        const resHomestays = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}/homestays`);
+        const resHomestays = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}/homestays`
+        );
         if (!resHomestays.ok) throw new Error("Failed to fetch homestays");
         const homestaysData = await resHomestays.json();
         setOwnerHomestays(homestaysData);
@@ -128,22 +132,32 @@ export default function OwnerDetailPage() {
       let res, result;
       if (isNewOwner) {
         // Tạo owner mới
-        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, avatar: avatarUrl }),
-        });
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data, avatar: avatarUrl }),
+          }
+        );
       } else {
         // Cập nhật owner
-        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, avatar: avatarUrl }),
-        });
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data, avatar: avatarUrl }),
+          }
+        );
       }
       result = await res.json();
       if (res.ok) {
-        toast.success(isNewOwner ? "Owner created successfully!" : "Owner updated successfully!");
+        toast.success(
+          isNewOwner
+            ? "Owner created successfully!"
+            : "Owner updated successfully!"
+        );
         router.push("/admin/owners");
       } else {
         alert(result.error || "Failed to save owner");
@@ -167,18 +181,24 @@ export default function OwnerDetailPage() {
     formData.append("file", file);
     formData.append("folder", "owners");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/images`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/upload/images`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       const data = await res.json();
       if (res.ok && data.url) {
         // Gọi API cập nhật avatar vào DB
-        const updateRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ avatar: data.url }),
-        });
+        const updateRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/owners/${id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ avatar: data.url }),
+          }
+        );
         if (updateRes.ok) {
           setAvatarUrl(data.url);
         } else {
@@ -206,17 +226,19 @@ export default function OwnerDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/owners">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isNewOwner ? "Add New Owner" : `Edit Owner: ${owner?.name}`}
+          {isNewOwner
+            ? "Thêm chủ homestay"
+            : `Sửa chủ homestay: ${owner?.name}`}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="details">Chi tiết</TabsTrigger>
           {!isNewOwner && (
             <TabsTrigger value="homestays">Homestays</TabsTrigger>
           )}
@@ -227,9 +249,9 @@ export default function OwnerDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Owner Information</CardTitle>
+                  <CardTitle>Thông tin chủ homestay</CardTitle>
                   <CardDescription>
-                    Enter the owner's personal information.
+                    Nhập thông tin cá nhân của chủ homestay.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -237,7 +259,11 @@ export default function OwnerDetailPage() {
                     <div className="relative">
                       <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                         {avatarUrl ? (
-                          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                          <img
+                            src={avatarUrl}
+                            alt="Avatar"
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
                           <User className="h-12 w-12 text-gray-500" />
                         )}
@@ -279,9 +305,9 @@ export default function OwnerDetailPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Họ và tên</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter full name" {...field} />
+                          <Input placeholder="Nhập họ và tên" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -296,7 +322,7 @@ export default function OwnerDetailPage() {
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter email address"
+                            placeholder="Nhập địa chỉ email"
                             type="email"
                             {...field}
                           />
@@ -311,9 +337,9 @@ export default function OwnerDetailPage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Số điện thoại</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter phone number" {...field} />
+                          <Input placeholder="Nhập số điện thoại" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -325,9 +351,9 @@ export default function OwnerDetailPage() {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>Địa chỉ</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter address" {...field} />
+                          <Input placeholder="Nhập địa chỉ" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -339,14 +365,14 @@ export default function OwnerDetailPage() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>Trạng thái</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -369,9 +395,9 @@ export default function OwnerDetailPage() {
               <TabsContent value="homestays" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Homestay Listings</CardTitle>
+                    <CardTitle>Danh sách homestay</CardTitle>
                     <CardDescription>
-                      View all homestays owned by this person.
+                      Xem tất cả homestay được sở hữu bởi người này.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -379,10 +405,10 @@ export default function OwnerDetailPage() {
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <Hotel className="h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium">
-                          No homestays found
+                          Không tìm thấy homestay
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          This owner hasn't listed any homestays yet.
+                          Chủ homestay này chưa liệt kê bất kỳ homestay nào.
                         </p>
                       </div>
                     ) : (
@@ -390,13 +416,13 @@ export default function OwnerDetailPage() {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead>Location</TableHead>
-                              <TableHead>Price</TableHead>
-                              <TableHead>Created</TableHead>
-                              <TableHead>Status</TableHead>
+                              <TableHead>Tên</TableHead>
+                              <TableHead>Địa chỉ</TableHead>
+                              <TableHead>Giá</TableHead>
+                              <TableHead>Ngày tạo</TableHead>
+                              <TableHead>Trạng thái</TableHead>
                               <TableHead className="text-right">
-                                Actions
+                                Hành động
                               </TableHead>
                             </TableRow>
                           </TableHeader>
@@ -419,8 +445,8 @@ export default function OwnerDetailPage() {
                                       homestay.status === "active"
                                         ? "bg-green-100 text-green-800"
                                         : homestay.status === "pending"
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-red-100 text-red-800"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
                                     }
                                   >
                                     {homestay.status.charAt(0).toUpperCase() +
@@ -436,7 +462,7 @@ export default function OwnerDetailPage() {
                                     }
                                   >
                                     <Button variant="outline" size="sm">
-                                      View Details
+                                      Xem chi tiết
                                     </Button>
                                   </Link>
                                 </TableCell>
@@ -453,11 +479,11 @@ export default function OwnerDetailPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" asChild>
-                <Link href="/admin/owners">Cancel</Link>
+                <Link href="/admin/owners">Hủy</Link>
               </Button>
               <Button type="submit">
                 <Check className="mr-2 h-4 w-4" />
-                {isNewOwner ? "Create Owner" : "Save Changes"}
+                {isNewOwner ? "Tạo chủ homestay" : "Lưu thay đổi"}
               </Button>
             </div>
           </form>

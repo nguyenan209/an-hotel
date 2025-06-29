@@ -109,14 +109,14 @@ export default function ComplaintDetailPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-red-600 mb-4">
-              Error Loading Complaint
+              Lỗi khi tải khiếu nại
             </h2>
             <p className="text-gray-600 mb-4">
-              Failed to load complaint details. Please try again later.
+              Không thể tải chi tiết khiếu nại. Vui lòng thử lại sau.
             </p>
             <Button variant="outline" asChild>
               <Link href="/support/my-complaints">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Complaints
+                <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại khiếu nại
               </Link>
             </Button>
           </div>
@@ -133,7 +133,7 @@ export default function ComplaintDetailPage() {
         <div className="mb-6">
           <Button variant="outline" asChild className="mb-4">
             <Link href="/support/my-complaints">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Complaints
+              <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại khiếu nại
             </Link>
           </Button>
 
@@ -141,7 +141,7 @@ export default function ComplaintDetailPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">{complaint.subject}</h1>
               <p className="text-muted-foreground">
-                Complaint #{complaint.id} • {formatDate(complaint.createdAt)}
+                Khiếu nại #{complaint.id} • {formatDate(complaint.createdAt)}
               </p>
             </div>
             <Badge className={getStatusColor(complaint.status)}>
@@ -152,7 +152,7 @@ export default function ComplaintDetailPage() {
 
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Complaint Description</CardTitle>
+            <CardTitle>Mô tả khiếu nại</CardTitle>
           </CardHeader>
           <CardContent>
             <div dangerouslySetInnerHTML={{ __html: complaint.description }} />

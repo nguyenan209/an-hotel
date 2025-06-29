@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getStatusBadge } from "@/components/booking/status-badge";
+import Loading from "@/components/loading";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,24 +11,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { BookingWithHomestay } from "@/lib/types";
-import { BookingStatus } from "@prisma/client";
-import moment from "moment";
-import { getStatusBadge } from "@/components/booking/status-badge";
 import { calculateNights } from "@/lib/utils";
-import Loading from "@/components/loading";
+import { BookingStatus } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { Calendar, Clock, MapPin, User } from "lucide-react";
+import moment from "moment";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 async function fetchBookings() {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/me`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/bookings/me`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch bookings");
@@ -44,7 +47,11 @@ export default function BookingsPage() {
   const { user } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const { data: bookings = [], isLoading, error } = useQuery({
+  const {
+    data: bookings = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["bookings"],
     queryFn: fetchBookings,
     enabled: !!user,
@@ -68,7 +75,9 @@ export default function BookingsPage() {
 
   const filterBookings = (status: BookingStatus | "all") => {
     if (status === "all") return bookings;
-    return bookings.filter((booking: BookingWithHomestay) => booking.status === status);
+    return bookings.filter(
+      (booking: BookingWithHomestay) => booking.status === status
+    );
   };
 
   const paginateBookings = (
@@ -92,7 +101,9 @@ export default function BookingsPage() {
   if (error) {
     return (
       <div className="container mx-auto py-10 text-center">
-        <p className="text-red-500 mb-4">{(error as Error).message || "Không thể tải danh sách đặt phòng"}</p>
+        <p className="text-red-500 mb-4">
+          {(error as Error).message || "Không thể tải danh sách đặt phòng"}
+        </p>
         <Button onClick={() => router.refresh()}>Thử lại</Button>
       </div>
     );
@@ -100,15 +111,17 @@ export default function BookingsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">My Bookings</h1>
+      <h1 className="text-3xl font-bold mb-6">Đặt phòng của tôi</h1>
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="all">All Bookings</TabsTrigger>
-          <TabsTrigger value={BookingStatus.COMPLETED}>Completed</TabsTrigger>
-          <TabsTrigger value={BookingStatus.CANCELLED}>Cancelled</TabsTrigger>
-          <TabsTrigger value={BookingStatus.PENDING}>Pending</TabsTrigger>
-          <TabsTrigger value={BookingStatus.PAID}>Paid</TabsTrigger>
+          <TabsTrigger value="all">Tất cả đặt phòng</TabsTrigger>
+          <TabsTrigger value={BookingStatus.COMPLETED}>
+            Đã hoàn thành
+          </TabsTrigger>
+          <TabsTrigger value={BookingStatus.CANCELLED}>Đã hủy</TabsTrigger>
+          <TabsTrigger value={BookingStatus.PENDING}>Đang chờ</TabsTrigger>
+          <TabsTrigger value={BookingStatus.PAID}>Đã thanh toán</TabsTrigger>
         </TabsList>
 
         {[
@@ -118,7 +131,9 @@ export default function BookingsPage() {
           BookingStatus.PENDING,
           BookingStatus.PAID,
         ].map((status) => {
-          const filteredBookings = filterBookings(status as BookingStatus | "all");
+          const filteredBookings = filterBookings(
+            status as BookingStatus | "all"
+          );
           const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
           const paginatedBookings = paginateBookings(
             filteredBookings,
@@ -130,7 +145,9 @@ export default function BookingsPage() {
             <TabsContent key={status} value={status} className="space-y-6">
               {filteredBookings.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-lg text-gray-500">No bookings found</p>
+                  <p className="text-lg text-gray-500">
+                    Không tìm thấy đặt phòng
+                  </p>
                 </div>
               ) : (
                 <>
@@ -152,7 +169,7 @@ export default function BookingsPage() {
                               <div>
                                 <CardTitle>{booking.homestay.name}</CardTitle>
                                 <CardDescription className="text-base mt-1">
-                                  Booked on {" "}
+                                  Đặt phòng vào{" "}
                                   {moment(booking.createdAt).format(
                                     "MMMM Do YYYY, h:mm A"
                                   )}
@@ -179,7 +196,7 @@ export default function BookingsPage() {
                                 <User className="h-4 w-4 text-gray-500" />
                                 <span>
                                   {booking.guests}{" "}
-                                  {booking.guests > 1 ? "guests" : "guest"}
+                                  {booking.guests > 1 ? "khách" : "khách"}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
@@ -193,7 +210,7 @@ export default function BookingsPage() {
                                     booking.checkIn.toString(),
                                     booking.checkOut.toString()
                                   )}{" "}
-                                  nights
+                                  đêm
                                 </span>
                               </div>
                             </div>
@@ -205,7 +222,7 @@ export default function BookingsPage() {
                             <Button
                               onClick={() => viewBookingDetails(booking.id)}
                             >
-                              View Details
+                              Xem chi tiết
                             </Button>
                           </CardFooter>
                         </div>
@@ -223,7 +240,7 @@ export default function BookingsPage() {
                         }
                         disabled={currentPage === 1}
                       >
-                        Previous
+                        Trước
                       </Button>
 
                       <div className="flex items-center gap-1">
@@ -253,7 +270,7 @@ export default function BookingsPage() {
                         }
                         disabled={currentPage === totalPages}
                       >
-                        Next
+                        Tiếp
                       </Button>
                     </div>
                   )}
@@ -266,4 +283,3 @@ export default function BookingsPage() {
     </div>
   );
 }
-
