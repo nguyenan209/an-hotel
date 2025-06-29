@@ -34,7 +34,9 @@ export default function ReviewReportPage() {
       setIsLoading(true);
       setError("");
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/reviews?year=${year}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/reviews?year=${year}`
+        );
         const data = await res.json();
         setReviewStats(data.stats || null);
         setRecentReviews(data.recentReviews || []);
@@ -56,11 +58,14 @@ export default function ReviewReportPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "APPROVED" }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "APPROVED" }),
+        }
+      );
       if (!res.ok) throw new Error("Failed to approve review");
       setRecentReviews((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: "approved" } : r))
@@ -71,11 +76,14 @@ export default function ReviewReportPage() {
   };
   const handleReject = async (id: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "REJECTED" }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "REJECTED" }),
+        }
+      );
       if (!res.ok) throw new Error("Failed to reject review");
       setRecentReviews((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: "rejected" } : r))
@@ -95,7 +103,9 @@ export default function ReviewReportPage() {
   if (error || !reviewStats) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg text-red-500">{error || "Failed to load review report."}</p>
+        <p className="text-lg text-red-500">
+          {error || "Failed to load review report."}
+        </p>
       </div>
     );
   }
@@ -103,11 +113,11 @@ export default function ReviewReportPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Review Reports</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Báo cáo Đánh giá</h2>
         <div className="flex items-center gap-2">
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Select year" />
+              <SelectValue placeholder="Chọn năm" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2021">2021</SelectItem>
@@ -118,7 +128,7 @@ export default function ReviewReportPage() {
           </Select>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            Xuất
           </Button>
         </div>
       </div>
@@ -126,19 +136,17 @@ export default function ReviewReportPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng đánh giá</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {reviewStats.totalReviews}
-            </div>
-            <p className="text-xs text-muted-foreground">For all homestays</p>
+            <div className="text-2xl font-bold">{reviewStats.totalReviews}</div>
+            <p className="text-xs text-muted-foreground">Cho tất cả homestay</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Average Rating
+              Đánh giá trung bình
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -162,33 +170,36 @@ export default function ReviewReportPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Reviews
+              Đánh giá chờ phê duyệt
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {reviewStats.pendingReviews}
             </div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
+            <p className="text-xs text-muted-foreground">Chờ phê duyệt</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              5-Star Reviews
+              Đánh giá 5 sao
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {reviewStats.ratingDistribution.find((r: any) => r.rating === 5)?.count || 0}
+              {reviewStats.ratingDistribution.find((r: any) => r.rating === 5)
+                ?.count || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               {Math.round(
-                ((reviewStats.ratingDistribution.find((r: any) => r.rating === 5)?.count || 0) /
+                ((reviewStats.ratingDistribution.find(
+                  (r: any) => r.rating === 5
+                )?.count || 0) /
                   reviewStats.totalReviews) *
                   100
               )}
-              % of total
+              % của tổng số
             </p>
           </CardContent>
         </Card>
@@ -196,23 +207,23 @@ export default function ReviewReportPage() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="distribution">Rating Distribution</TabsTrigger>
-          <TabsTrigger value="recent">Recent Reviews</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="distribution">Phân phối đánh giá</TabsTrigger>
+          <TabsTrigger value="recent">Đánh giá gần đây</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Review Overview</CardTitle>
+              <CardTitle>Báo cáo Đánh giá</CardTitle>
               <CardDescription>
-                Summary of customer reviews and ratings
+                Tổng quan về đánh giá của khách hàng
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
                 <div>
                   <h3 className="mb-4 text-lg font-medium">
-                    Rating Distribution
+                    Phân phối đánh giá
                   </h3>
                   <div className="space-y-2">
                     {reviewStats.ratingDistribution.map((item: any) => (
@@ -230,8 +241,7 @@ export default function ReviewReportPage() {
                               className="h-2 rounded-full bg-primary"
                               style={{
                                 width: `${
-                                  (item.count / reviewStats.totalReviews) *
-                                  100
+                                  (item.count / reviewStats.totalReviews) * 100
                                 }%`,
                               }}
                             />
@@ -249,25 +259,31 @@ export default function ReviewReportPage() {
                 </div>
 
                 <div>
-                  <h3 className="mb-4 text-lg font-medium">Review Status</h3>
+                  <h3 className="mb-4 text-lg font-medium">
+                    Trạng thái đánh giá
+                  </h3>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="rounded-lg border p-4">
                       <div className="text-2xl font-bold">
                         {reviewStats.approvedReviews}
                       </div>
-                      <p className="text-sm text-muted-foreground">Approved</p>
+                      <p className="text-sm text-muted-foreground">
+                        Đã phê duyệt
+                      </p>
                     </div>
                     <div className="rounded-lg border p-4">
                       <div className="text-2xl font-bold">
                         {reviewStats.pendingReviews}
                       </div>
-                      <p className="text-sm text-muted-foreground">Pending</p>
+                      <p className="text-sm text-muted-foreground">
+                        Chờ phê duyệt
+                      </p>
                     </div>
                     <div className="rounded-lg border p-4">
                       <div className="text-2xl font-bold">
                         {reviewStats.rejectedReviews}
                       </div>
-                      <p className="text-sm text-muted-foreground">Rejected</p>
+                      <p className="text-sm text-muted-foreground">Từ chối</p>
                     </div>
                   </div>
                 </div>
@@ -278,14 +294,14 @@ export default function ReviewReportPage() {
         <TabsContent value="distribution" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Rating Distribution</CardTitle>
+              <CardTitle>Phân phối đánh giá</CardTitle>
               <CardDescription>
-                Detailed breakdown of ratings by homestay
+                Chi tiết phân phối đánh giá theo homestay
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                This section would show rating distribution by homestay.
+                Phần này sẽ hiển thị phân phối đánh giá theo homestay.
               </p>
             </CardContent>
           </Card>
@@ -294,20 +310,20 @@ export default function ReviewReportPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Recent Reviews</CardTitle>
+                <CardTitle>Đánh giá gần đây</CardTitle>
                 <CardDescription>
-                  Latest customer reviews and feedback
+                  Đánh giá gần đây nhất của khách hàng
                 </CardDescription>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Reviews</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="all">Tất cả đánh giá</SelectItem>
+                  <SelectItem value="approved">Đã phê duyệt</SelectItem>
+                  <SelectItem value="pending">Chờ phê duyệt</SelectItem>
+                  <SelectItem value="rejected">Từ chối</SelectItem>
                 </SelectContent>
               </Select>
             </CardHeader>
@@ -344,17 +360,27 @@ export default function ReviewReportPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm" dangerouslySetInnerHTML={{ __html: review.comment }} />
+                    <div
+                      className="mt-2 text-sm"
+                      dangerouslySetInnerHTML={{ __html: review.comment }}
+                    />
                     <div className="mt-2 text-sm text-muted-foreground">
                       Homestay: {review.homestayName}
                     </div>
                     {review.status === "pending" && (
                       <div className="mt-4 flex gap-2 justify-end">
-                        <Button variant="outline" size="sm" onClick={() => handleReject(review.id)}>
-                          Reject
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReject(review.id)}
+                        >
+                          Từ chối
                         </Button>
-                        <Button size="sm" onClick={() => handleApprove(review.id)}>
-                          Approve
+                        <Button
+                          size="sm"
+                          onClick={() => handleApprove(review.id)}
+                        >
+                          Phê duyệt
                         </Button>
                       </div>
                     )}

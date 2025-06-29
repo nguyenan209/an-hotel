@@ -135,54 +135,50 @@ export default function ComplaintsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Complaint Management
-        </h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý Khiếu nại</h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            Lọc
           </Button>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Lọc theo trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value={ComplaintStatus.OPEN}>Open</SelectItem>
-              <SelectItem value={ComplaintStatus.RESOLVED}>Resolved</SelectItem>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value={ComplaintStatus.OPEN}>Mở</SelectItem>
+              <SelectItem value={ComplaintStatus.RESOLVED}>
+                Giải quyết
+              </SelectItem>
               <SelectItem value={ComplaintStatus.ACKNOWLEDGED}>
-                Acknowledged
+                Đã xác nhận
               </SelectItem>
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by priority" />
+              <SelectValue placeholder="Lọc theo độ ưu tiên" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value={ComplaintPriority.HIGH}>High</SelectItem>
-              <SelectItem value={ComplaintPriority.MEDIUM}>Medium</SelectItem>
-              <SelectItem value={ComplaintPriority.LOW}>Low</SelectItem>
+              <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
+              <SelectItem value={ComplaintPriority.HIGH}>Cao</SelectItem>
+              <SelectItem value={ComplaintPriority.MEDIUM}>
+                Trung bình
+              </SelectItem>
+              <SelectItem value={ComplaintPriority.LOW}>Thấp</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Customer Complaints</CardTitle>
-          <CardDescription>
-            Manage and resolve customer complaints and issues.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search complaints..."
+                placeholder="Tìm kiếm khiếu nại..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 max-w-sm"
@@ -193,40 +189,40 @@ export default function ComplaintsPage() {
                 variant="outline"
                 className="bg-red-50 text-red-700 text-sm font-normal"
               >
-                {openCount} Open
+                {openCount} Mở
               </Badge>
               <Badge
                 variant="outline"
                 className="bg-blue-50 text-blue-700 text-sm font-normal"
               >
-                {acknowledgedCount} Acknowledged
+                {acknowledgedCount} Đã xác nhận
               </Badge>
               <Badge
                 variant="outline"
                 className="bg-green-50 text-green-700 text-sm font-normal"
               >
-                {resolvedCount} Resolved
+                {resolvedCount} Giải quyết
               </Badge>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="text-center py-8">Loading complaints...</div>
+            <div className="text-center py-8">Đang tải khiếu nại...</div>
           ) : isError ? (
             <div className="text-center py-8 text-red-500">
-              Failed to load complaints.
+              Không thể tải khiếu nại.
             </div>
           ) : (
             <InfiniteScroll
               dataLength={complaints.length}
               next={fetchNextPage}
               hasMore={!!hasNextPage}
-              loader={<div className="text-center py-4">Loading more...</div>}
+              loader={<div className="text-center py-4">Đang tải thêm...</div>}
               endMessage={
                 <div className="text-center py-4 text-muted-foreground">
                   {complaints.length === 0
-                    ? "No complaints found"
-                    : `All complaints loaded (${complaints.length}/${total})`}
+                    ? "Không tìm thấy khiếu nại"
+                    : `Tất cả khiếu nại đã tải (${complaints.length}/${total})`}
                 </div>
               }
               scrollableTarget={null}
@@ -235,12 +231,12 @@ export default function ComplaintsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Chủ đề</TableHead>
+                      <TableHead>Khách hàng</TableHead>
+                      <TableHead>Độ ưu tiên</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Ngày tạo</TableHead>
+                      <TableHead className="text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -276,7 +272,7 @@ export default function ComplaintsPage() {
                             <Link href={`/admin/complaints/${complaint.id}`}>
                               <Button variant="ghost" size="icon">
                                 <Eye className="h-4 w-4" />
-                                <span className="sr-only">View</span>
+                                <span className="sr-only">Xem</span>
                               </Button>
                             </Link>
                           </div>

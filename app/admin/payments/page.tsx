@@ -394,15 +394,9 @@ export default function PaymentManagementPage() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách thanh toán</CardTitle>
-          <CardDescription>
-            Quản lý và theo dõi tất cả các giao dịch thanh toán
-          </CardDescription>
-        </CardHeader>
+      <Card>  
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 mt-5">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

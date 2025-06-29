@@ -131,31 +131,31 @@ export default function DemographicsReportPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Demographics Report
+            Báo cáo Demographics
           </h1>
           <p className="text-muted-foreground">
-            Analyze customer demographics and booking patterns
+            Phân tích đặc điểm khách hàng và mẫu đặt phòng
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
-            Filter
+            Lọc
           </Button>
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            Xuất
           </Button>
           <Select defaultValue="last30days">
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select period" />
+              <SelectValue placeholder="Chọn khoảng thời gian" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="last7days">Last 7 days</SelectItem>
-              <SelectItem value="last30days">Last 30 days</SelectItem>
-              <SelectItem value="last90days">Last 90 days</SelectItem>
-              <SelectItem value="lastyear">Last year</SelectItem>
-              <SelectItem value="alltime">All time</SelectItem>
+              <SelectItem value="last7days">7 ngày qua</SelectItem>
+              <SelectItem value="last30days">30 ngày qua</SelectItem>
+              <SelectItem value="last90days">90 ngày qua</SelectItem>
+              <SelectItem value="lastyear">Năm qua</SelectItem>
+              <SelectItem value="alltime">Tất cả thời gian</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -166,7 +166,7 @@ export default function DemographicsReportPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Customers
+              Tổng số khách hàng
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -175,35 +175,7 @@ export default function DemographicsReportPage() {
             <div className="flex items-center text-xs text-muted-foreground">
               <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
               <span className="text-green-500">+12.5%</span>
-              <span className="ml-1">vs last period</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Age</CardTitle>
-            <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">36.4</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-              <span className="text-green-500">+1.2</span>
-              <span className="ml-1">vs last period</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Top Country</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Vietnam</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <span>42% of all bookings</span>
+              <span className="ml-1">so với kỳ trước</span>
             </div>
           </CardContent>
         </Card>
@@ -211,14 +183,42 @@ export default function DemographicsReportPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Top Traveler Type
+              Tuổi trung bình
             </CardTitle>
+            <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">36.4</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
+              <span className="text-green-500">+1.2</span>
+              <span className="ml-1">so với kỳ trước</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Quốc gia</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Vietnam</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span>42% của tất cả đặt phòng</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Loại khách</CardTitle>
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Families</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              <span>35% of all bookings</span>
+              <span>35% của tất cả đặt phòng</span>
             </div>
           </CardContent>
         </Card>
@@ -227,11 +227,11 @@ export default function DemographicsReportPage() {
       {/* Tabs for different demographic views */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="age">Age Distribution</TabsTrigger>
-          <TabsTrigger value="location">Geographic</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="age">Phân phối tuổi</TabsTrigger>
+          <TabsTrigger value="location">Địa lý</TabsTrigger>
+          <TabsTrigger value="preferences">Sở thích</TabsTrigger>
+          <TabsTrigger value="trends">Xu hướng</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -240,9 +240,9 @@ export default function DemographicsReportPage() {
             {/* Gender Distribution */}
             <Card className="lg:col-span-1">
               <CardHeader>
-                <CardTitle>Gender Distribution</CardTitle>
+                <CardTitle>Phân phối giới tính</CardTitle>
                 <CardDescription>
-                  Breakdown of customers by gender
+                  Phân phối khách hàng theo giới tính
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -262,9 +262,9 @@ export default function DemographicsReportPage() {
             {/* Age Distribution */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Age Distribution</CardTitle>
+                <CardTitle>Phân phối tuổi</CardTitle>
                 <CardDescription>
-                  Breakdown of customers by age group
+                  Phân phối khách hàng theo nhóm tuổi
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -284,9 +284,9 @@ export default function DemographicsReportPage() {
             {/* Traveler Types */}
             <Card className="lg:col-span-1">
               <CardHeader>
-                <CardTitle>Traveler Types</CardTitle>
+                <CardTitle>Loại khách</CardTitle>
                 <CardDescription>
-                  Breakdown by traveler category
+                  Phân phối khách hàng theo loại khách
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -312,9 +312,9 @@ export default function DemographicsReportPage() {
             {/* Top Countries */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Top Countries</CardTitle>
+                <CardTitle>Quốc gia</CardTitle>
                 <CardDescription>
-                  Customer distribution by country
+                  Phân phối khách hàng theo quốc gia
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -337,10 +337,10 @@ export default function DemographicsReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="mr-2 h-5 w-5" />
-                Key Demographic Insights
+                Những điểm quan trọng trong phân tích đặc điểm khách hàng
               </CardTitle>
               <CardDescription>
-                Important trends and patterns in customer demographics
+                Những điểm quan trọng trong phân tích đặc điểm khách hàng
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -376,7 +376,7 @@ export default function DemographicsReportPage() {
                           }
                           className="text-xs"
                         >
-                          {insight.trend === "up" ? "Increasing" : "Decreasing"}
+                          {insight.trend === "up" ? "Tăng" : "Giảm"}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -395,9 +395,9 @@ export default function DemographicsReportPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="md:col-span-1">
               <CardHeader>
-                <CardTitle>Age Distribution</CardTitle>
+                <CardTitle>Phân phối tuổi</CardTitle>
                 <CardDescription>
-                  Detailed breakdown by age groups
+                  Phân phối khách hàng theo nhóm tuổi
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -416,9 +416,9 @@ export default function DemographicsReportPage() {
 
             <Card className="md:col-span-1">
               <CardHeader>
-                <CardTitle>Booking Preferences by Age</CardTitle>
+                <CardTitle>Sở thích đặt phòng theo tuổi</CardTitle>
                 <CardDescription>
-                  Room type preferences across age groups
+                  Sở thích đặt phòng theo nhóm tuổi
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -457,9 +457,9 @@ export default function DemographicsReportPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Top Countries</CardTitle>
+                <CardTitle>Quốc gia</CardTitle>
                 <CardDescription>
-                  Customer distribution by country
+                  Phân phối khách hàng theo quốc gia
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -478,8 +478,10 @@ export default function DemographicsReportPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Top Cities</CardTitle>
-                <CardDescription>Customer distribution by city</CardDescription>
+                <CardTitle>Thành phố</CardTitle>
+                <CardDescription>
+                  Phân phối khách hàng theo thành phố
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px] w-full">
@@ -509,9 +511,9 @@ export default function DemographicsReportPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Traveler Types</CardTitle>
+                <CardTitle>Loại khách</CardTitle>
                 <CardDescription>
-                  Breakdown by traveler category
+                  Phân phối khách hàng theo loại khách
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -536,9 +538,9 @@ export default function DemographicsReportPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Booking Preferences by Age</CardTitle>
+                <CardTitle>Sở thích đặt phòng theo tuổi</CardTitle>
                 <CardDescription>
-                  Room type preferences across age groups
+                  Sở thích đặt phòng theo nhóm tuổi
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -576,9 +578,9 @@ export default function DemographicsReportPage() {
         <TabsContent value="trends" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Growth</CardTitle>
+              <CardTitle>Tăng trưởng khách hàng</CardTitle>
               <CardDescription>
-                New vs returning customers over time
+                Khách hàng mới so với khách hàng cũ theo thời gian
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -596,11 +598,11 @@ export default function DemographicsReportPage() {
               <div className="flex justify-center mt-4 space-x-4">
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-[#3b82f6] mr-2"></div>
-                  <span className="text-sm">New Customers</span>
+                  <span className="text-sm">Khách hàng mới</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-[#8b5cf6] mr-2"></div>
-                  <span className="text-sm">Returning Customers</span>
+                  <span className="text-sm">Khách hàng cũ</span>
                 </div>
               </div>
             </CardContent>

@@ -174,22 +174,15 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Khách hàng</h2>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Manage Customers</CardTitle>
-          <CardDescription>
-            You have a total of {customers.length} customers who have booked
-            your homestays.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
-                placeholder="Search customers..."
+                placeholder="Tìm kiếm khách hàng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -198,12 +191,12 @@ export default function CustomersPage() {
             <div className="flex items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                  <SelectItem value="INACTIVE">Không hoạt động</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -213,20 +206,20 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Tên</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Total Bookings</TableHead>
-                  <TableHead>Joined Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Số điện thoại</TableHead>
+                  <TableHead>Tổng đặt phòng</TableHead>
+                  <TableHead>Ngày tham gia</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {customers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
-                      No customers found
+                      Không tìm thấy khách hàng
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -253,7 +246,7 @@ export default function CustomersPage() {
                           <Link href={`/owner/customers/${customer.id}`}>
                             <Button variant="ghost" size="icon">
                               <Edit className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
+                              <span className="sr-only">Sửa</span>
                             </Button>
                           </Link>
                           <Button
@@ -265,7 +258,7 @@ export default function CustomersPage() {
                             }}
                           >
                             <Trash className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
+                            <span className="sr-only">Xóa</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -287,10 +280,10 @@ export default function CustomersPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this customer? This action cannot
-              be undone.
+              Bạn có chắc chắn muốn xóa khách hàng này? Thao tác này không thể
+              được hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -299,14 +292,14 @@ export default function CustomersPage() {
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               variant="destructive"
               onClick={() => handleDeleteCustomer(selectedCustomerId!)}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "Đang xóa..." : "Xóa"}
             </Button>
           </DialogFooter>
         </DialogContent>

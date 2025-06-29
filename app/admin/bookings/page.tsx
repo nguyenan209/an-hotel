@@ -130,7 +130,7 @@ export default function BookingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Bookings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý Đặt phòng</h2>
         <Link href="/admin/bookings/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -140,14 +140,8 @@ export default function BookingsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Quản lý đặt phòng</CardTitle>
-          <CardDescription>
-            Bạn có tổng cộng {bookings.length} đặt phòng trong hệ thống.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
                 placeholder="Tìm kiếm đặt phòng..."
@@ -237,7 +231,11 @@ export default function BookingsPage() {
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                           <span>
-                            {`${moment(booking.checkIn).format("DD/MM/YYYY")} - ${moment(booking.checkOut).format("DD/MM/YYYY")}`}
+                            {`${moment(booking.checkIn).format(
+                              "DD/MM/YYYY"
+                            )} - ${moment(booking.checkOut).format(
+                              "DD/MM/YYYY"
+                            )}`}
                           </span>
                         </div>
                       </TableCell>

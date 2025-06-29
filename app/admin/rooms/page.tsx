@@ -140,27 +140,21 @@ export default function RoomsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Rooms</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý Phòng</h2>
         <Link href="/admin/rooms/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Room
+            Thêm Phòng
           </Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Manage Rooms</CardTitle>
-          <CardDescription>
-            You have a total of {rooms.length} rooms in the system.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
-                placeholder="Search rooms..."
+                placeholder="Tìm kiếm phòng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -170,21 +164,21 @@ export default function RoomsPage() {
               <HomestayCombobox
                 value={homestayFilter}
                 onValueChange={setHomestayFilter}
-                placeholder="Filter by homestay"
-                allOptionLabel="All Homestays"
+                placeholder="Lọc theo homestay"
+                allOptionLabel="Tất cả homestay"
                 showAllOption={true}
                 className="w-[200px]"
                 triggerClassName="w-[200px]"
               />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="AVAILABLE">Available</SelectItem>
-                  <SelectItem value="BOOKED">Booked</SelectItem>
-                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="AVAILABLE">Có sẵn</SelectItem>
+                  <SelectItem value="BOOKED">Đã đặt</SelectItem>
+                  <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -198,26 +192,26 @@ export default function RoomsPage() {
               loader={<p className="text-center py-4">Loading...</p>} // Hiển thị khi đang tải
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
-                  No more rooms to load.
+                  Không còn phòng để tải thêm.
                 </p>
               }
             >
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Tên</TableHead>
                     <TableHead>Homestay</TableHead>
-                    <TableHead>Capacity</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Số lượng khách</TableHead>
+                    <TableHead>Giá</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rooms.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-4">
-                        No rooms found
+                        Không tìm thấy phòng nào
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -227,7 +221,7 @@ export default function RoomsPage() {
                           {room.name}
                         </TableCell>
                         <TableCell>{room?.homestay?.name}</TableCell>
-                        <TableCell>{room.capacity} guests</TableCell>
+                        <TableCell>{room.capacity} khách</TableCell>
                         <TableCell>{formatCurrency(room.price)}</TableCell>
                         <TableCell>
                           <span
@@ -243,7 +237,7 @@ export default function RoomsPage() {
                             <Link href={`/admin/rooms/${room.id}`}>
                               <Button variant="ghost" size="icon">
                                 <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
+                                <span className="sr-only">Sửa</span>
                               </Button>
                             </Link>
                             <Button
@@ -253,7 +247,7 @@ export default function RoomsPage() {
                               disabled={isDeleting}
                             >
                               <Trash className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
+                              <span className="sr-only">Xóa</span>
                             </Button>
                           </div>
                         </TableCell>

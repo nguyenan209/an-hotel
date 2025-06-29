@@ -182,11 +182,11 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Review Management</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý đánh giá</h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            Bộ lọc
           </Button>
           <Select
             value={statusFilter}
@@ -195,41 +195,37 @@ export default function ReviewsPage() {
             }
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Lọc theo trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value={ReviewStatus.APPROVED}>Approved</SelectItem>
-              <SelectItem value={ReviewStatus.PENDING}>Pending</SelectItem>
-              <SelectItem value={ReviewStatus.REJECTED}>Rejected</SelectItem>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value={ReviewStatus.APPROVED}>
+                Đã phê duyệt
+              </SelectItem>
+              <SelectItem value={ReviewStatus.PENDING}>Đang chờ</SelectItem>
+              <SelectItem value={ReviewStatus.REJECTED}>Từ chối</SelectItem>
             </SelectContent>
           </Select>
           <Select value={ratingFilter} onValueChange={setRatingFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by rating" />
+              <SelectValue placeholder="Lọc theo đánh giá" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="positive">Positive (4-5★)</SelectItem>
-              <SelectItem value="negative">Negative (1-2★)</SelectItem>
+              <SelectItem value="all">Tất cả đánh giá</SelectItem>
+              <SelectItem value="positive">Tích cực (4-5★)</SelectItem>
+              <SelectItem value="negative">Tiêu cực (1-2★)</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Customer Reviews</CardTitle>
-          <CardDescription>
-            Manage and moderate customer reviews for all homestays.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search reviews..."
+                placeholder="Tìm kiếm đánh giá..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-8 max-w-sm"
@@ -242,10 +238,10 @@ export default function ReviewsPage() {
               dataLength={reviews.length}
               next={fetchNextPage}
               hasMore={!!hasNextPage}
-              loader={<p className="text-center py-4">Loading...</p>}
+              loader={<p className="text-center py-4">Đang tải...</p>}
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
-                  No more reviews to load.
+                  Không còn đánh giá để tải.
                 </p>
               }
             >
@@ -253,12 +249,12 @@ export default function ReviewsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Homestay</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Khách hàng</TableHead>
+                    <TableHead>Đánh giá</TableHead>
+                    <TableHead>Bình luận</TableHead>
+                    <TableHead>Ngày</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -315,7 +311,7 @@ export default function ReviewsPage() {
                           <Link href={`/owner/reviews/${review.id}`}>
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
+                              <span className="sr-only">Xem</span>
                             </Button>
                           </Link>
                           {review.status === ReviewStatus.PENDING && (
@@ -326,7 +322,7 @@ export default function ReviewsPage() {
                               onClick={() => handleApprove(review.id)}
                             >
                               <CheckCircle className="h-4 w-4" />
-                              <span className="sr-only">Approve</span>
+                              <span className="sr-only">Phê duyệt</span>
                             </Button>
                           )}
                           {review.status !== ReviewStatus.REJECTED && (
@@ -337,7 +333,7 @@ export default function ReviewsPage() {
                               onClick={() => handleFlag(review.id)}
                             >
                               <X className="h-4 w-4" />
-                              <span className="sr-only">Rejected</span>
+                              <span className="sr-only">Từ chối</span>
                             </Button>
                           )}
                           <Button
@@ -350,7 +346,7 @@ export default function ReviewsPage() {
                             }}
                           >
                             <Trash className="h-4 w-4" />
-                            <span className="sr-only">Remove</span>
+                            <span className="sr-only">Xóa</span>
                           </Button>
                         </div>
                       </TableCell>

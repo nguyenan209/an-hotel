@@ -69,10 +69,16 @@ export default function CustomerDetailPage() {
     resolver: zodResolver(customerSchema),
   });
 
-  const { data: customer, isLoading, error } = useQuery<Customer>({
+  const {
+    data: customer,
+    isLoading,
+    error,
+  } = useQuery<Customer>({
     queryKey: ["customer", id],
     queryFn: async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers/${id}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers/${id}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch customer details");
       }
@@ -90,13 +96,16 @@ export default function CustomerDetailPage() {
 
   const updateCustomerMutation = useMutation({
     mutationFn: async (data: CustomerFormValues) => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/customers/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to update customer");
       }
@@ -153,18 +162,18 @@ export default function CustomerDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/owner/customers">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          Edit Customer: {customer.user.name}
+          Sửa khách hàng: {customer.user.name}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="details">Chi tiết</TabsTrigger>
+          <TabsTrigger value="bookings">Đặt phòng</TabsTrigger>
         </TabsList>
 
         <Form {...form}>
@@ -172,8 +181,10 @@ export default function CustomerDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Customer Information</CardTitle>
-                  <CardDescription>Enter the customer's personal information.</CardDescription>
+                  <CardTitle>Thông tin khách hàng</CardTitle>
+                  <CardDescription>
+                    Nhập thông tin cá nhân của khách hàng.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-center mb-6">
@@ -182,13 +193,13 @@ export default function CustomerDetailPage() {
                         {avatarPreview ? (
                           <img
                             src={avatarPreview}
-                            alt="Avatar preview"
+                            alt="Ảnh đại diện"
                             className="h-full w-full object-cover"
                           />
                         ) : customer.user.avatar ? (
                           <img
                             src={customer.user.avatar}
-                            alt="Customer avatar"
+                            alt="Ảnh đại diện khách hàng"
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -206,10 +217,12 @@ export default function CustomerDetailPage() {
                         variant="secondary"
                         size="sm"
                         className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                        onClick={() => document.getElementById("avatar-upload")?.click()}
+                        onClick={() =>
+                          document.getElementById("avatar-upload")?.click()
+                        }
                         type="button"
                       >
-                        <span className="sr-only">Change avatar</span>
+                        <span className="sr-only">Thay đổi ảnh đại diện</span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
@@ -232,9 +245,9 @@ export default function CustomerDetailPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Tên đầy đủ</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter full name" {...field} />
+                          <Input placeholder="Nhập tên đầy đủ" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -246,9 +259,14 @@ export default function CustomerDetailPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Email:</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter email address" type="email" {...field} disabled />
+                          <Input
+                            placeholder="Nhập địa chỉ email"
+                            type="email"
+                            {...field}
+                            disabled
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -260,9 +278,9 @@ export default function CustomerDetailPage() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Số điện thoại:</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter phone number" {...field} />
+                          <Input placeholder="Nhập số điện thoại" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -274,9 +292,9 @@ export default function CustomerDetailPage() {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>Địa chỉ:</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter address" {...field} />
+                          <Input placeholder="Nhập địa chỉ" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -288,16 +306,21 @@ export default function CustomerDetailPage() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Trạng thái:</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="active">Hoạt động</SelectItem>
+                            <SelectItem value="inactive">
+                              Không hoạt động
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -311,16 +334,21 @@ export default function CustomerDetailPage() {
             <TabsContent value="bookings" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Booking History</CardTitle>
-                  <CardDescription>View all bookings made by this customer at your homestays.</CardDescription>
+                  <CardTitle>Lịch sử đặt phòng</CardTitle>
+                  <CardDescription>
+                    Xem tất cả đặt phòng được khách hàng đặt tại homestays của
+                    bạn.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {customer.bookings.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium">No bookings found</h3>
+                      <h3 className="text-lg font-medium">
+                        Không tìm thấy đặt phòng
+                      </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        This customer hasn't made any bookings at your homestays yet.
+                        Khách hàng này chưa đặt phòng tại homestays của bạn.
                       </p>
                     </div>
                   ) : (
@@ -331,7 +359,9 @@ export default function CustomerDetailPage() {
                           className="flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
                         >
                           <div>
-                            <h4 className="font-medium">{booking.homestayName}</h4>
+                            <h4 className="font-medium">
+                              {booking.homestayName}
+                            </h4>
                             <p className="text-sm text-muted-foreground">
                               {booking.checkIn} to {booking.checkOut}
                             </p>
@@ -339,14 +369,14 @@ export default function CustomerDetailPage() {
                           <div className="flex items-center gap-4">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                                booking.status,
+                                booking.status
                               )}`}
                             >
                               {booking.status}
                             </span>
                             <Link href={`/owner/bookings/${booking.id}`}>
                               <Button variant="outline" size="sm">
-                                View Details
+                                Xem chi tiết
                               </Button>
                             </Link>
                           </div>
@@ -360,11 +390,11 @@ export default function CustomerDetailPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" asChild>
-                <Link href="/owner/customers">Cancel</Link>
+                <Link href="/owner/customers">Hủy</Link>
               </Button>
               <Button type="submit" disabled={updateCustomerMutation.isPending}>
                 <Check className="mr-2 h-4 w-4" />
-                Save Changes
+                Lưu thay đổi
               </Button>
             </div>
           </form>

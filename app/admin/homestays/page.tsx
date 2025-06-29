@@ -141,7 +141,7 @@ export default function HomestaysPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Homestay</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý Homestay</h2>
         <Link href="/admin/homestays/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -151,14 +151,8 @@ export default function HomestaysPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Quản lý Homestay</CardTitle>
-          <CardDescription>
-            Bạn có tổng cộng {homestays.length} homestay trong hệ thống.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
                 placeholder="Tìm kiếm homestay..."

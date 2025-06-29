@@ -243,20 +243,20 @@ export default function RoomDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/rooms">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">
-          {isNewRoom ? "Add New Room" : `Edit Room: ${room?.name}`}
+          {isNewRoom ? "Thêm phòng" : `Sửa phòng: ${room?.name}`}
         </h2>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="amenities">Amenities</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
+          <TabsTrigger value="details">Chi tiết</TabsTrigger>
+          <TabsTrigger value="images">Ảnh</TabsTrigger>
+          <TabsTrigger value="amenities">Tiện ích</TabsTrigger>
+          <TabsTrigger value="pricing">Giá</TabsTrigger>
         </TabsList>
 
         <Form {...form}>
@@ -264,9 +264,9 @@ export default function RoomDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle>Thông tin cơ bản</CardTitle>
                   <CardDescription>
-                    Enter the basic details of the room.
+                    Nhập các chi tiết cơ bản của phòng.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -281,7 +281,7 @@ export default function RoomDetailPage() {
                             <HomestayCombobox
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Select homestay"
+                              placeholder="Chọn homestay"
                               showAllOption={false}
                             />
                           ) : (
@@ -294,8 +294,8 @@ export default function RoomDetailPage() {
                         </FormControl>
                         <FormDescription>
                           {isNewRoom
-                            ? "Select the homestay this room belongs to."
-                            : "This room belongs to the selected homestay."}
+                            ? "Chọn homestay mà phòng này thuộc về."
+                            : "Phòng này thuộc về homestay đã chọn."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -307,9 +307,9 @@ export default function RoomDetailPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Room Name</FormLabel>
+                        <FormLabel>Tên phòng</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter room name" {...field} />
+                          <Input placeholder="Nhập tên phòng" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -321,10 +321,10 @@ export default function RoomDetailPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Mô tả</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Enter room description"
+                            placeholder="Nhập mô tả phòng"
                             className="min-h-32"
                             {...field}
                           />
@@ -340,7 +340,7 @@ export default function RoomDetailPage() {
                       name="capacity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Capacity (guests)</FormLabel>
+                          <FormLabel>Số khách</FormLabel>
                           <FormControl>
                             <Input type="number" min="1" {...field} />
                           </FormControl>
@@ -354,14 +354,14 @@ export default function RoomDetailPage() {
                       name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Status</FormLabel>
+                          <FormLabel>Trạng thái</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
+                                <SelectValue placeholder="Chọn trạng thái" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -382,7 +382,7 @@ export default function RoomDetailPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Bed Configuration</Label>
+                    <Label>Cấu hình giường</Label>
                     <div className="space-y-2">
                       {form.watch("bedTypes")?.map((_, index) => (
                         <div key={index} className="flex items-center gap-4">
@@ -393,7 +393,7 @@ export default function RoomDetailPage() {
                             }
                           >
                             <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Bed type" />
+                              <SelectValue placeholder="Loại giường" />
                             </SelectTrigger>
                             <SelectContent>
                               {bedOptions.map((type) => (
@@ -422,7 +422,7 @@ export default function RoomDetailPage() {
                             onClick={() => handleRemoveBedType(index)}
                           >
                             <Trash className="h-4 w-4" />
-                            <span className="sr-only">Remove</span>
+                            <span className="sr-only">Xóa</span>
                           </Button>
                         </div>
                       ))}
@@ -433,7 +433,7 @@ export default function RoomDetailPage() {
                         onClick={handleAddBedType}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Bed Type
+                        Thêm loại giường
                       </Button>
                     </div>
                   </div>
@@ -444,9 +444,9 @@ export default function RoomDetailPage() {
             <TabsContent value="images" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Room Images</CardTitle>
+                  <CardTitle>Ảnh phòng</CardTitle>
                   <CardDescription>
-                    Upload images of the room. You can upload multiple images.
+                    Tải lên ảnh của phòng. Bạn có thể tải lên nhiều ảnh.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -464,9 +464,9 @@ export default function RoomDetailPage() {
             <TabsContent value="amenities" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Room Amenities</CardTitle>
+                  <CardTitle>Tiện ích phòng</CardTitle>
                   <CardDescription>
-                    Select the amenities available in this room.
+                    Chọn các tiện ích có sẵn trong phòng này.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -524,9 +524,9 @@ export default function RoomDetailPage() {
             <TabsContent value="pricing" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Room Pricing</CardTitle>
+                  <CardTitle>Giá phòng</CardTitle>
                   <CardDescription>
-                    Set the pricing details for this room.
+                    Đặt các chi tiết giá cho phòng này.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -535,12 +535,13 @@ export default function RoomDetailPage() {
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Base Price (per night)</FormLabel>
+                        <FormLabel>Giá cơ bản (cho mỗi đêm)</FormLabel>
                         <FormControl>
                           <Input type="number" min="0" {...field} />
                         </FormControl>
                         <FormDescription>
-                          This is the standard rate for this room per night.
+                          Đây là tỷ lệ cho việc đặt toàn bộ phòng. Giá phòng
+                          riêng lẻ có thể được đặt trong tab Phòng.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -552,11 +553,11 @@ export default function RoomDetailPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" asChild>
-                <Link href="/admin/rooms">Cancel</Link>
+                <Link href="/owner/rooms">Hủy</Link>
               </Button>
               <Button type="submit">
                 <Check className="mr-2 h-4 w-4" />
-                {isNewRoom ? "Create Room" : "Save Changes"}
+                {isNewRoom ? "Tạo phòng" : "Lưu thay đổi"}
               </Button>
             </div>
           </form>

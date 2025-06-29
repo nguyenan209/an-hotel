@@ -60,7 +60,11 @@ export default function HomestaysPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/homestays?search=${searchQuery}&status=${statusFilter}&skip=${reset ? 0 : skip}&limit=${itemsPerPage}`,
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/api/owner/homestays?search=${searchQuery}&status=${statusFilter}&skip=${
+          reset ? 0 : skip
+        }&limit=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -123,26 +127,20 @@ export default function HomestaysPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Homestays</h2>
-        <Link href="/admin/homestays/new">
+        <Link href="/owner/homestays/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Homestay
+            Thêm homestay
           </Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Manage Homestays</CardTitle>
-          <CardDescription>
-            You have a total of {homestays.length} homestays in the system.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
-                placeholder="Search homestays..."
+                placeholder="Tìm kiếm homestays..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -156,13 +154,13 @@ export default function HomestaysPage() {
                 }}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                  <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                  <SelectItem value="MAINTENANCE">MAINTENANCE</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                  <SelectItem value="INACTIVE">Không hoạt động</SelectItem>
+                  <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -173,29 +171,29 @@ export default function HomestaysPage() {
               dataLength={homestays.length}
               next={() => fetchHomestays(false)}
               hasMore={hasMore}
-              loader={<p className="text-center py-4">Loading...</p>}
+              loader={<p className="text-center py-4">Đang tải...</p>}
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
-                  No more homestays to load.
+                  Không còn homestay để tải.
                 </p>
               }
             >
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Tên</TableHead>
+                    <TableHead>Địa chỉ</TableHead>
+                    <TableHead>Giá</TableHead>
+                    <TableHead>Đánh giá</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {homestays.length === 0 && !loading && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center">
-                        No homestays found.
+                        Không tìm thấy homestay.
                       </TableCell>
                     </TableRow>
                   )}
@@ -221,7 +219,7 @@ export default function HomestaysPage() {
                           <Link href={`/owner/homestays/${homestay.id}`}>
                             <Button variant="ghost" size="icon">
                               <Edit className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
+                              <span className="sr-only">Sửa</span>
                             </Button>
                           </Link>
                           <Button
@@ -233,7 +231,7 @@ export default function HomestaysPage() {
                             }}
                           >
                             <Trash className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
+                            <span className="sr-only">Xóa</span>
                           </Button>
                         </div>
                       </TableCell>

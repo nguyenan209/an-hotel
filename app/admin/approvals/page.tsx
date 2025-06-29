@@ -131,40 +131,34 @@ export default function HomestayApprovalsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">
-          Homestay Approvals
+          Phê duyệt Homestay
         </h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            Lọc
           </Button>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Lọc theo trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="pending">Chờ phê duyệt</SelectItem>
+              <SelectItem value="approved">Đã phê duyệt</SelectItem>
+              <SelectItem value="rejected">Từ chối</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Pending Homestay Approvals</CardTitle>
-          <CardDescription>
-            Review and approve new homestay listings submitted by owners.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search homestays..."
+                placeholder="Tìm kiếm homestay..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 max-w-sm"
@@ -173,7 +167,7 @@ export default function HomestayApprovalsPage() {
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm font-normal">
                 {filteredHomestays.filter((h) => h.status === "pending").length}{" "}
-                Pending
+                Chờ phê duyệt
               </Badge>
               <Badge
                 variant="outline"
@@ -183,7 +177,7 @@ export default function HomestayApprovalsPage() {
                   filteredHomestays.filter((h) => h.status === "approved")
                     .length
                 }{" "}
-                Approved
+                Đã phê duyệt
               </Badge>
               <Badge
                 variant="outline"
@@ -193,7 +187,7 @@ export default function HomestayApprovalsPage() {
                   filteredHomestays.filter((h) => h.status === "rejected")
                     .length
                 }{" "}
-                Rejected
+                Từ chối
               </Badge>
             </div>
           </div>
@@ -203,19 +197,19 @@ export default function HomestayApprovalsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Homestay</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Rooms</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Chủ nhà</TableHead>
+                  <TableHead>Địa điểm</TableHead>
+                  <TableHead>Phòng</TableHead>
+                  <TableHead>Ngày đăng ký</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredHomestays.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
-                      No homestays found
+                      Không tìm thấy homestay nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -233,7 +227,7 @@ export default function HomestayApprovalsPage() {
                         </Link>
                       </TableCell>
                       <TableCell>{homestay.location}</TableCell>
-                      <TableCell>{homestay.rooms} rooms</TableCell>
+                      <TableCell>{homestay.rooms} phòng</TableCell>
                       <TableCell>
                         {formatDate(homestay.submittedDate)}
                       </TableCell>
@@ -256,7 +250,7 @@ export default function HomestayApprovalsPage() {
                           <Link href={`/admin/approvals/${homestay.id}`}>
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
+                              <span className="sr-only">Xem</span>
                             </Button>
                           </Link>
                           {homestay.status === "pending" && (
@@ -268,7 +262,7 @@ export default function HomestayApprovalsPage() {
                                 onClick={() => handleApprove(homestay.id)}
                               >
                                 <CheckCircle className="h-4 w-4" />
-                                <span className="sr-only">Approve</span>
+                                <span className="sr-only">Phê duyệt</span>
                               </Button>
                               <Button
                                 variant="ghost"
@@ -277,7 +271,7 @@ export default function HomestayApprovalsPage() {
                                 onClick={() => handleReject(homestay.id)}
                               >
                                 <X className="h-4 w-4" />
-                                <span className="sr-only">Reject</span>
+                                <span className="sr-only">Từ chối</span>
                               </Button>
                             </>
                           )}

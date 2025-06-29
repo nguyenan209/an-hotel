@@ -160,13 +160,13 @@ export default function ComplaintDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/owner/complaints">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Complaint #{id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Khiếu nại #{id}</h2>
           <p className="text-muted-foreground">
-            Submitted by{" "}
+            Gửi bởi{" "}
             <Link
               href={`/owner/customers/${complaint?.customerId}`}
               className="text-blue-600 hover:underline"
@@ -191,14 +191,12 @@ export default function ComplaintDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>{complaint?.subject}</CardTitle>
-              <CardDescription>
-                Complaint details and description
-              </CardDescription>
+              <CardDescription>Chi tiết khiếu nại và mô tả</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Description
+                  Mô tả
                 </h3>
                 <div
                   className="text-base mt-1"
@@ -212,11 +210,13 @@ export default function ComplaintDetailPage() {
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Booking Information
+                  Thông tin đặt phòng
                 </h3>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Booking ID</p>
+                    <p className="text-xs text-muted-foreground">
+                      ID đặt phòng
+                    </p>
                     <Link
                       href={`/owner/bookings/${complaint?.booking?.id}`}
                       className="text-sm text-blue-600 hover:underline"
@@ -225,7 +225,7 @@ export default function ComplaintDetailPage() {
                     </Link>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Homestay</p>
+                    <p className="text-xs text-muted-foreground">Homestay:</p>
                     <Link
                       href={`/owner/homestays/${complaint?.booking?.homestay?.id}`}
                       className="text-sm text-blue-600 hover:underline"
@@ -234,12 +234,20 @@ export default function ComplaintDetailPage() {
                     </Link>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Check-in</p>
-                    <p className="text-sm">{complaint?.booking?.checkIn ? formatDate(complaint.booking.checkIn) : "-"}</p>
+                    <p className="text-xs text-muted-foreground">Ngày đặt:</p>
+                    <p className="text-sm">
+                      {complaint?.booking?.checkIn
+                        ? formatDate(complaint.booking.checkIn)
+                        : "-"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Check-out</p>
-                    <p className="text-sm">{complaint?.booking?.checkOut ? formatDate(complaint.booking.checkOut) : "-"}</p>
+                    <p className="text-xs text-muted-foreground">Ngày rời:</p>
+                    <p className="text-sm">
+                      {complaint?.booking?.checkOut
+                        ? formatDate(complaint.booking.checkOut)
+                        : "-"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -249,9 +257,9 @@ export default function ComplaintDetailPage() {
           {showConversation && (
             <Card>
               <CardHeader>
-                <CardTitle>Conversation</CardTitle>
+                <CardTitle>Lịch sử trao đổi</CardTitle>
                 <CardDescription>
-                  Communication history regarding this complaint
+                  Lịch sử trao đổi về khiếu nại này
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -294,7 +302,7 @@ export default function ComplaintDetailPage() {
                     })
                   ) : (
                     <div className="text-sm text-muted-foreground">
-                      No conversation yet.
+                      Chưa có trao đổi.
                     </div>
                   )}
                 </div>
@@ -302,9 +310,9 @@ export default function ComplaintDetailPage() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Reply</h3>
+                  <h3 className="text-sm font-medium">Trả lời</h3>
                   <Textarea
-                    placeholder="Type your message..."
+                    placeholder="Nhập tin nhắn..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={4}
@@ -318,7 +326,7 @@ export default function ComplaintDetailPage() {
                       }
                     >
                       <MessageSquare className="mr-2 h-4 w-4" />
-                      Send Message
+                      Gửi tin nhắn
                     </Button>
                   </div>
                 </div>
@@ -330,24 +338,26 @@ export default function ComplaintDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
+              <CardTitle>Thông tin khách hàng</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="text-xs text-muted-foreground">Tên</p>
                   <p className="text-base font-medium">
                     {complaint?.customer?.user?.name || "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">Email:</p>
                   <p className="text-base">
                     {complaint?.customer?.user?.email || "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-xs text-muted-foreground">
+                    Số điện thoại:
+                  </p>
                   <p className="text-base">
                     {complaint?.customer?.user?.phone || "-"}
                   </p>
@@ -355,7 +365,7 @@ export default function ComplaintDetailPage() {
               </div>
               <Link href={`/owner/customers/${complaint?.customerId}`}>
                 <Button variant="outline" className="w-full">
-                  View Customer
+                  Xem khách hàng
                 </Button>
               </Link>
             </CardContent>
@@ -364,7 +374,7 @@ export default function ComplaintDetailPage() {
           {complaint?.status !== ComplaintStatus.ACKNOWLEDGED && (
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>Hành động</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Separator />
@@ -376,7 +386,7 @@ export default function ComplaintDetailPage() {
                       disabled={updateStatusMutation.isPending}
                     >
                       <CheckCircle className="mr-2 h-4 w-4" />
-                      Mark as Resolved
+                      Đánh dấu là đã giải quyết
                     </Button>
                   )}
                   <Button
@@ -385,7 +395,7 @@ export default function ComplaintDetailPage() {
                     onClick={handleClose}
                     disabled={updateStatusMutation.isPending}
                   >
-                    Close Complaint
+                    Đóng khiếu nại
                   </Button>
                 </div>
               </CardContent>

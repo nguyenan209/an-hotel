@@ -1,7 +1,14 @@
 "use client";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle, MessageSquare, Star, Trash, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle,
+  MessageSquare,
+  Star,
+  Trash,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -25,7 +32,9 @@ import { toast } from "sonner";
 import Loading from "@/components/loading";
 import { ReviewStatus } from "@prisma/client";
 
-const TinyMCEEditor = dynamic(() => import("@/components/tinymce-editor"), { ssr: false });
+const TinyMCEEditor = dynamic(() => import("@/components/tinymce-editor"), {
+  ssr: false,
+});
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -147,7 +156,10 @@ export default function ReviewDetailPage() {
   }, [review]);
 
   if (isLoading) return <Loading />;
-  if (isError) return <div className="text-red-500">Error: {(error as Error).message}</div>;
+  if (isError)
+    return (
+      <div className="text-red-500">Error: {(error as Error).message}</div>
+    );
   if (!review) return <div>Review not found.</div>;
 
   return (
@@ -156,13 +168,15 @@ export default function ReviewDetailPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/owner/reviews">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
+            <span className="sr-only">Quay lại</span>
           </Link>
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Review Details</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Chi tiết đánh giá
+          </h2>
           <p className="text-muted-foreground">
-            Review for{" "}
+            Đánh giá cho{" "}
             <Link
               href={`/owner/homestays/${review.homestayId}`}
               className="text-blue-600 hover:underline"
@@ -197,9 +211,9 @@ export default function ReviewDetailPage() {
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Review Content</CardTitle>
+              <CardTitle>Nội dung đánh giá</CardTitle>
               <CardDescription>
-                Review submitted on {formatDate(review.createdAt)}
+                Đánh giá được gửi vào {formatDate(review.createdAt)}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -221,24 +235,31 @@ export default function ReviewDetailPage() {
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Comment
+                  Bình luận
                 </h3>
-                <div className="text-base mt-1" dangerouslySetInnerHTML={{ __html: review.comment }} />
+                <div
+                  className="text-base mt-1"
+                  dangerouslySetInnerHTML={{ __html: review.comment }}
+                />
               </div>
 
               <Separator />
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Stay Information
+                  Thông tin nơi ở
                 </h3>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Booking ID</p>
+                    <p className="text-xs text-muted-foreground">
+                      ID đặt phòng
+                    </p>
                     <p className="text-sm">{review.bookingId}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Stay Period</p>
+                    <p className="text-xs text-muted-foreground">
+                      Thời gian nơi ở
+                    </p>
                     <p className="text-sm">
                       {moment(review.booking.checkIn).format("MMMM DD, YYYY")}{" "}
                       to{" "}
@@ -252,10 +273,8 @@ export default function ReviewDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Owner Response</CardTitle>
-              <CardDescription>
-                Response from the homestay owner
-              </CardDescription>
+              <CardTitle>Phản hồi của chủ nhà</CardTitle>
+              <CardDescription>Phản hồi từ chủ nhà</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {ownerResponse ? (
@@ -291,7 +310,7 @@ export default function ReviewDetailPage() {
                             setIsEditingResponse(true);
                           }}
                         >
-                          Edit Response
+                          Sửa phản hồi
                         </Button>
                         <Button
                           variant="outline"
@@ -299,7 +318,7 @@ export default function ReviewDetailPage() {
                           className="text-red-600 hover:bg-red-50"
                           onClick={() => setDeleteDialogOpen(true)}
                         >
-                          Delete Response
+                          Xóa phản hồi
                         </Button>
                       </div>
                     </>
@@ -337,7 +356,7 @@ export default function ReviewDetailPage() {
                           onClick={() => setIsEditingResponse(false)} // Hủy chỉnh sửa
                           disabled={isSubmitting}
                         >
-                          Cancel
+                          Hủy
                         </Button>
                         <Button
                           size="sm"
@@ -347,7 +366,7 @@ export default function ReviewDetailPage() {
                           }}
                           disabled={isSubmitting || !tempOwnerResponse.trim()}
                         >
-                          Save Response
+                          Lưu phản hồi
                         </Button>
                       </div>
                     </>
@@ -359,7 +378,7 @@ export default function ReviewDetailPage() {
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                       <MessageSquare className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-muted-foreground mb-4">
-                        No response from the owner yet.
+                        Chưa có phản hồi từ chủ nhà.
                       </p>
                       <Button
                         onClick={() => {
@@ -367,13 +386,13 @@ export default function ReviewDetailPage() {
                           setIsAddingResponse(true);
                         }}
                       >
-                        Add Response
+                        Thêm phản hồi
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <h3 className="text-sm font-medium">
-                        Add Owner Response
+                        Thêm phản hồi của chủ nhà
                       </h3>
                       <TinyMCEEditor
                         apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || ""}
@@ -388,7 +407,7 @@ export default function ReviewDetailPage() {
                           onClick={() => setIsAddingResponse(false)} // Hủy thêm mới
                           disabled={isSubmitting}
                         >
-                          Cancel
+                          Hủy
                         </Button>
                         <Button
                           size="sm"
@@ -398,7 +417,7 @@ export default function ReviewDetailPage() {
                           }}
                           disabled={isSubmitting || !tempOwnerResponse.trim()}
                         >
-                          Save Response
+                          Lưu phản hồi
                         </Button>
                       </div>
                     </div>
@@ -426,7 +445,7 @@ export default function ReviewDetailPage() {
               <h3 className="text-lg font-medium">{review.homestay.name}</h3>
               <Link href={`/owner/homestays/${review.homestayId}`}>
                 <Button variant="outline" className="w-full">
-                  View Homestay
+                  Xem homestay
                 </Button>
               </Link>
             </CardContent>
@@ -434,24 +453,24 @@ export default function ReviewDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Customer</CardTitle>
+              <CardTitle>Khách hàng</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="text-xs text-muted-foreground">Tên</p>
                   <p className="text-base font-medium">
                     {review.customer.user.name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">Email:</p>
                   <p className="text-base">{review.customer.user.email}</p>
                 </div>
               </div>
               <Link href={`/owner/customers/${review.customerId}`}>
                 <Button variant="outline" className="w-full">
-                  View Customer
+                  Xem khách hàng
                 </Button>
               </Link>
             </CardContent>
@@ -459,7 +478,7 @@ export default function ReviewDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
+              <CardTitle>Hành động</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {status === ReviewStatus.PENDING && (
@@ -469,7 +488,7 @@ export default function ReviewDetailPage() {
                   disabled={isSubmitting}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Approve Review
+                  Phê duyệt đánh giá
                 </Button>
               )}
               {status !== ReviewStatus.REJECTED && (
@@ -480,7 +499,7 @@ export default function ReviewDetailPage() {
                   disabled={isSubmitting}
                 >
                   <X className="mr-2 h-4 w-4" />
-                  Reject Review
+                  Từ chối đánh giá
                 </Button>
               )}
               <Button
@@ -490,7 +509,7 @@ export default function ReviewDetailPage() {
                 disabled={isSubmitting}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Remove Review
+                Xóa đánh giá
               </Button>
             </CardContent>
           </Card>
@@ -501,7 +520,7 @@ export default function ReviewDetailPage() {
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={() => deleteResponseMutation.mutate()}
-        itemName="this response"
+        itemName="phản hồi này"
         isDeleting={isSubmitting}
       />
     </div>

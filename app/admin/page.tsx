@@ -35,7 +35,9 @@ export default function Page() {
     const fetchDashboard = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard?range=${dateRange}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard?range=${dateRange}`
+        );
         const data = await res.json();
         setStats(data.stats);
         setRevenueData(data.revenueData);
@@ -60,7 +62,7 @@ export default function Page() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Bảng điều khiển</h2>
         <div className="flex items-center gap-2">
           <Tabs
             defaultValue={dateRange}
@@ -80,7 +82,9 @@ export default function Page() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng doanh thu
+            </CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -88,49 +92,47 @@ export default function Page() {
               {formatCurrency(stats.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              +20.1% so với tháng trước
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Bookings
+              Tổng đặt phòng
             </CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
             <p className="text-xs text-muted-foreground">
-              +12.5% from last month
+              +12.5% so với tháng trước
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Customers
+              Tổng khách hàng
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +8.2% from last month
+              +8.2% so với tháng trước
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Homestays
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng homestay</CardTitle>
             <Hotel className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalHomestays}</div>
             <p className="text-xs text-muted-foreground">
-              +4.5% from last month
+              +4.5% so với tháng trước
             </p>
           </CardContent>
         </Card>
@@ -139,9 +141,9 @@ export default function Page() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle>Tổng quan doanh thu</CardTitle>
             <CardDescription>
-              Revenue trend for the last {dateRange}
+              Xu hướng doanh thu trong khoảng thời gian {dateRange}
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">

@@ -33,10 +33,7 @@ import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { Booking, BookingStatus, BookingType } from "@prisma/client";
 import moment from "moment";
-import {
-  BookingHomestayAndCustomer,
-  BookingsResponse,
-} from "@/lib/types";
+import { BookingHomestayAndCustomer, BookingsResponse } from "@/lib/types";
 import Loading from "@/components/loading";
 
 async function fetchBookings({
@@ -60,7 +57,9 @@ async function fetchBookings({
     limit: limit.toString(),
   });
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/bookings?${params}`);
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/owner/bookings?${params}`
+  );
   if (!response.ok) {
     throw new Error("Failed to fetch bookings");
   }
@@ -69,8 +68,12 @@ async function fetchBookings({
 
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">("all");
-  const [bookingTypeFilter, setBookingTypeFilter] = useState<BookingType | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">(
+    "all"
+  );
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<
+    BookingType | "all"
+  >("all");
   const limit = 10;
 
   const {
@@ -82,13 +85,14 @@ export default function BookingsPage() {
     isFetchingNextPage,
   } = useInfiniteQuery<BookingsResponse>({
     queryKey: ["bookings", searchQuery, statusFilter, bookingTypeFilter],
-    queryFn: ({ pageParam = 0 }) => fetchBookings({
-      search: searchQuery,
-      status: statusFilter,
-      bookingType: bookingTypeFilter,
-      skip: pageParam as number * limit,
-      limit,
-    }),
+    queryFn: ({ pageParam = 0 }) =>
+      fetchBookings({
+        search: searchQuery,
+        status: statusFilter,
+        bookingType: bookingTypeFilter,
+        skip: (pageParam as number) * limit,
+        limit,
+      }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (!lastPage.hasMore) return undefined;
@@ -118,21 +122,15 @@ export default function BookingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Bookings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Đặt phòng</h2>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Manage Bookings</CardTitle>
-          <CardDescription>
-            You have a total of {bookings.length} bookings in the system.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
             <div className="flex-1">
               <Input
-                placeholder="Search bookings..."
+                placeholder="Tìm kiếm đặt phòng..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -146,19 +144,21 @@ export default function BookingsPage() {
                 }
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Lọc theo trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={BookingStatus.PENDING}>Pending</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value={BookingStatus.PENDING}>
+                    Chờ xác nhận
+                  </SelectItem>
                   <SelectItem value={BookingStatus.CONFIRMED}>
-                    Confirmed
+                    Đã xác nhận
                   </SelectItem>
                   <SelectItem value={BookingStatus.COMPLETED}>
-                    Completed
+                    Đã hoàn thành
                   </SelectItem>
                   <SelectItem value={BookingStatus.CANCELLED}>
-                    Cancelled
+                    Đã hủy
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -169,16 +169,14 @@ export default function BookingsPage() {
                 }
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by booking type" />
+                  <SelectValue placeholder="Lọc theo loại đặt phòng" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value={BookingType.WHOLE}>
-                    Whole Homestay
+                    Toàn bộ homestay
                   </SelectItem>
-                  <SelectItem value={BookingType.ROOMS}>
-                    Individual Rooms
-                  </SelectItem>
+                  <SelectItem value={BookingType.ROOMS}>Cá nhân</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -190,19 +188,19 @@ export default function BookingsPage() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Homestay</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Check-in / Check-out</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Khách hàng</TableHead>
+                  <TableHead>Ngày đặt</TableHead>
+                  <TableHead>Loại đặt phòng</TableHead>
+                  <TableHead>Tổng tiền</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-4">
-                      No bookings found
+                      Không tìm thấy đặt phòng nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -217,7 +215,11 @@ export default function BookingsPage() {
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                           <span>
-                            {`${moment(booking.checkIn).format("DD/MM/YYYY")} - ${moment(booking.checkOut).format("DD/MM/YYYY")}`}
+                            {`${moment(booking.checkIn).format(
+                              "DD/MM/YYYY"
+                            )} - ${moment(booking.checkOut).format(
+                              "DD/MM/YYYY"
+                            )}`}
                           </span>
                         </div>
                       </TableCell>
@@ -225,16 +227,13 @@ export default function BookingsPage() {
                         {booking.bookingType === BookingType.WHOLE ? (
                           <div className="flex items-center">
                             <Home className="mr-1 h-4 w-4" />
-                            <span>Whole</span>
+                            <span>Toàn bộ homestay</span>
                           </div>
                         ) : (
                           <div className="flex items-center">
                             <Hotel className="mr-1 h-4 w-4" />
                             <span>
-                              {booking.homestay.rooms.length || 0}{" "}
-                              {booking.homestay.rooms.length === 1
-                                ? "Room"
-                                : "Rooms"}
+                              {booking.homestay.rooms.length || 0} phòng
                             </span>
                           </div>
                         )}
@@ -255,7 +254,7 @@ export default function BookingsPage() {
                         <Link href={`/owner/bookings/${booking.id}`}>
                           <Button variant="ghost" size="icon">
                             <Eye className="h-4 w-4" />
-                            <span className="sr-only">View</span>
+                            <span className="sr-only">Xem</span>
                           </Button>
                         </Link>
                       </TableCell>

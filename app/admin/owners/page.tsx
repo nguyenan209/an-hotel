@@ -328,7 +328,7 @@ export default function OwnersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Homestay Owners</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Quản lý Chủ Homestay</h2>
       </div>
 
       <Tabs
@@ -350,14 +350,8 @@ export default function OwnersPage() {
 
         <TabsContent value="active-owners">
           <Card>
-            <CardHeader>
-              <CardTitle>Homestay Owners hiện tại</CardTitle>
-              <CardDescription>
-                Quản lý các homestay owners đã được phê duyệt và đang hoạt động.
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
