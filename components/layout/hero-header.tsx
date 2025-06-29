@@ -86,21 +86,6 @@ export function HeroHeader() {
           </Link>
           <nav className="hidden md:flex gap-4">
             <Link
-              href="/"
-              className={`text-sm font-medium transition-colors ${
-                pathname === "/" ? "text-primary" : ""
-              }`}
-            >
-              <motion.span
-                style={{ color: pathname === "/" ? undefined : textColor }}
-                className={
-                  pathname === "/" ? "text-primary" : "hover:text-primary"
-                }
-              >
-                Trang chủ
-              </motion.span>
-            </Link>
-            <Link
               href="/search"
               className={`text-sm font-medium transition-colors ${
                 pathname === "/search" ? "text-primary" : ""
