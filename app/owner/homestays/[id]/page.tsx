@@ -146,7 +146,7 @@ export default function HomestayDetailPage() {
         const result = await createHomestay(data);
         console.log("Homestay created successfully:", result);
 
-        router.push("/admin/homestays");
+        router.push("/owner/homestays");
       } else {
         const token = Cookies.get("token");
         if (!token) {
@@ -172,7 +172,7 @@ export default function HomestayDetailPage() {
         const updatedHomestay = await response.json();
         console.log("Homestay updated successfully:", updatedHomestay);
 
-        router.push("/admin/homestays");
+        router.push("/owner/homestays");
       }
     } catch (error) {
       console.error("Error creating homestay:", error);
