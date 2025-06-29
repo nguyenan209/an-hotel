@@ -29,7 +29,6 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { items } = useCartStore();
-  console.log("Cart items:", items);
 
   // Xử lý khi mở/đóng popup
   const handleOpenChange = useCallback(
