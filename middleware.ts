@@ -8,7 +8,8 @@ const publicRoutes = [
   '/api/homestays',
   '/api/rooms',
   '/api/reviews',
-  '/api/payment/session'
+  '/api/payment/session',
+  '/api/payment/checkout/bank-transfer'
 ];
 
 function decodeJwt(token: string): any {
