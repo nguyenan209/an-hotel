@@ -105,7 +105,7 @@ export default function CheckoutSuccessPage() {
           phòng đã được gửi đến email của bạn.
         </p>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-1">
           <Link href="/">
             <Button className="w-full">
               <Home className="mr-2 h-4 w-4" />

@@ -99,12 +99,11 @@ export default function PaymentPage() {
     toast({
       title: "Thanh toán QR thành công",
       description:
-        "Thanh toán của bạn đã được xác nhận. Đang xử lý đặt phòng...",
+        "Thanh toán của bạn đã được xác nhận. Đang chuyển hướng...",
       variant: "default",
     });
-    handleCompleteBooking(PaymentMethod.BANK_TRANSFER, {
-      qrStatus: QRPaymentStatus.CONFIRMED,
-    });
+    clearCart();
+    window.location.href = "/checkout/success";
   };
 
   // Xử lý hoàn thành đặt phòng - Call API

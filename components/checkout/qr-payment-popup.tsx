@@ -12,6 +12,7 @@ import { calculateCartTotal, generateBookingNumber } from "@/lib/utils";
 import { PaymentMethod } from "@prisma/client";
 import { AlertCircle, Check, QrCode, Loader2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface QRPaymentPopupProps {
   onPaymentSuccess: () => void;
@@ -27,8 +28,10 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
   const [sessionUrl, setSessionUrl] = useState<string>("");
   const channelRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { items } = useCartStore();
+  const router = useRouter();
 
   // Xử lý khi mở/đóng popup
   const handleOpenChange = useCallback(
@@ -102,15 +105,32 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
                   if (timerRef.current) {
                     clearInterval(timerRef.current);
                   }
-
-                  // Gọi callback thành công
+                  if (pollingRef.current) {
+                    clearInterval(pollingRef.current);
+                  }
                   setTimeout(() => {
-                    onPaymentSuccess();
                     setOpen(false);
+                    onPaymentSuccess && onPaymentSuccess();
                   }, 2000);
                 }
               });
             }
+            // Bắt đầu polling kiểm tra trạng thái session
+            pollingRef.current = setInterval(async () => {
+              try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/session-status?sessionId=${bookingNumber}`);
+                const statusData = await res.json();
+                if (statusData.status === 'SUCCESS') {
+                  setPaymentStatus('success');
+                  if (timerRef.current) clearInterval(timerRef.current);
+                  if (pollingRef.current) clearInterval(pollingRef.current);
+                  setTimeout(() => {
+                    setOpen(false);
+                    onPaymentSuccess && onPaymentSuccess();
+                  }, 2000);
+                }
+              } catch (e) {}
+            }, 4000);
           } catch (error) {
             console.error("Error creating payment session:", error);
             toast({
@@ -129,6 +149,9 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
           if (timerRef.current) {
             clearInterval(timerRef.current);
           }
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+          }
 
           // Hủy đăng ký kênh Pusher
           if (channelRef.current && pusherClient) {
@@ -141,6 +164,9 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         if (timerRef.current) {
           clearInterval(timerRef.current);
         }
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+        }
 
         // Hủy đăng ký kênh Pusher
         if (channelRef.current && pusherClient && paymentSessionId) {
@@ -149,7 +175,7 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         }
       }
     },
-    [onPaymentSuccess, paymentSessionId, toast, items]
+    [onPaymentSuccess, paymentSessionId, toast, items, router]
   );
 
   // Format time as MM:SS
