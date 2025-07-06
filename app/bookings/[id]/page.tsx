@@ -202,19 +202,19 @@ export default function BookingDetailsPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="aspect-video relative overflow-hidden rounded-md">
+              {/* <div className="aspect-video relative overflow-hidden rounded-md">
                 <img
                   src={booking.homestay.images[0] || "/placeholder.svg"}
                   alt={booking.homestay.name}
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </div> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-medium text-gray-500">
-                      Check-in / Check-out (Nhận phòng / Trả phòng)
+                      Nhận phòng / Trả phòng
                     </h3>
                     <div className="flex items-center mt-1">
                       <Calendar className="h-5 w-5 text-gray-500 mr-2" />
