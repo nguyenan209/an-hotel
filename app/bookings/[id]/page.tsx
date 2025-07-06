@@ -336,7 +336,7 @@ export default function BookingDetailsPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              {booking.status === BookingStatus.PAID && (
+              {booking.status !== BookingStatus.COMPLETED && booking.status !== BookingStatus.CANCELLED && (
                 <Button
                   className="w-full"
                   variant="destructive"

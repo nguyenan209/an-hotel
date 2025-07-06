@@ -122,8 +122,8 @@ export async function POST(request: NextRequest) {
             guests: item.guests,
             totalPrice: item.totalPrice,
             bookingType: item.bookingType,
-            status: BookingStatus.PENDING,
-            paymentStatus: PaymentStatus.PENDING,
+            status: BookingStatus.PAID,
+            paymentStatus: PaymentStatus.PAID,
             paymentMethod: PaymentMethod.BANK_TRANSFER,
             specialRequests: item.note,
             bookingItems: {
