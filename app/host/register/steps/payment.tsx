@@ -98,9 +98,6 @@ export default function PaymentStep({
           </CardTitle>
           <CardDescription className="flex items-center gap-2">
             <span>Thanh toán được xử lý an toàn bởi Stripe</span>
-            <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-              DEMO MODE
-            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
