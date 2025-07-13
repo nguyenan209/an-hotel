@@ -21,14 +21,17 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,8 +46,10 @@ export default function AdminLoginPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username là bắt buộc";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email là bắt buộc";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email không hợp lệ";
     }
 
     if (!formData.password) {
@@ -67,18 +72,50 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      if (formData.username === "admin" && formData.password === "admin123") {
-        localStorage.setItem(
-          "adminAuth",
-          JSON.stringify({ username: formData.username, role: "admin" })
-        );
-        router.push("/admin");
+      const data = await response.json();
+
+      if (response.ok) {
+        // Check if user has ADMIN role
+        if (data.user.role === "ADMIN") {
+          // Use AuthContext to login
+          login(data.user, data.token);
+          
+          // Store admin-specific data
+          const adminAuthData = {
+            user: data.user,
+            token: data.token,
+            role: data.user.role,
+            isAdmin: true,
+          };
+          
+          // Store admin data in localStorage for admin-specific features
+          localStorage.setItem("adminAuth", JSON.stringify(adminAuthData));
+          
+          // Set remember me cookie if needed
+          if (rememberMe) {
+            Cookies.set("adminRememberMe", "true", { expires: 30, path: "/" });
+          }
+          
+          router.push("/admin");
+        } else {
+          setErrors({ submit: "Bạn không có quyền truy cập trang Admin. Chỉ ADMIN mới được phép đăng nhập." });
+        }
       } else {
-        setErrors({ submit: "Username hoặc mật khẩu không đúng" });
+        setErrors({ submit: data.message || "Đăng nhập thất bại" });
       }
     } catch (error) {
+      console.error("Login error:", error);
       setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
       setIsLoading(false);
@@ -178,23 +215,23 @@ export default function AdminLoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-white/90 text-sm">
-                  Username
+                <Label htmlFor="email" className="text-white/90 text-sm">
+                  Email
                 </Label>
                 <Input
-                  id="username"
-                  type="text"
-                  value={formData.username}
+                  id="email"
+                  type="email"
+                  value={formData.email}
                   onChange={(e) =>
-                    handleInputChange("username", e.target.value)
+                    handleInputChange("email", e.target.value)
                   }
-                  placeholder="admin"
+                  placeholder="admin@homestay.com"
                   className={`h-10 bg-white border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-pink-400 ${
-                    errors.username ? "ring-2 ring-red-500" : ""
+                    errors.email ? "ring-2 ring-red-500" : ""
                   }`}
                 />
-                {errors.username && (
-                  <p className="text-red-300 text-sm">{errors.username}</p>
+                {errors.email && (
+                  <p className="text-red-300 text-sm">{errors.email}</p>
                 )}
               </div>
 
