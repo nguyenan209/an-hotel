@@ -82,6 +82,8 @@ export default function OwnersPage() {
   // Chuyển string thường về enum HostRegistrationStep
   const normalizeStep = (step: string): HostRegistrationStep => step.toUpperCase() as HostRegistrationStep;
 
+  const validUserStatus = ["ACTIVE", "INACTIVE", "SUSPENDED", "DELETED"];
+
   // Fetch owners with infinite scroll
   const fetchOwners = async (skip = 0, append = false) => {
     setIsLoading(true);
@@ -90,7 +92,7 @@ export default function OwnersPage() {
       params.set("skip", skip.toString());
       params.set("limit", PAGE_SIZE.toString());
       if (searchQuery) params.set("search", searchQuery);
-      if (statusFilter && statusFilter !== "all")
+      if (statusFilter && validUserStatus.includes(statusFilter))
         params.set("status", statusFilter);
       const response = await fetch(
         `${
@@ -333,7 +335,14 @@ export default function OwnersPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={(tab) => {
+          setActiveTab(tab);
+          if (tab === "pending-registrations") {
+            setStatusFilter(HostRegistrationStep.VERIFICATION);
+          } else if (tab === "active-owners") {
+            setStatusFilter("all");
+          }
+        }}
         className="space-y-4"
       >
         <TabsList>

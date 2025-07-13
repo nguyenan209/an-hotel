@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       ];
     }
     if (status && status !== "all") {
-      where.user = { status };
+      where.registrationStep = status;
     }
 
     const registrations = await prisma.hostRegistration.findMany({
