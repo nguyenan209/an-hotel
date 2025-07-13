@@ -88,9 +88,9 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
                 <span className="font-medium">{displayData.phone}</span>
               </div>
               <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                <span className="text-sm text-gray-600">Địa chỉ:</span>
-                <span className="font-medium">{displayData.homestayAddress}</span>
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600 min-w-[70px]">Địa chỉ:</span>
+                <span className="font-medium break-all">{displayData.homestayAddress}</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -199,7 +199,7 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
             Về trang chủ
           </Button>
         </Link>
-        <Link href="/owner" className="flex-1" onClick={handleComplete}>
+        <Link href="/owner-login" className="flex-1" onClick={handleComplete}>
           <Button className="w-full">Vào trang quản lý Đối tác</Button>
         </Link>
       </div>
