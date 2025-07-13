@@ -14,7 +14,7 @@ import BasicInfoStep from "./steps/basic-info";
 import PaymentStep from "./steps/payment";
 import ConfirmationStep from "./steps/confirmation";
 import StepIndicator from "./_components/step-indicator";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useHostRegistrationStore } from "@/lib/store/hostRegistrationStore";
 
 export default function HostRegisterPage() {
@@ -23,6 +23,7 @@ export default function HostRegisterPage() {
     setCurrentStep,
     setRegistrationData,
     updateStep,
+    clearRegistrationData,
   } = useHostRegistrationStore();
 
   const currentStep = registrationData.currentStep;
@@ -38,19 +39,26 @@ export default function HostRegisterPage() {
   ];
 
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (
       searchParams.get("success") === "1" &&
       searchParams.get("registrationId")
     ) {
+      // Nếu email rỗng thì clear và redirect về /host/register
+      if (!registrationData.email) {
+        clearRegistrationData();
+        router.replace("/host/register");
+        return;
+      }
       setRegistrationData({
         registrationId: searchParams.get("registrationId")!,
       });
       setCurrentStep(3);
     }
     // Nếu muốn xử lý khi cancel thì thêm else if ở đây
-  }, [searchParams, setRegistrationData, setCurrentStep]);
+  }, [searchParams, setRegistrationData, setCurrentStep, registrationData.email, clearRegistrationData, router]);
 
   const handleStepComplete = (stepData: any) => {
     updateStep(stepData);

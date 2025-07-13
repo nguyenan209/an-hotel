@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
 
-    const where: any = {isDeleted: false};
+    const where: any = {
+      isDeleted: false,
+      user: { NOT: { isDeleted: true } },
+    };
 
     if (search) {
       where.user = {

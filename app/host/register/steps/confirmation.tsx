@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useHostRegistrationStore } from "@/lib/store/hostRegistrationStore";
+import router from "next/router";
 
 interface ConfirmationStepProps {
   data: any;
@@ -50,6 +51,7 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
   const handleComplete = () => {
     // Clear the registration data after successful completion
     clearRegistrationData();
+    router.push("/");
   };
 
   return (

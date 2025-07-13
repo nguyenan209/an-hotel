@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { fetchBookings } from "@/lib/booking";
+import { fetchAdminBookings, fetchBookings } from "@/lib/booking";
 import { Booking, BookingStatus, BookingType } from "@prisma/client";
 import moment from "moment";
 import {
@@ -57,7 +57,7 @@ export default function BookingsPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { bookings: initialBookings, hasMore } = await fetchBookings({
+        const { bookings: initialBookings, hasMore } = await fetchAdminBookings({
           search: searchQuery,
           status: statusFilter,
           bookingType: bookingTypeFilter,
