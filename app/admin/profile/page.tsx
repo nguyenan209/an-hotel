@@ -33,7 +33,7 @@ import { passwordFormSchema, profileFormSchema } from "@/lib/schema";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
-export default function ProfilePage() {
+export default function AdminProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);

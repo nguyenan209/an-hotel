@@ -2,7 +2,10 @@
 
 import { Menu, Search, User, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { Sidebar } from "@/components/admin/layout/sidebar";
 import { Button } from "@/components/ui/button";
@@ -22,10 +25,28 @@ interface HeaderProps {
   title?: string;
 }
 
-
 export function Header({ title = "Dashboard" }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [user]);
+
+  const handleLogout = () => {
+    logout();
+    // Clear admin-specific data
+    localStorage.removeItem("adminAuth");
+    // Redirect to admin login
+    router.push("/admin-login");
+  };
+
   return (
     <header className="w-full border-b bg-white sticky top-0 z-40 flex h-14 items-center gap-4 px-4 sm:px-6">
       <div className="flex items-center gap-2 lg:hidden">
@@ -63,25 +84,37 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="relative">
-            <User className="h-5 w-5" />
+            <Avatar className="h-5 w-5">
+              <AvatarImage
+                src={user?.avatar || "https://github.com/shadcn.png"}
+                alt="Admin avatar"
+              />
+              <AvatarFallback>
+                {user?.name?.charAt(0)?.toUpperCase() || "A"}
+              </AvatarFallback>
+            </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{user?.name || "My Account"}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            Profile
+          <DropdownMenuItem asChild>
+            <Link href="/admin/profile">
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
+          <DropdownMenuItem asChild>
+            <Link href="/admin/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            <Link href="/admin/login">Log out</Link>
+            Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
