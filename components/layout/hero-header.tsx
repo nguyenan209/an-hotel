@@ -153,7 +153,7 @@ export function HeroHeader() {
                     : "bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm"
                 }`}
               >
-                Trở thành host
+                Trở thành đối tác
               </Button>
             </Link>
           )}

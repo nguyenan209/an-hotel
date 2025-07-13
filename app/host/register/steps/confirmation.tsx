@@ -19,12 +19,18 @@ import {
   CreditCard,
 } from "lucide-react";
 import Link from "next/link";
+import { useHostRegistrationStore } from "@/lib/store/hostRegistrationStore";
 
 interface ConfirmationStepProps {
   data: any;
 }
 
 export default function ConfirmationStep({ data }: ConfirmationStepProps) {
+  const { registrationData, clearRegistrationData } = useHostRegistrationStore();
+  
+  // Use data from store instead of props to ensure data persistence
+  const displayData = registrationData.registrationId ? registrationData : data;
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -39,6 +45,11 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
       enterprise: "Enterprise",
     };
     return names[packageType as keyof typeof names] || packageType;
+  };
+
+  const handleComplete = () => {
+    // Clear the registration data after successful completion
+    clearRegistrationData();
   };
 
   return (
@@ -69,17 +80,17 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">Email:</span>
-                <span className="font-medium">{data.email}</span>
+                <span className="font-medium">{displayData.email}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">Điện thoại:</span>
-                <span className="font-medium">{data.phone}</span>
+                <span className="font-medium">{displayData.phone}</span>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-gray-500 mt-1" />
                 <span className="text-sm text-gray-600">Địa chỉ:</span>
-                <span className="font-medium">{data.homestayAddress}</span>
+                <span className="font-medium">{displayData.homestayAddress}</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -87,14 +98,14 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
                 <Package className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">Gói dịch vụ:</span>
                 <Badge variant="secondary">
-                  {getPackageName(data.packageType)}
+                  {getPackageName(displayData.packageType)}
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">Số tiền:</span>
                 <span className="font-medium text-green-600">
-                  {formatPrice(data.amount)}
+                  {formatPrice(displayData.amount)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -183,13 +194,13 @@ export default function ConfirmationStep({ data }: ConfirmationStepProps) {
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Link href="/" className="flex-1">
+        <Link href="/" className="flex-1" onClick={handleComplete}>
           <Button variant="outline" className="w-full">
             Về trang chủ
           </Button>
         </Link>
-        <Link href="/owner" className="flex-1">
-          <Button className="w-full">Vào trang quản lý Host</Button>
+        <Link href="/owner" className="flex-1" onClick={handleComplete}>
+          <Button className="w-full">Vào trang quản lý Đối tác</Button>
         </Link>
       </div>
     </div>

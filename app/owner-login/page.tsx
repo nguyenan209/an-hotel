@@ -311,7 +311,7 @@ export default function OwnerLoginPage() {
                   variant="outline"
                   className="w-full h-10 border-2 border-pink-300/50 text-pink-200 bg-transparent hover:bg-pink-500/20 hover:border-pink-300 font-semibold transition-all duration-200"
                 >
-                  Đăng ký trở thành Host
+                  Đăng ký trở thành Đối tác
                 </Button>
               </Link>
             </div>

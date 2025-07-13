@@ -70,13 +70,13 @@ export default function PaymentStep({
             Thanh toán phí đăng ký Host
           </CardTitle>
           <CardDescription>
-            Phí một lần để trở thành Host trên nền tảng HomeStay
+            Phí một lần để trở thành Đối tác trên nền tảng HomeStay
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center">
             <span className="text-lg">Phí đăng ký Host</span>
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-pink-500">
               {formatPrice(SETUP_FEE)}
             </span>
           </div>

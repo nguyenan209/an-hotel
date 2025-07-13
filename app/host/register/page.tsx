@@ -15,20 +15,17 @@ import PaymentStep from "./steps/payment";
 import ConfirmationStep from "./steps/confirmation";
 import StepIndicator from "./_components/step-indicator";
 import { useSearchParams } from "next/navigation";
+import { useHostRegistrationStore } from "@/lib/store/hostRegistrationStore";
 
 export default function HostRegisterPage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [registrationData, setRegistrationData] = useState({
-    registrationId: "",
-    fullName: "",
-    email: "",
-    phone: "",
-    homestayAddress: "",
-    experience: "",
-    packageType: "",
-    paymentId: "",
-    clientSecret: "",
-  });
+  const {
+    registrationData,
+    setCurrentStep,
+    setRegistrationData,
+    updateStep,
+  } = useHostRegistrationStore();
+
+  const currentStep = registrationData.currentStep;
 
   const steps = [
     {
@@ -47,22 +44,21 @@ export default function HostRegisterPage() {
       searchParams.get("success") === "1" &&
       searchParams.get("registrationId")
     ) {
-      setRegistrationData((prev) => ({
-        ...prev,
+      setRegistrationData({
         registrationId: searchParams.get("registrationId")!,
-      }));
+      });
       setCurrentStep(3);
     }
     // Nếu muốn xử lý khi cancel thì thêm else if ở đây
-  }, [searchParams]);
+  }, [searchParams, setRegistrationData, setCurrentStep]);
 
   const handleStepComplete = (stepData: any) => {
-    setRegistrationData((prev) => ({ ...prev, ...stepData }));
-    setCurrentStep((prev) => prev + 1);
+    updateStep(stepData);
+    console.log(stepData);
   };
 
   const handleBackStep = () => {
-    setCurrentStep((prev) => Math.max(1, prev - 1));
+    setCurrentStep(Math.max(1, currentStep - 1));
   };
 
   return (
@@ -72,7 +68,7 @@ export default function HostRegisterPage() {
         <div className="container mx-auto px-4 py-4">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800"
+            className="inline-flex items-center text-pink-500 hover:text-pink-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Quay lại trang chủ
@@ -85,7 +81,7 @@ export default function HostRegisterPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Trở thành Host cùng HomeStay
+              Trở thành Đối tác cùng HomeStay
             </h1>
             <p className="text-xl text-gray-600">
               Chia sẻ không gian của bạn và tạo thu nhập từ việc đón tiếp khách
