@@ -1,3 +1,4 @@
+import { jwtDecode } from 'jwt-decode';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -20,9 +21,8 @@ const publicRoutes = [
 
 function decodeJwt(token: string): any {
   try {
-    const payload = token.split('.')[1];
-    // atob is available in Edge runtime
-    return JSON.parse(atob(payload));
+    const decoded = jwtDecode(token);
+    return decoded;
   } catch {
     return null;
   }
@@ -42,7 +42,10 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.json({ message: 'No token provided' }, { status: 401 });
     }
+    
+    console.log('Token:', token);
     const decoded = decodeJwt(token);
+    console.log('Decoded token:', decoded);
     if (!decoded || !decoded.id || !decoded.role) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
