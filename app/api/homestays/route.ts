@@ -5,13 +5,14 @@ import prisma from "@/lib/prisma";
 import { homestaySchema } from "@/lib/schema";
 import { getTokenData } from "@/lib/auth";
 import { NextRequest } from "next/server";
+import { HomestayStatus } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const isFeatured = searchParams.get("featured") === "true";
 
-    const where = isFeatured ? { featured: true, isDeleted: false } : { isDeleted: false };
+    const where = isFeatured ? { featured: true, isDeleted: false, status: HomestayStatus.ACTIVE } : { isDeleted: false, status: HomestayStatus.ACTIVE };
 
     const homestays = await prisma.homestay.findMany({
       where,
