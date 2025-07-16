@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Edit, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ export default function HomestaysPage() {
   const [homestayToDelete, setHomestayToDelete] = useState<string | null>(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // State cho debounce
   const { toast } = useToast();
+  const isInitialFetchDone = useRef(false);
 
   // Xử lý debounce cho searchQuery
   useEffect(() => {
@@ -58,14 +59,15 @@ export default function HomestaysPage() {
     };
   }, [searchQuery]);
 
-  const fetchHomestays = async (reset = false) => {
+  const fetchHomestays = useCallback(async (reset = false) => {
+    if (loading) return; // Tránh fetch khi đang loading
+    
     try {
       setLoading(true);
 
+      const currentSkip = reset ? 0 : skip;
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${searchQuery}&status=${statusFilter}&skip=${
-          reset ? 0 : skip
-        }&limit=${itemsPerPage}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=${debouncedSearchQuery}&status=${statusFilter}&skip=${currentSkip}&limit=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
@@ -80,13 +82,14 @@ export default function HomestaysPage() {
 
       const data = await response.json();
 
-      setHomestays((prev) =>
-        reset ? data.homestays : [...prev, ...data.homestays]
-      );
+      if (reset) {
+        setHomestays(data.homestays);
+        setSkip(data.homestays.length);
+      } else {
+        setHomestays((prev) => [...prev, ...data.homestays]);
+        setSkip((prev) => prev + data.homestays.length);
+      }
       setHasMore(data.hasMore);
-      setSkip((prev) =>
-        reset ? data.homestays.length : prev + data.homestays.length
-      );
     } catch (err) {
       toast({
         variant: "destructive",
@@ -96,11 +99,66 @@ export default function HomestaysPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearchQuery, statusFilter, skip, itemsPerPage, toast, loading]);
 
+  // Reset ref khi component mount
   useEffect(() => {
-    fetchHomestays(true); // Gọi API khi debouncedSearchQuery hoặc statusFilter thay đổi
-  }, [debouncedSearchQuery, statusFilter]);
+    isInitialFetchDone.current = false;
+  }, []);
+
+  // Fetch data ban đầu
+  useEffect(() => {
+    if (!isInitialFetchDone.current) {
+      const initialFetch = async () => {
+        setSkip(0);
+        setHomestays([]);
+        setHasMore(true);
+        
+        try {
+          setLoading(true);
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/homestays?search=&status=all&skip=0&limit=${itemsPerPage}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch homestays");
+          }
+
+          const data = await response.json();
+          setHomestays(data.homestays);
+          setSkip(data.homestays.length);
+          setHasMore(data.hasMore);
+          isInitialFetchDone.current = true;
+        } catch (err) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load homestays",
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      initialFetch();
+    }
+  }, [itemsPerPage, toast]);
+
+  // Fetch data khi search/filter thay đổi
+  useEffect(() => {
+    if (isInitialFetchDone.current && (debouncedSearchQuery !== "" || statusFilter !== "all")) {
+      setSkip(0);
+      setHomestays([]);
+      setHasMore(true);
+      fetchHomestays(true);
+    }
+  }, [debouncedSearchQuery, statusFilter, fetchHomestays]);
 
   const handleDelete = async (homestayId: string) => {
     try {
@@ -184,8 +242,8 @@ export default function HomestaysPage() {
           <div className="rounded-md border">
             <InfiniteScroll
               dataLength={homestays.length}
-              next={() => fetchHomestays(false)}
-              hasMore={hasMore}
+              next={() => !loading && fetchHomestays(false)}
+              hasMore={hasMore && !loading}
               loader={<p className="text-center py-4">Đang tải...</p>}
               endMessage={
                 <p className="text-center py-4 text-muted-foreground">
@@ -273,3 +331,4 @@ export default function HomestaysPage() {
     </div>
   );
 }
+
