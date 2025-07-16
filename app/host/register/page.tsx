@@ -46,12 +46,6 @@ export default function HostRegisterPage() {
       searchParams.get("success") === "1" &&
       searchParams.get("registrationId")
     ) {
-      // Nếu email rỗng thì clear và redirect về /host/register
-      if (!registrationData.email) {
-        clearRegistrationData();
-        router.replace("/host/register");
-        return;
-      }
       setRegistrationData({
         registrationId: searchParams.get("registrationId")!,
       });
