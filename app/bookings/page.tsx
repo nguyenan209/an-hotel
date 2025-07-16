@@ -217,7 +217,7 @@ export default function BookingsPage() {
                           </CardContent>
                           <CardFooter className="flex justify-between items-center">
                             <div className="font-bold text-lg">
-                              ${booking.totalPrice.toLocaleString()}
+                              {booking.totalPrice.toLocaleString()} VNĐ
                             </div>
                             <Button
                               onClick={() => viewBookingDetails(booking.id)}
