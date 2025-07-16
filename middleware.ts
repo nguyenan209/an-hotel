@@ -12,7 +12,10 @@ const publicRoutes = [
   '/api/payment/checkout/bank-transfer',
   '/api/host/register/step1',
   '/api/host/register/step2',
-  '/api/host/register/checkout'
+  '/api/host/register/checkout',
+  '/api/stripe/webhook',
+  '/api/payment/checkout/success',
+  '/api/payment/checkout/cancel',
 ];
 
 function decodeJwt(token: string): any {
