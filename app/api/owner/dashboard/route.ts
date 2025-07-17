@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
+import { BookingStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
       prisma.booking.aggregate({
         where: {
           homestay: { ownerId: decoded.id },
-          status: "COMPLETED"
+          status: BookingStatus.PAID
         },
         _sum: { totalPrice: true }
       }),
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
       prisma.booking.aggregate({
         where: {
           homestay: { ownerId: decoded.id },
-          status: "COMPLETED",
+          status: BookingStatus.PAID,
           createdAt: { gte: firstDayOfMonth }
         },
         _sum: { totalPrice: true }
@@ -109,6 +110,17 @@ export async function GET(req: NextRequest) {
       })
     ]);
 
+    // Tính totalCustomer: số khách hàng duy nhất đã từng đặt phòng tại homestay của owner
+    const uniqueCustomers = await prisma.booking.findMany({
+      where: {
+        homestay: { ownerId: decoded.id }
+      },
+      select: { customerId: true },
+      distinct: ['customerId']
+    });
+
+    const totalCustomers = uniqueCustomers.length;
+
     // Transform the data
     const dashboardData = {
       totalHomestays,
@@ -116,6 +128,7 @@ export async function GET(req: NextRequest) {
       totalRevenue: totalRevenue._sum.totalPrice || 0,
       monthlyBookings,
       monthlyRevenue: monthlyRevenue._sum.totalPrice || 0,
+      totalCustomers,
       recentBookings: recentBookings.map(booking => ({
         ...booking,
         homestayName: booking.homestay.name,
