@@ -43,9 +43,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ message: 'No token provided' }, { status: 401 });
     }
     
-    console.log('Token:', token);
     const decoded = decodeJwt(token);
-    console.log('Decoded token:', decoded);
     if (!decoded || !decoded.id || !decoded.role) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }

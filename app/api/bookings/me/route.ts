@@ -11,8 +11,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    console.log("Decoded token:", decoded);
-
     const bookings = await prisma.booking.findMany({
       where: { customerId: decoded.customerId },
       orderBy: {
