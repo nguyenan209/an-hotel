@@ -18,7 +18,10 @@ const publicRoutes = [
   '/api/payment/checkout/success',
   '/api/payment/checkout/cancel',
   '/api/auth/verify-register-token',
-  '/api/auth/verify-otp'
+  '/api/auth/verify-otp',
+  '/api/auth/send-otp',
+  '/api/auth/forgot-password',
+  '/api/auth/google/callback',
 ];
 
 function decodeJwt(token: string): any {

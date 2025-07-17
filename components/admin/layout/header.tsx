@@ -43,8 +43,15 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
     logout();
     // Clear admin-specific data
     localStorage.removeItem("adminAuth");
-    // Redirect to admin login
-    router.push("/admin-login");
+    // Redirect to login theo role
+    const role = user?.role;
+    const loginHref =
+      role === "ADMIN"
+        ? "/admin-login"
+        : role === "OWNER"
+        ? "/owner-login"
+        : "/login";
+    router.push(loginHref);
   };
 
   return (
@@ -100,13 +107,13 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
           <DropdownMenuLabel>{user?.name || "My Account"}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/admin/profile">
+            <Link href={`/${(user?.role || "admin").toLowerCase()}/profile`}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/admin/settings">
+            <Link href={`/${(user?.role || "admin").toLowerCase()}/settings`}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Link>
