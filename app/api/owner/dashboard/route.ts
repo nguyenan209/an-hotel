@@ -121,6 +121,38 @@ export async function GET(req: NextRequest) {
 
     const totalCustomers = uniqueCustomers.length;
 
+    // Tính revenueData: doanh thu 7 ngày gần nhất theo ngày
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 6); // 7 ngày tính cả hôm nay
+    const paidBookings = await prisma.booking.findMany({
+      where: {
+        homestay: { ownerId: decoded.id },
+        status: BookingStatus.PAID,
+        createdAt: { gte: sevenDaysAgo }
+      },
+      select: {
+        createdAt: true,
+        totalPrice: true
+      }
+    });
+    // Group doanh thu theo ngày
+    const revenueMap: Record<string, number> = {};
+    paidBookings.forEach(b => {
+      const date = b.createdAt.toISOString().slice(0, 10); // yyyy-mm-dd
+      revenueMap[date] = (revenueMap[date] || 0) + b.totalPrice;
+    });
+    // Tạo mảng revenueData cho 7 ngày gần nhất
+    const revenueData = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(sevenDaysAgo.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      revenueData.push({
+        name: d.toLocaleDateString("vi-VN"),
+        revenue: revenueMap[key] || 0
+      });
+    }
+
     // Transform the data
     const dashboardData = {
       totalHomestays,
@@ -129,6 +161,7 @@ export async function GET(req: NextRequest) {
       monthlyBookings,
       monthlyRevenue: monthlyRevenue._sum.totalPrice || 0,
       totalCustomers,
+      revenueData,
       recentBookings: recentBookings.map(booking => ({
         ...booking,
         homestayName: booking.homestay.name,
