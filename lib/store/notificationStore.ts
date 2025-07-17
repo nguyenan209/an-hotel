@@ -41,7 +41,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       } else if (role === "OWNER") {
         apiUrl = `/api/owner/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
       } else {
-        apiUrl = `/api/customer/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
+        apiUrl = `/api/notifications?page=${page}&limit=${limit}&type=${type}&status=${status}&query=${query}`;
       }
       const response = await fetch(apiUrl);
       if (!response.ok) {

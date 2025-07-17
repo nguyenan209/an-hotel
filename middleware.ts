@@ -17,6 +17,8 @@ const publicRoutes = [
   '/api/stripe/webhook',
   '/api/payment/checkout/success',
   '/api/payment/checkout/cancel',
+  '/api/auth/verify-register-token',
+  '/api/auth/verify-otp'
 ];
 
 function decodeJwt(token: string): any {
