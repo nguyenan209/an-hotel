@@ -30,7 +30,7 @@ export default function RoomUsageReportPage() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/room-usage?year=${year}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/room-usage?year=${year}`);
         const data = await res.json();
         setRoomUsageStats(data.stats || null);
       } catch (e) {

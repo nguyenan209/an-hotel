@@ -24,7 +24,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
-  const [year, setYear] = useState("2023");
+  const [year, setYear] = useState("2025");
 
   const {
     data: revenueData = [],
@@ -33,7 +33,7 @@ export default function RevenueReportPage() {
   } = useQuery({
     queryKey: ["revenue-report", year],
     queryFn: async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/revenue?year=${year}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/revenue?year=${year}`);
       const data = await res.json();
       return data.revenueData || [];
     },

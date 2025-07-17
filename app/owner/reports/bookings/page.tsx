@@ -30,7 +30,7 @@ export default function BookingReportPage() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/bookings?year=${year}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/bookings?year=${year}`);
         const data = await res.json();
         setBookingStats(data.stats || null);
       } catch (e) {

@@ -34,7 +34,7 @@ export default function ReviewReportPage() {
       setIsLoading(true);
       setError("");
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/reviews?year=${year}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/reviews?year=${year}`);
         const data = await res.json();
         setReviewStats(data.stats || null);
         setRecentReviews(data.recentReviews || []);
@@ -56,7 +56,7 @@ export default function ReviewReportPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reviews/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "APPROVED" }),
@@ -71,7 +71,7 @@ export default function ReviewReportPage() {
   };
   const handleReject = async (id: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reviews/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "REJECTED" }),

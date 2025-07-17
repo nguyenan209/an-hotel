@@ -33,7 +33,7 @@ export default function AdminReportsPage() {
     const fetchOverview = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/overview`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/overview`);
         const data = await res.json();
         setOverview(data);
       } catch (e) {

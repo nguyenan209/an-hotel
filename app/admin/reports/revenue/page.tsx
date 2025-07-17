@@ -24,7 +24,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
-  const [year, setYear] = useState("2023");
+  const [year, setYear] = useState("2025");
 
   const {
     data: revenueData = [],
