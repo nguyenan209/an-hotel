@@ -79,6 +79,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // If authenticated, check role for admin path
+  if (isAuthenticated && request.nextUrl.pathname.match(adminPath)) {
+    const decoded = decodeJwt(token);
+    if (!decoded || decoded.role !== 'ADMIN') {
+      // Redirect to home page if not an admin
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
   // Allow the request to continue if all checks pass
   return NextResponse.next();
 }
