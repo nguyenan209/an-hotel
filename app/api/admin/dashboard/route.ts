@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
 import { subDays, format } from "date-fns";
+import { PaymentStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,11 +13,15 @@ export async function GET(req: NextRequest) {
     }
     const { searchParams } = new URL(req.url);
     const range = searchParams.get("range") || "7d";
+    let days = 7;
+    if (range === "24h") days = 1;
+    else if (range === "30d") days = 30;
+    else if (range === "90d") days = 90;
 
     // Tổng doanh thu (tổng payment đã PAID)
     const totalRevenue = await prisma.payment.aggregate({
       _sum: { amount: true },
-      where: { status: "PAID" },
+      where: { status: PaymentStatus.PAID },
     });
     // Tổng số bookings
     const totalBookings = await prisma.booking.count();
@@ -25,9 +30,8 @@ export async function GET(req: NextRequest) {
     // Tổng số homestays
     const totalHomestays = await prisma.homestay.count();
 
-    // Revenue 7 ngày gần nhất
+    // Revenue theo range ngày gần nhất
     const today = new Date();
-    const days = 7;
     const revenueData: { name: string; revenue: number }[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const day = subDays(today, i);
@@ -36,12 +40,12 @@ export async function GET(req: NextRequest) {
       const payments = await prisma.payment.aggregate({
         _sum: { amount: true },
         where: {
-          status: "PAID",
+          status: PaymentStatus.PAID,
           paymentDate: { gte: start, lte: end },
         },
       });
       revenueData.push({
-        name: format(start, "EEE"),
+        name: format(start, days > 7 ? "dd/MM" : "EEE"),
         revenue: payments._sum.amount || 0,
       });
     }
