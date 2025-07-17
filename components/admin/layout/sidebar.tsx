@@ -82,7 +82,11 @@ export function Sidebar({ className }: SidebarProps) {
       label: "Homestay",
       icon: Hotel,
       href: pathname.startsWith("/owner") ? "/owner/homestays" : "/admin/homestays",
-      active: pathname === "/admin/homestays" || pathname.startsWith("/admin/homestays/"),
+      active:
+        pathname === "/admin/homestays" ||
+        pathname.startsWith("/admin/homestays/") ||
+        pathname === "/owner/homestays" ||
+        pathname.startsWith("/owner/homestays/"),
     },
     {
       label: "Phê duyệt Homestay",
@@ -102,58 +106,98 @@ export function Sidebar({ className }: SidebarProps) {
       label: "Phòng",
       icon: Home,
       href: pathname.startsWith("/owner") ? "/owner/rooms" : "/admin/rooms",
-      active: pathname === "/admin/rooms" || pathname.startsWith("/admin/rooms/") || pathname.startsWith("/owner/rooms/"),
+      active:
+        pathname === "/admin/rooms" ||
+        pathname.startsWith("/admin/rooms/") ||
+        pathname === "/owner/rooms" ||
+        pathname.startsWith("/owner/rooms/"),
     },
     {
       label: "Khách hàng",
       icon: Users,
       href: pathname.startsWith("/owner") ? "/owner/customers" : "/admin/customers",
-      active: pathname === "/admin/customers" || pathname.startsWith("/admin/customers/") || pathname.startsWith("/owner/customers/"),
+      active:
+        pathname === "/admin/customers" ||
+        pathname.startsWith("/admin/customers/") ||
+        pathname === "/owner/customers" ||
+        pathname.startsWith("/owner/customers/"),
     },
     {
       label: "Đặt phòng",
       icon: ShoppingCart,
       href: pathname.startsWith("/owner") ? "/owner/bookings" : "/admin/bookings",
-      active: pathname === "/admin/bookings" || pathname.startsWith("/admin/bookings/") || pathname.startsWith("/owner/bookings/"),
+      active:
+        pathname === "/admin/bookings" ||
+        pathname.startsWith("/admin/bookings/") ||
+        pathname === "/owner/bookings" ||
+        pathname.startsWith("/owner/bookings/"),
     },
     {
       label: "Thanh toán",
       icon: CreditCard,
       href: pathname.startsWith("/owner") ? "/owner/payments" : "/admin/payments",
-      active: pathname === "/admin/payments" || pathname.startsWith("/admin/payments/") || pathname.startsWith("/owner/payments/"),
+      active:
+        pathname === "/admin/payments" ||
+        pathname.startsWith("/admin/payments/") ||
+        pathname === "/owner/payments" ||
+        pathname.startsWith("/owner/payments/"),
     },
     {
       label: "Đánh giá",
       icon: Star,
       href: pathname.startsWith("/owner") ? "/owner/reviews" : "/admin/reviews",
-      active: pathname === "/admin/reviews" || pathname.startsWith("/admin/reviews/") || pathname.startsWith("/owner/reviews/"),
+      active:
+        pathname === "/admin/reviews" ||
+        pathname.startsWith("/admin/reviews/") ||
+        pathname === "/owner/reviews" ||
+        pathname.startsWith("/owner/reviews/"),
     },
     {
       label: "Khiếu nại",
       icon: AlertCircle,
       href: pathname.startsWith("/owner") ? "/owner/complaints" : "/admin/complaints",
-      active: pathname === "/admin/complaints" || pathname.startsWith("/admin/complaints/") || pathname.startsWith("/owner/complaints/"),
+      active:
+        pathname === "/admin/complaints" ||
+        pathname.startsWith("/admin/complaints/") ||
+        pathname === "/owner/complaints" ||
+        pathname.startsWith("/owner/complaints/"),
     },
     {
       label: "Báo cáo",
       icon: BarChart3,
       href: pathname.startsWith("/owner") ? "/owner/reports" : "/admin/reports",
-      active: pathname === "/admin/reports" || pathname.startsWith("/admin/reports/") || pathname.startsWith("/owner/reports/"),
+      active:
+        pathname === "/admin/reports" ||
+        pathname.startsWith("/admin/reports/") ||
+        pathname === "/owner/reports" ||
+        pathname.startsWith("/owner/reports/"),
       subItems: [
         {
           label: "Doanh thu",
           href: pathname.startsWith("/owner") ? "/owner/reports/revenue" : "/admin/reports/revenue",
-          active: pathname === "/admin/reports/revenue" || pathname.startsWith("/owner/reports/revenue/"),
+          active:
+            pathname === "/admin/reports/revenue" ||
+            pathname.startsWith("/admin/reports/revenue/") ||
+            pathname === "/owner/reports/revenue" ||
+            pathname.startsWith("/owner/reports/revenue/"),
         },
         {
           label: "Thống kê đặt phòng",
           href: pathname.startsWith("/owner") ? "/owner/reports/bookings" : "/admin/reports/bookings",
-          active: pathname === "/admin/reports/bookings" || pathname.startsWith("/owner/reports/bookings/"),
+          active:
+            pathname === "/admin/reports/bookings" ||
+            pathname.startsWith("/admin/reports/bookings/") ||
+            pathname === "/owner/reports/bookings" ||
+            pathname.startsWith("/owner/reports/bookings/"),
         },
         {
           label: "Sử dụng phòng",
           href: pathname.startsWith("/owner") ? "/owner/reports/room-usage" : "/admin/reports/room-usage",
-          active: pathname === "/admin/reports/room-usage" || pathname.startsWith("/owner/reports/room-usage/"),
+          active:
+            pathname === "/admin/reports/room-usage" ||
+            pathname.startsWith("/admin/reports/room-usage/") ||
+            pathname === "/owner/reports/room-usage" ||
+            pathname.startsWith("/owner/reports/room-usage/"),
         },
         // {
         //   label: "Nhân khẩu học khách hàng",
@@ -163,7 +207,11 @@ export function Sidebar({ className }: SidebarProps) {
         {
           label: "Phân tích đánh giá",
           href: pathname.startsWith("/owner") ? "/owner/reports/reviews" : "/admin/reports/reviews",
-          active: pathname === "/admin/reports/reviews" || pathname.startsWith("/owner/reports/reviews/"),
+          active:
+            pathname === "/admin/reports/reviews" ||
+            pathname.startsWith("/admin/reports/reviews/") ||
+            pathname === "/owner/reports/reviews" ||
+            pathname.startsWith("/owner/reports/reviews/"),
         },
       ],
     },
