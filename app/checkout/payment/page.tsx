@@ -114,61 +114,51 @@ export default function PaymentPage() {
     setIsProcessing(true);
 
     try {
-      // Gọi API checkout-payment
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          paymentMethod: method,
-          bookingData: bookingPayload,
-          paymentDetails,
-        }),
-      });
+      if (method === PaymentMethod.CASH) {
+        // Gọi API checkout-payment chỉ khi là CASH
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/checkout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentMethod: method,
+            bookingData: bookingPayload,
+            paymentDetails,
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process booking");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to process booking");
+        }
+
+        const apiResponse = await response.json();
+
+        if (!apiResponse.success) {
+          throw new Error(apiResponse.message || "Booking failed");
+        }
+
+        console.log("API response:", apiResponse);
+
+        // Lưu thông tin đặt phòng vào localStorage để hiển thị ở trang thành công
+        if (typeof window !== "undefined") {
+          localStorage.setItem("lastBooking", JSON.stringify(apiResponse.data));
+        }
+
+        // Show success toast with more details based on payment method
+        let successMessage = `Đặt phòng thành công! Mã đặt phòng của bạn là ${apiResponse.data.confirmationCode}. Vui lòng thanh toán tại lễ tân khi nhận phòng.`;
+
+        toast({
+          title: "Đặt phòng thành công!",
+          description: successMessage,
+          variant: "default",
+        });
       }
+      // Các method khác không gọi API này
 
-      const apiResponse = await response.json();
-
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || "Booking failed");
-      }
-
-      console.log("API response:", apiResponse);
-
-      // Lưu thông tin đặt phòng vào localStorage để hiển thị ở trang thành công
-      if (typeof window !== "undefined") {
-        localStorage.setItem("lastBooking", JSON.stringify(apiResponse.data));
-      }
-
-      // Show success toast with more details based on payment method
-      let successMessage = "";
-      switch (method) {
-        case PaymentMethod.BANK_TRANSFER:
-          successMessage = `Thanh toán QR thành công! Mã đặt phòng của bạn là ${apiResponse.data.confirmationCode}.`;
-          break;
-        case PaymentMethod.CREDIT_CARD:
-          successMessage = `Thanh toán thẻ thành công! Mã đặt phòng của bạn là ${apiResponse.data.confirmationCode}.`;
-          break;
-        case PaymentMethod.CASH:
-          successMessage = `Đặt phòng thành công! Mã đặt phòng của bạn là ${apiResponse.data.confirmationCode}. Vui lòng thanh toán tại lễ tân khi nhận phòng.`;
-          break;
-      }
-
-      toast({
-        title: "Đặt phòng thành công!",
-        description: successMessage,
-        variant: "default",
-      });
-
-      // First redirect to success page, then clear cart
+      // Redirect và clearCart cho tất cả các phương thức
       window.location.href = "/checkout/success";
-
-      // Clear cart after redirect is initiated
       clearCart();
     } catch (error: any) {
       console.error("Error creating booking:", error);
