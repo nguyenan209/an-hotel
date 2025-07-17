@@ -155,11 +155,11 @@ export function Sidebar({ className }: SidebarProps) {
           href: pathname.startsWith("/owner") ? "/owner/reports/room-usage" : "/admin/reports/room-usage",
           active: pathname === "/admin/reports/room-usage" || pathname.startsWith("/owner/reports/room-usage/"),
         },
-        {
-          label: "Nhân khẩu học khách hàng",
-          href: pathname.startsWith("/owner") ? "/owner/reports/demographics" : "/admin/reports/demographics",
-          active: pathname === "/admin/reports/demographics" || pathname.startsWith("/owner/reports/demographics/"),
-        },
+        // {
+        //   label: "Nhân khẩu học khách hàng",
+        //   href: pathname.startsWith("/owner") ? "/owner/reports/demographics" : "/admin/reports/demographics",
+        //   active: pathname === "/admin/reports/demographics" || pathname.startsWith("/owner/reports/demographics/"),
+        // },
         {
           label: "Phân tích đánh giá",
           href: pathname.startsWith("/owner") ? "/owner/reports/reviews" : "/admin/reports/reviews",

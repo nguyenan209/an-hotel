@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const year = url.searchParams.get("year") || new Date().getFullYear().toString();
 
+    console.log("ownerId", ownerId);
     // Truy vấn doanh thu theo năm từ bảng Payment, chỉ lấy payment của booking thuộc homestay của owner này
     const payments = await prisma.payment.findMany({
       where: {
