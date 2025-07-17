@@ -121,14 +121,23 @@ export async function GET(req: NextRequest) {
 
     const totalCustomers = uniqueCustomers.length;
 
-    // Tính revenueData: doanh thu 7 ngày gần nhất theo ngày
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(now.getDate() - 6); // 7 ngày tính cả hôm nay
+    // Lấy range từ query param
+    const { searchParams } = new URL(req.url);
+    const range = searchParams.get("range") || "7d";
+    let days = 7;
+    if (range === "24h") days = 1;
+    else if (range === "30d") days = 30;
+    else if (range === "90d") days = 90;
+    const fromDate = new Date();
+    fromDate.setHours(0, 0, 0, 0);
+    fromDate.setDate(fromDate.getDate() - (days - 1));
+
+    // Tính revenueData: doanh thu theo ngày trong range
     const paidBookings = await prisma.booking.findMany({
       where: {
         homestay: { ownerId: decoded.id },
         status: BookingStatus.PAID,
-        createdAt: { gte: sevenDaysAgo }
+        createdAt: { gte: fromDate }
       },
       select: {
         createdAt: true,
@@ -141,11 +150,11 @@ export async function GET(req: NextRequest) {
       const date = b.createdAt.toISOString().slice(0, 10); // yyyy-mm-dd
       revenueMap[date] = (revenueMap[date] || 0) + b.totalPrice;
     });
-    // Tạo mảng revenueData cho 7 ngày gần nhất
+    // Tạo mảng revenueData cho từng ngày trong range
     const revenueData = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(sevenDaysAgo);
-      d.setDate(sevenDaysAgo.getDate() + i);
+    for (let i = 0; i < days; i++) {
+      const d = new Date(fromDate);
+      d.setDate(fromDate.getDate() + i);
       const key = d.toISOString().slice(0, 10);
       revenueData.push({
         name: d.toLocaleDateString("vi-VN"),
