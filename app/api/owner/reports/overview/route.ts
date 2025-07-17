@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
+import { HomestayStatus, PaymentStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     const totalRevenue = await prisma.payment.aggregate({
       _sum: { amount: true },
       where: {
-        status: "PAID",
+        status: PaymentStatus.PAID,
         booking: {
           homestay: {
             ownerId: ownerId,
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     // Tổng số homestays active: chỉ đếm homestay của owner này
     const activeHomestays = await prisma.homestay.count({
       where: {
-        status: "ACTIVE",
+        status: HomestayStatus.ACTIVE,
         ownerId: ownerId,
       },
     });

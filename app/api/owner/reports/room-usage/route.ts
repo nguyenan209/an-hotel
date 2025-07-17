@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
+import { BookingStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
           gte: new Date(`${year}-01-01`),
           lt: new Date(`${parseInt(year) + 1}-01-01`),
         },
-        status: "COMPLETED",
+        status: BookingStatus.PAID,
         homestay: {
           ownerId: ownerId,
         },
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    console.log("bookings", bookings);
     // Tính occupancy rate theo tháng
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthlyOccupancy = months.map((month, idx) => {
@@ -59,13 +61,12 @@ export async function GET(req: NextRequest) {
       const daysInMonth = new Date(Number(year), idx + 1, 0).getDate();
       const totalRoomNights = activeHomestays * daysInMonth;
       const rate = totalRoomNights > 0 ? Math.round((totalNights / totalRoomNights) * 100) : 0;
+      console.log('Month:', month, 'totalNights:', totalNights, 'totalRoomNights:', totalRoomNights, 'rate:', rate);
       return { month, rate };
     });
 
     // Tính occupancy rate trung bình cả năm
-    const avgOccupancyRate = Math.round(
-      monthlyOccupancy.reduce((sum, m) => sum + m.rate, 0) / 12
-    );
+    const avgOccupancyRate = +(monthlyOccupancy.reduce((sum, m) => sum + m.rate, 0) / 12).toFixed(1);
 
     // Thời gian lưu trú trung bình
     let totalStay = 0;

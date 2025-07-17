@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getTokenData } from "@/lib/auth";
+import { PaymentStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     // Truy vấn doanh thu theo năm từ bảng Payment, chỉ lấy payment của booking thuộc homestay của owner này
     const payments = await prisma.payment.findMany({
       where: {
-        status: "PAID",
+        status: PaymentStatus.PAID,
         paymentDate: {
           gte: new Date(`${year}-01-01`),
           lt: new Date(`${parseInt(year) + 1}-01-01`),
