@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
     fromDate.setHours(0, 0, 0, 0);
     fromDate.setDate(fromDate.getDate() - (days - 1));
 
-    // Tính revenueData: doanh thu theo ngày trong range
+    // Tính revenueData: doanh thu theo ngày trong range (GMT+7)
     const paidBookings = await prisma.booking.findMany({
       where: {
         homestay: { ownerId: decoded.id },
@@ -144,20 +144,22 @@ export async function GET(req: NextRequest) {
         totalPrice: true
       }
     });
-    // Group doanh thu theo ngày
+    // Group doanh thu theo ngày (GMT+7)
     const revenueMap: Record<string, number> = {};
     paidBookings.forEach(b => {
-      const date = b.createdAt.toISOString().slice(0, 10); // yyyy-mm-dd
+      const vnDate = new Date(b.createdAt.getTime() + 7 * 60 * 60 * 1000);
+      const date = vnDate.toISOString().slice(0, 10); // yyyy-mm-dd
       revenueMap[date] = (revenueMap[date] || 0) + b.totalPrice;
     });
-    // Tạo mảng revenueData cho từng ngày trong range
+    // Tạo mảng revenueData cho từng ngày trong range (GMT+7)
     const revenueData = [];
     for (let i = 0; i < days; i++) {
       const d = new Date(fromDate);
       d.setDate(fromDate.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
+      const vnDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+      const key = vnDate.toISOString().slice(0, 10);
       revenueData.push({
-        name: d.toLocaleDateString("vi-VN"),
+        name: vnDate.toLocaleDateString("vi-VN"),
         revenue: revenueMap[key] || 0
       });
     }
