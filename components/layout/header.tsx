@@ -110,7 +110,7 @@ export function Header() {
                 variant="outline"
                 className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
-                Become host
+                Trở thành Đối tác
               </Button>
             </Link>
           )}
@@ -146,7 +146,10 @@ export function Header() {
                         className="flex items-center gap-3 p-2 rounded-lg bg-gray-50"
                       >
                         <img
-                          src={item.homestay.images?.[0] || "/placeholder.svg?height=48&width=48"}
+                          src={
+                            item.homestay.images?.[0] ||
+                            "/placeholder.svg?height=48&width=48"
+                          }
                           alt={item.homestay.name || "Homestay"}
                           className="w-12 h-12 bg-gray-200 rounded-md flex-shrink-0 object-cover"
                         />
@@ -155,9 +158,11 @@ export function Header() {
                             {item.homestay.name || "Homestay"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {item.bookingType === 'ROOMS'
-                              ? (item.rooms?.map((room) => room.roomName).join(', ') || 'Phòng')
-                              : 'Toàn bộ homestay'}
+                            {item.bookingType === "ROOMS"
+                              ? item.rooms
+                                  ?.map((room) => room.roomName)
+                                  .join(", ") || "Phòng"
+                              : "Toàn bộ homestay"}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {item.nights} đêm

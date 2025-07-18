@@ -63,7 +63,7 @@ const ComplaintsPage = () => {
         <CardHeader>
           <CardTitle>Gửi khiếu nại</CardTitle>
           <CardDescription>
-            Vui lòng điền form bên dưới để gửi khiếu nại của bạn.
+            Chúng tôi sẽ liên hệ với bạn ngay khi nhận được thông tin khiếu nại.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -76,7 +76,7 @@ const ComplaintsPage = () => {
                   <FormItem>
                     <FormLabel>Tên</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <Input placeholder="Tên của bạn" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -89,7 +89,7 @@ const ComplaintsPage = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="johndoe@example.com" {...field} />
+                      <Input placeholder="email@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,7 +103,7 @@ const ComplaintsPage = () => {
                     <FormLabel>Khiếu nại</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Vui lòng mô tả khiếu nại của bạn chi tiết."
+                        placeholder="Vui lòng mô tả khiếu nại của bạn."
                         className="resize-none"
                         {...field}
                       />

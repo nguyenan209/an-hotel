@@ -46,9 +46,9 @@ export function InfiniteScroll({
           Loading more...
         </div>
       ) : hasMore ? (
-        "Scroll to load more"
+        "Vuốt để xem thêm"
       ) : (
-        "No more items to load"
+        "Đã load hết dữ liệu"
       )}
     </div>
   );

@@ -265,7 +265,7 @@ export default function AdminNotificationsPage() {
                     Không có thông báo
                   </h3>
                   <p className="text-muted-foreground">
-                    Không tìm thấy thông báo nào phù hợp với bộ lọc hiện tại.
+                    Bạn chưa có thông báo nào.
                   </p>
                 </div>
               ) : (

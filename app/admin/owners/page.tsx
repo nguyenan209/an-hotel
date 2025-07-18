@@ -52,13 +52,23 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { HostPaymentStatus, HostRegistration, HostRegistrationStep, UserStatus } from "@prisma/client";
+import {
+  HostPaymentStatus,
+  HostRegistration,
+  HostRegistrationStep,
+  UserStatus,
+} from "@prisma/client";
 
 export default function OwnersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | HostRegistrationStep
   >("all");
+
+  const [statusFilterPending, setStatusFilterPending] = useState<
+    "INFO" | HostRegistrationStep
+  >("INFO");
+
   const [activeTab, setActiveTab] = useState("active-owners");
 
   // Infinity scroll state for owners
@@ -74,13 +84,15 @@ export default function OwnersPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
-  const [detailsRegistration, setDetailsRegistration] = useState<HostRegistration | null>(null)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [detailsRegistration, setDetailsRegistration] =
+    useState<HostRegistration | null>(null);
 
   const PAGE_SIZE = 20;
 
   // Chuyển string thường về enum HostRegistrationStep
-  const normalizeStep = (step: string): HostRegistrationStep => step.toUpperCase() as HostRegistrationStep;
+  const normalizeStep = (step: string): HostRegistrationStep =>
+    step.toUpperCase() as HostRegistrationStep;
 
   const validUserStatus = ["ACTIVE", "INACTIVE", "SUSPENDED", "DELETED"];
 
@@ -160,7 +172,8 @@ export default function OwnersPage() {
       reg.phone.includes(searchQuery);
 
     const matchesStatus =
-      statusFilter === "all" || normalizeStep(reg.registrationStep) === statusFilter;
+      statusFilter === "all" ||
+      normalizeStep(reg.registrationStep) === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -324,13 +337,16 @@ export default function OwnersPage() {
 
   // Count pending registrations
   const pendingCount = registrations.filter(
-    (reg) => normalizeStep(reg.registrationStep) === HostRegistrationStep.VERIFICATION
+    (reg) =>
+      normalizeStep(reg.registrationStep) === HostRegistrationStep.VERIFICATION
   ).length;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Quản lý Chủ Homestay</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Quản lý Chủ Homestay
+        </h2>
       </div>
 
       <Tabs
@@ -396,7 +412,8 @@ export default function OwnersPage() {
                 </div>
               </div>
 
-              <div className="rounded-md border"
+              <div
+                className="rounded-md border"
                 id="owners-scrollable-div"
                 style={{ maxHeight: 500, overflowY: "auto" }}
               >
@@ -487,11 +504,11 @@ export default function OwnersPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6 mt-5">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Tìm kiếm theo tên, email, số điện thoại..."
+                    placeholder="Tìm kiếm owners..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8 max-w-sm"
@@ -499,9 +516,9 @@ export default function OwnersPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Select
-                    value={statusFilter}
-                    onValueChange={(value: "all" | HostRegistrationStep) =>
-                      setStatusFilter(value)
+                    value={statusFilterPending}
+                    onValueChange={(value: "INFO" | HostRegistrationStep) =>
+                      setStatusFilterPending(value)
                     }
                   >
                     <SelectTrigger className="w-[180px]">
@@ -509,14 +526,8 @@ export default function OwnersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value={HostRegistrationStep.VERIFICATION}>
+                      <SelectItem value={HostRegistrationStep.INFO}>
                         Chờ duyệt
-                      </SelectItem>
-                      <SelectItem value={HostRegistrationStep.APPROVED}>
-                        Đã duyệt
-                      </SelectItem>
-                      <SelectItem value={HostRegistrationStep.REJECTED}>
-                        Từ chối
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -587,8 +598,12 @@ export default function OwnersPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                {getRegistrationStepIcon(normalizeStep(registration.registrationStep))}
-                                {getRegistrationStepBadge(normalizeStep(registration.registrationStep))}
+                                {getRegistrationStepIcon(
+                                  normalizeStep(registration.registrationStep)
+                                )}
+                                {getRegistrationStepBadge(
+                                  normalizeStep(registration.registrationStep)
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -598,13 +613,15 @@ export default function OwnersPage() {
                                   size="icon"
                                   title="Xem chi tiết"
                                   onClick={() => {
-                                    setDetailsRegistration(registration)
-                                    setShowDetailsDialog(true)
+                                    setDetailsRegistration(registration);
+                                    setShowDetailsDialog(true);
                                   }}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {normalizeStep(registration.registrationStep) === HostRegistrationStep.VERIFICATION && (
+                                {normalizeStep(
+                                  registration.registrationStep
+                                ) === HostRegistrationStep.VERIFICATION && (
                                   <>
                                     <Button
                                       variant="ghost"
@@ -682,96 +699,122 @@ export default function OwnersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-            {/* Details Dialog */}
-            <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Chi tiết đăng ký Host</DialogTitle>
-            <DialogDescription>Thông tin chi tiết về đăng ký làm Host</DialogDescription>
+            <DialogDescription>
+              Thông tin chi tiết về đăng ký làm Host
+            </DialogDescription>
           </DialogHeader>
 
           {detailsRegistration && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Thông tin cá nhân</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Thông tin cá nhân
+                  </h3>
                   <div className="mt-2 space-y-2">
                     <div>
-                      <span className="font-medium">Họ tên:</span> {detailsRegistration.fullName}
+                      <span className="font-medium">Họ tên:</span>{" "}
+                      {detailsRegistration.fullName}
                     </div>
                     <div>
-                      <span className="font-medium">Email:</span> {detailsRegistration.email}
+                      <span className="font-medium">Email:</span>{" "}
+                      {detailsRegistration.email}
                     </div>
                     <div>
-                      <span className="font-medium">Số điện thoại:</span> {detailsRegistration.phone}
+                      <span className="font-medium">Số điện thoại:</span>{" "}
+                      {detailsRegistration.phone}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Thông tin đăng ký</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Thông tin đăng ký
+                  </h3>
                   <div className="mt-2 space-y-2">
                     <div>
-                      <span className="font-medium">ID:</span> {detailsRegistration.id}
+                      <span className="font-medium">ID:</span>{" "}
+                      {detailsRegistration.id}
                     </div>
                     <div>
-                      <span className="font-medium">Ngày đăng ký:</span> {formatDate(detailsRegistration.createdAt)}
+                      <span className="font-medium">Ngày đăng ký:</span>{" "}
+                      {formatDate(detailsRegistration.createdAt)}
                     </div>
                     <div>
                       <span className="font-medium">Trạng thái:</span>{" "}
-                      {getRegistrationStepBadge(detailsRegistration.registrationStep)}
+                      {getRegistrationStepBadge(
+                        detailsRegistration.registrationStep
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Địa chỉ Homestay</h3>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Địa chỉ Homestay
+                </h3>
                 <p className="mt-2">{detailsRegistration.homestayAddress}</p>
               </div>
 
               {detailsRegistration.experience && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kinh nghiệm</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Kinh nghiệm
+                  </h3>
                   <p className="mt-2">{detailsRegistration.experience}</p>
                 </div>
               )}
 
               {detailsRegistration.paymentStatus && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Thông tin thanh toán</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Thông tin thanh toán
+                  </h3>
                   <div className="mt-2 space-y-2">
                     <div>
                       <span className="font-medium">Trạng thái:</span>{" "}
                       <Badge
                         className={
-                          detailsRegistration.paymentStatus === HostPaymentStatus.PAID
+                          detailsRegistration.paymentStatus ===
+                          HostPaymentStatus.PAID
                             ? "bg-green-100 text-green-800"
                             : "bg-yellow-100 text-yellow-800"
                         }
                       >
-                        {detailsRegistration.paymentStatus === HostPaymentStatus.PAID ? "Đã thanh toán" : "Chưa thanh toán"}
+                        {detailsRegistration.paymentStatus ===
+                        HostPaymentStatus.PAID
+                          ? "Đã thanh toán"
+                          : "Chưa thanh toán"}
                       </Badge>
                     </div>
-                    {detailsRegistration.paymentStatus === HostPaymentStatus.PAID && (
+                    {detailsRegistration.paymentStatus ===
+                      HostPaymentStatus.PAID && (
                       <div>
                         <span className="font-medium">Số tiền:</span>{" "}
-                        {detailsRegistration.setupFeeAmount?.toLocaleString()} VNĐ
+                        {detailsRegistration.setupFeeAmount?.toLocaleString()}{" "}
+                        VNĐ
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {detailsRegistration.registrationStep === HostRegistrationStep.VERIFICATION && (
+              {detailsRegistration.registrationStep ===
+                HostRegistrationStep.VERIFICATION && (
                 <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setShowDetailsDialog(false)
-                      setSelectedRegistration(detailsRegistration)
-                      setShowRejectDialog(true)
+                      setShowDetailsDialog(false);
+                      setSelectedRegistration(detailsRegistration);
+                      setShowRejectDialog(true);
                     }}
                   >
                     <XCircle className="mr-2 h-4 w-4" />
@@ -779,8 +822,8 @@ export default function OwnersPage() {
                   </Button>
                   <Button
                     onClick={() => {
-                      setShowDetailsDialog(false)
-                      handleApprove(detailsRegistration)
+                      setShowDetailsDialog(false);
+                      handleApprove(detailsRegistration);
                     }}
                     disabled={actionLoading}
                   >

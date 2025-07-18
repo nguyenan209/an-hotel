@@ -12,7 +12,7 @@ export function ContactInfo() {
               <h3 className="font-medium">Điện thoại</h3>
               <p className="text-muted-foreground">
                 <a href="tel:1900-1234" className="hover:text-primary">
-                  1900 1234
+                  0989 046 891
                 </a>
               </p>
             </div>
@@ -26,7 +26,7 @@ export function ContactInfo() {
                   href="mailto:info@homestay.vn"
                   className="hover:text-primary"
                 >
-                  info@homestay.vn
+                  an5230001@utc.lms.edu.vn
                 </a>
               </p>
             </div>
@@ -36,7 +36,7 @@ export function ContactInfo() {
             <div>
               <h3 className="font-medium">Địa chỉ</h3>
               <p className="text-muted-foreground">
-                123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                Trường ĐH GTVT, Số 3 Cầu Giấy, Phường Láng, TP. Hà Nội
               </p>
             </div>
           </div>
@@ -58,7 +58,7 @@ export function ContactInfo() {
         <h2 className="text-xl font-semibold mb-4">Vị trí của chúng tôi</h2>
         <div className="aspect-video w-full rounded-md overflow-hidden">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4241674197667!2d106.69786857587566!3d10.777231089362!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3c586421ef%3A0xb606461945d70bc!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIFRQLkhDTQ!5e0!3m2!1svi!2s!4v1683123456789!5m2!1svi!2s"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.1132410573346!2d105.80084557548965!3d21.02815448062109!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab424a50fff9%3A0xbe3a7f3670c0a45f!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBHaWFvIFRow7RuZyBW4bqtbiBU4bqjaQ!5e0!3m2!1svi!2s!4v1752591785299!5m2!1svi!2s"
             width="100%"
             height="100%"
             style={{ border: 0 }}

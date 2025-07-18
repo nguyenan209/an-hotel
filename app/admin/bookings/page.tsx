@@ -57,13 +57,15 @@ export default function BookingsPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { bookings: initialBookings, hasMore } = await fetchAdminBookings({
-          search: searchQuery,
-          status: statusFilter,
-          bookingType: bookingTypeFilter,
-          skip: 0,
-          limit: 10,
-        });
+        const { bookings: initialBookings, hasMore } = await fetchAdminBookings(
+          {
+            search: searchQuery,
+            status: statusFilter,
+            bookingType: bookingTypeFilter,
+            skip: 0,
+            limit: 10,
+          }
+        );
 
         setBookings(initialBookings);
         setHasMore(hasMore);
@@ -114,7 +116,7 @@ export default function BookingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <div>Loading...</div>
+        <div>Đang tải...</div>
       </div>
     );
   }

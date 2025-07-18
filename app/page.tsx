@@ -45,7 +45,7 @@ export default function Home() {
         {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/homepage-bg.jpg')" }}
+          style={{ backgroundImage: "url('/images/new-bg.jpg')" }}
         >
           <div className="absolute inset-0 bg-black/40" />
         </div>
@@ -57,7 +57,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl md:text-7xl font-bold mb-6"
           >
-            For your love
+            Trải nghiệm tuyệt vời
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -65,7 +65,8 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl mb-8 text-white/90"
           >
-            Cùng An's Homestay tìm kiếm những điểm đến tuyệt vời nhất dành cho bạn và người thân
+            Cùng An's Homestay tìm kiếm những điểm đến tuyệt vời nhất dành cho
+            bạn và người thân
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -95,7 +96,11 @@ export default function Home() {
         </motion.button>
       </section>
       {/* Homestays Section */}
-      <section ref={homestaysSectionRef} id="homestays-section" className="py-16 bg-white">
+      <section
+        ref={homestaysSectionRef}
+        id="homestays-section"
+        className="py-16 bg-white"
+      >
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -116,9 +121,13 @@ export default function Home() {
             viewport={{ once: true }}
           >
             {isLoading ? (
-              <div className="text-center py-8">Đang tải homestay nổi bật...</div>
+              <div className="text-center py-8">
+                Đang tải homestay nổi bật...
+              </div>
             ) : isError ? (
-              <div className="text-center text-red-500 py-8">Không thể tải homestay nổi bật.</div>
+              <div className="text-center text-red-500 py-8">
+                Không thể tải homestay nổi bật.
+              </div>
             ) : (
               <HomestayList homestays={featuredHomestays} />
             )}
@@ -145,10 +154,12 @@ export default function Home() {
               viewport={{ once: true }}
               className="bg-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-shadow"
             >
-              <h3 className="text-2xl font-bold mb-4 text-primary">Đặt phòng dễ dàng</h3>
+              <h3 className="text-2xl font-bold mb-4 text-primary">
+                Đặt phòng dễ dàng
+              </h3>
               <p className="text-muted-foreground text-lg">
-                Tìm kiếm, so sánh và đặt phòng homestay chỉ với vài cú nhấp chuột. Chúng tôi cung cấp giao diện đơn giản
-                và trực quan.
+                Tìm kiếm, so sánh và đặt phòng homestay chỉ với vài cú nhấp
+                chuột. Chúng tôi cung cấp giao diện đơn giản và trực quan.
               </p>
             </motion.div>
             <motion.div
@@ -158,9 +169,12 @@ export default function Home() {
               viewport={{ once: true }}
               className="bg-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-shadow"
             >
-              <h3 className="text-2xl font-bold mb-4 text-primary">Trải nghiệm độc đáo</h3>
+              <h3 className="text-2xl font-bold mb-4 text-primary">
+                Trải nghiệm độc đáo
+              </h3>
               <p className="text-muted-foreground text-lg">
-                Khám phá những homestay độc đáo với thiết kế riêng biệt và trải nghiệm địa phương chân thực.
+                Khám phá những homestay độc đáo với thiết kế riêng biệt và trải
+                nghiệm địa phương chân thực.
               </p>
             </motion.div>
           </div>
