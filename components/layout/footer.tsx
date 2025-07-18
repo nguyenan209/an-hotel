@@ -8,8 +8,10 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-medium">An's HomeStay</h3>
             <p className="text-sm text-muted-foreground">
-              Nền tảng đặt phòng homestay hàng đầu Việt Nam, cung cấp trải
-              nghiệm lưu trú độc đáo và chất lượng.
+              Đây là sản phẩm Đồ án tốt nghiệp của AnNTL. Cảm ơn Thầy/Cô giáo đã
+              hỗ trợ em trong quá trình hoàn thành đồ án. <br />
+              Đặc biệt gửi lời cảm ơn đến Thầy giáo <b>TS.Hoàng Văn Thông</b> -
+              GVHD đã hỗ trợ em trong quá trình hoàn thiện đồ án.
             </p>
           </div>
           <div>
@@ -90,20 +92,19 @@ export function Footer() {
             <h3 className="mb-4 text-lg font-medium">Liên hệ</h3>
             <ul className="space-y-2 text-sm">
               <li className="text-muted-foreground">
-                Email: info@anshomestay.vn
+                Email: an5230001@utc.lms.edu.vn
               </li>
-              <li className="text-muted-foreground">Điện thoại: 1900 1234</li>
               <li className="text-muted-foreground">
-                Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                Điện thoại: 0989 046 891
+              </li>
+              <li className="text-muted-foreground">
+                Địa chỉ: Trường ĐH GTVT, Số 3 Cầu Giấy, Phường Láng, TP. Hà Nội
               </li>
             </ul>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>
-            &copy; {new Date().getFullYear()} An's HomeStay. Tất cả quyền được
-            bảo lưu.
-          </p>
+          <p>&copy; {new Date().getFullYear()} An's HomeStay</p>
         </div>
       </div>
     </footer>

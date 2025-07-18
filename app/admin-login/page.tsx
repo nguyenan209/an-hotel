@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
         if (data.user.role === "ADMIN") {
           // Use AuthContext to login
           login(data.user, data.token);
-          
+
           // Store admin-specific data
           const adminAuthData = {
             user: data.user,
@@ -98,18 +98,21 @@ export default function AdminLoginPage() {
             role: data.user.role,
             isAdmin: true,
           };
-          
+
           // Store admin data in localStorage for admin-specific features
           localStorage.setItem("adminAuth", JSON.stringify(adminAuthData));
-          
+
           // Set remember me cookie if needed
           if (rememberMe) {
             Cookies.set("adminRememberMe", "true", { expires: 30, path: "/" });
           }
-          
+
           router.push("/admin");
         } else {
-          setErrors({ submit: "Bạn không có quyền truy cập trang Admin. Chỉ ADMIN mới được phép đăng nhập." });
+          setErrors({
+            submit:
+              "Bạn không có quyền truy cập trang Admin. Chỉ ADMIN mới được phép đăng nhập.",
+          });
         }
       } else {
         setErrors({ submit: data.message || "Đăng nhập thất bại" });
@@ -121,7 +124,7 @@ export default function AdminLoginPage() {
       setIsLoading(false);
     }
   };
-  
+
   const handleGoHome = () => {
     router.push("/");
   };
@@ -172,20 +175,17 @@ export default function AdminLoginPage() {
               <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                 <Shield className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold">HomeStay Admin</h1>
+              <h1 className="text-xl font-bold">Homestay Admin</h1>
             </div>
           </div>
 
           <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            Admin
-            <br />
-            Portal
+            Trang quản trị dành cho Admin
           </h2>
 
           <p className="text-lg text-white/90 mb-8 leading-relaxed max-w-md">
-            Quản lý toàn bộ hệ thống HomeStay với quyền hạn cao nhất. Theo dõi
-            người dùng, phê duyệt homestay và phân tích dữ liệu một cách toàn
-            diện.
+            Quản lý toàn bộ hệ thống Homestay. Quản lý thông tin, phê duyệt
+            homestay và phân tích dữ liệu một cách toàn diện.
           </p>
 
           {/* Social Media Icons */}
@@ -210,7 +210,7 @@ export default function AdminLoginPage() {
           {/* Thêm backdrop tối cho khu vực form */}
           <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
             <div className="text-white mb-6">
-              <h3 className="text-2xl font-bold mb-2">Admin Sign in</h3>
+              <h3 className="text-2xl font-bold mb-2">Đăng nhập</h3>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -222,9 +222,7 @@ export default function AdminLoginPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) =>
-                    handleInputChange("email", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   placeholder="admin@homestay.com"
                   className={`h-10 bg-white border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-pink-400 ${
                     errors.email ? "ring-2 ring-red-500" : ""
@@ -237,7 +235,7 @@ export default function AdminLoginPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white/90 text-sm">
-                  Password
+                  Mật khẩu
                 </Label>
                 <div className="relative">
                   <Input
@@ -279,7 +277,7 @@ export default function AdminLoginPage() {
                   className="border-white/50 data-[state=checked]:bg-pink-500 data-[state=checked]:text-white data-[state=checked]:border-pink-500"
                 />
                 <Label htmlFor="remember" className="text-white/90 text-sm">
-                  Remember Me
+                  Nhớ mật khẩu
                 </Label>
               </div>
 
@@ -297,10 +295,10 @@ export default function AdminLoginPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Signing in...
+                    Đang đăng nhập...
                   </div>
                 ) : (
-                  "Sign in now"
+                  "Đăng nhập"
                 )}
               </Button>
 
@@ -309,7 +307,7 @@ export default function AdminLoginPage() {
                   href="/forgot-password"
                   className="text-pink-200 hover:text-pink-100 text-sm transition-colors"
                 >
-                  Lost your password?
+                  Quên mật khẩu?
                 </Link>
               </div>
 
@@ -320,7 +318,7 @@ export default function AdminLoginPage() {
                     href="/terms"
                     className="text-pink-200 underline hover:text-pink-100"
                   >
-                    Terms of Service
+                    Điều khoản dịch vụ
                   </Link>
                 </p>
               </div>

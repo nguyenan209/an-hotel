@@ -63,7 +63,9 @@ export default function HomestayDetailPage() {
   } = useQuery({
     queryKey: ["homestay", id],
     queryFn: async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/homestays/${id}`
+      );
       if (!response.ok) throw new Error("Không thể tải thông tin homestay");
       return response.json();
     },
@@ -78,7 +80,9 @@ export default function HomestayDetailPage() {
   } = useQuery({
     queryKey: ["rooms", id],
     queryFn: async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/rooms?homestayId=${id}`
+      );
       if (!response.ok) throw new Error("Không thể tải thông tin phòng");
       const data = await response.json();
       return data.rooms || [];
@@ -190,7 +194,7 @@ export default function HomestayDetailPage() {
   const handleBookNow = () => {
     handleAddToCart();
   };
-  
+
   if (isLoadingHomestay || isLoadingRooms) {
     return <Loading />;
   }
@@ -199,7 +203,9 @@ export default function HomestayDetailPage() {
     return (
       <div className="container py-8">
         <div className="flex items-center justify-center h-96">
-          <p className="text-red-500">{errorHomestay?.message || "Không tìm thấy homestay"}</p>
+          <p className="text-red-500">
+            {errorHomestay?.message || "Không tìm thấy homestay"}
+          </p>
         </div>
       </div>
     );
@@ -277,7 +283,9 @@ export default function HomestayDetailPage() {
             <TabsContent value="rooms" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {rooms.length > 0 ? (
-                  rooms.map((room: any) => <RoomCard key={room.id} room={room} />)
+                  rooms.map((room: any) => (
+                    <RoomCard key={room.id} room={room} />
+                  ))
                 ) : (
                   <p className="col-span-full text-muted-foreground">
                     Không có thông tin phòng

@@ -14,17 +14,20 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-    const router = useRouter();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data?.error || "Gửi email thất bại");
@@ -41,11 +44,14 @@ export default function ForgotPasswordPage() {
   const handleResend = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data?.error || "Gửi lại email thất bại");
@@ -57,7 +63,7 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   };
-  
+
   const handleGoHome = () => {
     router.push("/");
   };
@@ -213,7 +219,6 @@ export default function ForgotPasswordPage() {
                 </Button>
 
                 <div className="text-center text-sm text-white mt-4">
-                  Nhớ mật khẩu rồi?{" "}
                   <Link
                     href="/login"
                     className="text-pink-300 hover:text-pink-200 font-medium"

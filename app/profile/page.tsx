@@ -224,13 +224,13 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+      <h1 className="text-3xl font-bold mb-6">Thông tin cá nhân</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Profile Picture Card */}
         <Card className="md:col-span-1">
           <CardHeader>
-            <CardTitle>Profile Picture</CardTitle>
+            <CardTitle>Avatar</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <div className="relative mb-4">
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                 className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer"
               >
                 <Camera className="h-5 w-5" />
-                <span className="sr-only">Upload new picture</span>
+                <span className="sr-only">Ảnh đại diện</span>
               </label>
               <input
                 id="avatar-upload"
@@ -268,7 +268,7 @@ export default function ProfilePage() {
                 {isUpdating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    Đang cập nhật...
                   </>
                 ) : (
                   "Save New Picture"
@@ -287,16 +287,16 @@ export default function ProfilePage() {
         <div className="md:col-span-2">
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="mb-6">
-              <TabsTrigger value="profile">Profile Information</TabsTrigger>
-              <TabsTrigger value="password">Change Password</TabsTrigger>
+              <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
+              <TabsTrigger value="password">Đổi mật khẩu</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
+                  <CardTitle>Thông tin cá nhân</CardTitle>
                   <CardDescription>
-                    Update your personal information and contact details.
+                    Cập nhật thông tin cá nhân của bạn
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -310,10 +310,10 @@ export default function ProfilePage() {
                         name="fullName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name</FormLabel>
+                            <FormLabel>Họ tên</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your full name"
+                                placeholder="Nhập tên của bạn"
                                 {...field}
                               />
                             </FormControl>
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your email"
+                                placeholder="Địa chỉ email"
                                 type="email"
                                 {...field}
                               />
@@ -345,10 +345,10 @@ export default function ProfilePage() {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
+                            <FormLabel>Số điện thoại</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your phone number"
+                                placeholder="Nhập số điện thoại"
                                 {...field}
                               />
                             </FormControl>
@@ -365,7 +365,7 @@ export default function ProfilePage() {
                             <FormLabel>Address</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your address (optional)"
+                                placeholder="Địa chỉ (tuỳ chọn)"
                                 {...field}
                               />
                             </FormControl>
@@ -382,7 +382,7 @@ export default function ProfilePage() {
                             <FormLabel>Bio</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Tell us a little about yourself (optional)"
+                                placeholder="Cho chúng tôi biết thêm về bạn"
                                 className="resize-none"
                                 rows={4}
                                 {...field}
@@ -400,10 +400,10 @@ export default function ProfilePage() {
                         {isUpdating ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving Changes...
+                            Đang lưu...
                           </>
                         ) : (
-                          "Save Changes"
+                          "Lưu thông tin"
                         )}
                       </Button>
                     </form>
@@ -415,10 +415,8 @@ export default function ProfilePage() {
             <TabsContent value="password">
               <Card>
                 <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
-                  <CardDescription>
-                    Update your password to keep your account secure.
-                  </CardDescription>
+                  <CardTitle>Đổi mật khẩu</CardTitle>
+                  <CardDescription>Cập nhật mật khẩu của bạn</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...passwordForm}>
@@ -431,10 +429,10 @@ export default function ProfilePage() {
                         name="currentPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Current Password</FormLabel>
+                            <FormLabel>Mật khẩu hiện tại</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your current password"
+                                placeholder="Nhập mật khẩu hiện tại"
                                 type="password"
                                 {...field}
                               />
@@ -449,16 +447,16 @@ export default function ProfilePage() {
                         name="newPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>New Password</FormLabel>
+                            <FormLabel>Mật khẩu mới</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your new password"
+                                placeholder="Nhập mật khẩu mới"
                                 type="password"
                                 {...field}
                               />
                             </FormControl>
                             <FormDescription>
-                              Password must be at least 8 characters long.
+                              Mật khẩu cần có tối thiểu 8 ký tự.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -470,10 +468,10 @@ export default function ProfilePage() {
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormLabel>Xác nhận mật khẩu</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Confirm your new password"
+                                placeholder="Xác nhận mật khẩu mới"
                                 type="password"
                                 {...field}
                               />
@@ -487,10 +485,10 @@ export default function ProfilePage() {
                         {isChangingPassword ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Changing Password...
+                            Lưu thay đổi...
                           </>
                         ) : (
-                          "Change Password"
+                          "Đổi mật khẩu"
                         )}
                       </Button>
                     </form>

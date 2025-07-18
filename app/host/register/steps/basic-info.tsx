@@ -1,21 +1,24 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import Link from "next/link"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 interface BasicInfoStepProps {
-  data: any
-  onComplete: (data: any) => void
+  data: any;
+  onComplete: (data: any) => void;
 }
 
-export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) {
+export default function BasicInfoStep({
+  data,
+  onComplete,
+}: BasicInfoStepProps) {
   const [formData, setFormData] = useState({
     fullName: data.fullName || "",
     email: data.email || "",
@@ -24,62 +27,62 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
     experience: data.experience || "",
     agreeTerms: false,
     agreePrivacy: false,
-  })
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = "Họ tên là bắt buộc"
+      newErrors.fullName = "Họ tên là bắt buộc";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email là bắt buộc"
+      newErrors.email = "Email là bắt buộc";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ"
+      newErrors.email = "Email không hợp lệ";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "Số điện thoại là bắt buộc"
+      newErrors.phone = "Số điện thoại là bắt buộc";
     } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Số điện thoại không hợp lệ"
+      newErrors.phone = "Số điện thoại không hợp lệ";
     }
 
     if (!formData.homestayAddress.trim()) {
-      newErrors.homestayAddress = "Địa chỉ homestay là bắt buộc"
+      newErrors.homestayAddress = "Vui lòng nhập địa chỉ";
     }
 
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = "Bạn phải đồng ý với điều khoản dịch vụ"
+      newErrors.agreeTerms = "Bạn phải đồng ý với điều khoản dịch vụ";
     }
 
     if (!formData.agreePrivacy) {
-      newErrors.agreePrivacy = "Bạn phải đồng ý với chính sách bảo mật"
+      newErrors.agreePrivacy = "Bạn phải đồng ý với chính sách bảo mật";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/host/register/step1", {
@@ -94,9 +97,9 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
           homestayAddress: formData.homestayAddress,
           experience: formData.experience,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         onComplete({
@@ -106,16 +109,16 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
           phone: formData.phone,
           homestayAddress: formData.homestayAddress,
           experience: formData.experience,
-        })
+        });
       } else {
-        setErrors({ submit: result.error || "Có lỗi xảy ra" })
+        setErrors({ submit: result.error || "Có lỗi xảy ra" });
       }
     } catch (error) {
-      setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" })
+      setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const isFormValid =
     formData.fullName &&
@@ -123,7 +126,7 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
     formData.phone &&
     formData.homestayAddress &&
     formData.agreeTerms &&
-    formData.agreePrivacy
+    formData.agreePrivacy;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -137,7 +140,9 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
             placeholder="Nhập họ và tên đầy đủ"
             className={errors.fullName ? "border-red-500" : ""}
           />
-          {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+          {errors.fullName && (
+            <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+          )}
         </div>
         <div>
           <Label htmlFor="phone">Số điện thoại *</Label>
@@ -149,7 +154,9 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
             placeholder="0xxx xxx xxx"
             className={errors.phone ? "border-red-500" : ""}
           />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          {errors.phone && (
+            <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+          )}
         </div>
       </div>
 
@@ -163,28 +170,32 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
           placeholder="email@example.com"
           className={errors.email ? "border-red-500" : ""}
         />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+        {errors.email && (
+          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+        )}
       </div>
 
       <div>
-        <Label htmlFor="homestayAddress">Địa chỉ homestay *</Label>
+        <Label htmlFor="homestayAddress">Địa chỉ *</Label>
         <Input
           id="homestayAddress"
           value={formData.homestayAddress}
           onChange={(e) => handleInputChange("homestayAddress", e.target.value)}
-          placeholder="Địa chỉ chi tiết của homestay"
+          placeholder="Địa chỉ chi tiết"
           className={errors.homestayAddress ? "border-red-500" : ""}
         />
-        {errors.homestayAddress && <p className="text-red-500 text-sm mt-1">{errors.homestayAddress}</p>}
+        {errors.homestayAddress && (
+          <p className="text-red-500 text-sm mt-1">{errors.homestayAddress}</p>
+        )}
       </div>
 
       <div>
-        <Label htmlFor="experience">Kinh nghiệm và mô tả</Label>
+        <Label htmlFor="experience">Giới thiệu về Homestay của bạn</Label>
         <Textarea
           id="experience"
           value={formData.experience}
           onChange={(e) => handleInputChange("experience", e.target.value)}
-          placeholder="Chia sẻ về kinh nghiệm của bạn trong việc đón tiếp khách hoặc mô tả về homestay..."
+          placeholder="Chia sẻ về homestay của bạn"
           rows={4}
         />
       </div>
@@ -194,7 +205,9 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
           <Checkbox
             id="agreeTerms"
             checked={formData.agreeTerms}
-            onCheckedChange={(checked) => handleInputChange("agreeTerms", checked as boolean)}
+            onCheckedChange={(checked) =>
+              handleInputChange("agreeTerms", checked as boolean)
+            }
           />
           <Label htmlFor="agreeTerms" className="text-sm leading-5">
             Tôi đồng ý với{" "}
@@ -204,13 +217,17 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
             của HomeStay
           </Label>
         </div>
-        {errors.agreeTerms && <p className="text-red-500 text-sm">{errors.agreeTerms}</p>}
+        {errors.agreeTerms && (
+          <p className="text-red-500 text-sm">{errors.agreeTerms}</p>
+        )}
 
         <div className="flex items-start space-x-2">
           <Checkbox
             id="agreePrivacy"
             checked={formData.agreePrivacy}
-            onCheckedChange={(checked) => handleInputChange("agreePrivacy", checked as boolean)}
+            onCheckedChange={(checked) =>
+              handleInputChange("agreePrivacy", checked as boolean)
+            }
           />
           <Label htmlFor="agreePrivacy" className="text-sm leading-5">
             Tôi đồng ý với{" "}
@@ -220,7 +237,9 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
             và cho phép HomeStay liên hệ với tôi
           </Label>
         </div>
-        {errors.agreePrivacy && <p className="text-red-500 text-sm">{errors.agreePrivacy}</p>}
+        {errors.agreePrivacy && (
+          <p className="text-red-500 text-sm">{errors.agreePrivacy}</p>
+        )}
       </div>
 
       {errors.submit && (
@@ -229,9 +248,13 @@ export default function BasicInfoStep({ data, onComplete }: BasicInfoStepProps) 
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={!isFormValid || isSubmitting}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={!isFormValid || isSubmitting}
+      >
         {isSubmitting ? "Đang xử lý..." : "Tiếp tục"}
       </Button>
     </form>
-  )
+  );
 }

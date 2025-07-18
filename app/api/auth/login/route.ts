@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { email, password } = await req.json();
     if (!email || !password) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Vui lòng nhập đủ thông tin" },
         { status: 400 }
       );
     }
@@ -26,24 +26,24 @@ export async function POST(req: Request) {
     });
     if (!user || !user.password) {
       return NextResponse.json(
-        { message: "Invalid credentials" },
+        { message: "Tài khoản hoặc mật khẩu không đúng" },
         { status: 401 }
       );
     }
     if (user.status !== "ACTIVE") {
       return NextResponse.json(
-        { message: "Account is not active" },
+        { message: "Tài khoản chưa được kích hoạt" },
         { status: 401 }
       );
     }
     const isValidPassword = await comparePassword(password, user.password);
     if (!isValidPassword) {
       return NextResponse.json(
-        { message: "Invalid credentials" },
+        { message: "Tài khoản hoặc mật khẩu không đúng" },
         { status: 401 }
       );
     }
-    
+
     const userPayload: Token = {
       id: user.id,
       customerId: user.customer?.id ?? "",
@@ -53,8 +53,8 @@ export async function POST(req: Request) {
       phone: user.phone ?? "",
       address: user.address ?? "",
       avatar: user.avatar ?? "",
-    }
-    
+    };
+
     const token = generateToken(userPayload);
     return NextResponse.json({
       message: "Login successful",
