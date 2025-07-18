@@ -70,6 +70,7 @@ interface Payment {
   method: PaymentMethod;
   status: PaymentStatus;
   createdAt: string;
+  paymentDate: string;
   booking: {
     customer: {
       name: string;
@@ -535,7 +536,7 @@ export default function PaymentManagementPage() {
                       <TableCell className="font-medium">
                         {formatCurrency(payment.amount)}
                       </TableCell>
-                      <TableCell>{new Date(payment.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
