@@ -42,7 +42,16 @@ export function QRPaymentPopup({ onPaymentSuccess }: QRPaymentPopupProps) {
         // Reset state
         setTimeLeft(120);
         setPaymentStatus("pending");
-        const cartItemIds = items.map((item) => item.id);
+        let cartItemIds = items.map((item) => item.id).filter(Boolean); // Lọc bỏ null/undefined
+        if (!cartItemIds.length) {
+          toast({
+            title: "Lỗi giỏ hàng",
+            description: "Không có sản phẩm hợp lệ trong giỏ hàng. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+          setOpen(false);
+          return;
+        }
         const bookingNumber = generateBookingNumber({
           cartItemIds,
         });
