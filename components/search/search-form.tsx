@@ -18,7 +18,49 @@ export function SearchForm({ params }: { params: SearchParams }) {
   const [checkOut, setCheckOut] = useState<Date>()
   const [guests, setGuests] = useState("")
 
+  // Xử lý khi thay đổi ngày nhận phòng
+  const handleCheckInChange = (date: Date | undefined) => {
+    setCheckIn(date)
+    // Nếu ngày trả phòng trước ngày nhận phòng mới, reset ngày trả phòng
+    if (date && checkOut && checkOut <= date) {
+      setCheckOut(undefined)
+    }
+  }
+
+  // Xử lý khi thay đổi ngày trả phòng
+  const handleCheckOutChange = (date: Date | undefined) => {
+    setCheckOut(date)
+  }
+
+  // Function để disable ngày cho ngày trả phòng (không cho chọn trước hoặc bằng ngày nhận phòng)
+  const isCheckOutDisabled = (date: Date) => {
+    if (!checkIn) return false
+    
+    const checkInDate = new Date(checkIn)
+    checkInDate.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(date)
+    selectedDate.setHours(0, 0, 0, 0)
+    
+    return selectedDate <= checkInDate
+  }
+
+  // Function để disable ngày cho ngày nhận phòng (không cho chọn ngày trong quá khứ)
+  const isCheckInDisabled = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(date)
+    selectedDate.setHours(0, 0, 0, 0)
+    
+    return selectedDate < today
+  }
+
   const handleSearch = () => {
+    // Validation trước khi search
+    if (checkIn && checkOut && checkOut <= checkIn) {
+      alert("Ngày trả phòng phải sau ngày nhận phòng!")
+      return
+    }
+
     const params = new URLSearchParams()
     if (location) params.set("location", location)
     if (checkIn) params.set("checkIn", checkIn.toISOString().split("T")[0])
@@ -63,9 +105,10 @@ export function SearchForm({ params }: { params: SearchParams }) {
             </label>
             <DatePicker
               date={checkIn}
-              setDate={setCheckIn}
-              placeholder="Chọn ngày"
+              setDate={handleCheckInChange}
+              placeholder="Chọn ngày nhận"
               className="border-0 bg-gray-50 focus:bg-white transition-colors"
+              disabled={isCheckInDisabled}
             />
           </div>
 
@@ -76,9 +119,10 @@ export function SearchForm({ params }: { params: SearchParams }) {
             </label>
             <DatePicker
               date={checkOut}
-              setDate={setCheckOut}
-              placeholder="Chọn ngày"
+              setDate={handleCheckOutChange}
+              placeholder="Chọn ngày trả"
               className="border-0 bg-gray-50 focus:bg-white transition-colors"
+              disabled={isCheckOutDisabled}
             />
           </div>
 
