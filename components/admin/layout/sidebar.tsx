@@ -248,13 +248,13 @@ export function Sidebar({ className }: SidebarProps) {
         },
       ],
     },
-    {
-      label: "Cài đặt",
-      icon: Settings,
-      href: pathname === "/owner" ? "/owner/settings" : "/admin/settings",
-      active: pathname === "/admin/settings",
-      hidden: pathname.startsWith("/owner"),
-    },
+    // {
+    //   label: "Cài đặt",
+    //   icon: Settings,
+    //   href: pathname === "/owner" ? "/owner/settings" : "/admin/settings",
+    //   active: pathname === "/admin/settings",
+    //   hidden: pathname.startsWith("/owner"),
+    // },
   ];
 
   return (

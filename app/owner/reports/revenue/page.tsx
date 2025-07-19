@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils";
+import Loading from "@/components/loading";
 
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
@@ -44,11 +45,7 @@ export default function RevenueReportPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Đang tải dữ liệu...</p>
-      </div>
-    );
+    return <Loading />;
   }
   if (isError) {
     return (
@@ -171,7 +168,7 @@ export default function RevenueReportPage() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>

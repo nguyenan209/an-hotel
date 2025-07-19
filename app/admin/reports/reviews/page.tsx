@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, getStatusColor } from "@/lib/utils";
+import Loading from "@/components/loading";
 
 export default function ReviewReportPage() {
   const [year, setYear] = useState("2025");
@@ -94,11 +95,7 @@ export default function ReviewReportPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading review report...</p>
-      </div>
-    );
+    return <Loading />;
   }
   if (error || !reviewStats) {
     return (

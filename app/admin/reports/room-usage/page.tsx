@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Loading from "@/components/loading";
 
 export default function RoomUsageReportPage() {
   const [timeRange, setTimeRange] = useState("year");
@@ -45,11 +46,7 @@ export default function RoomUsageReportPage() {
   }, [year]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Đang tải...</p>
-      </div>
-    );
+    return <Loading />;
   }
   if (!roomUsageStats) {
     return (

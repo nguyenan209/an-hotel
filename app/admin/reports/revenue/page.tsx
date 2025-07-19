@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils";
+import Loading from "@/components/loading";
 
 export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
@@ -44,11 +45,7 @@ export default function RevenueReportPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading revenue data...</p>
-      </div>
-    );
+    return <Loading />;
   }
   if (isError) {
     return (

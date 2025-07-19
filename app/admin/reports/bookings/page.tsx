@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Loading from "@/components/loading";
 
 export default function BookingReportPage() {
   const [timeRange, setTimeRange] = useState("year");
@@ -45,11 +46,7 @@ export default function BookingReportPage() {
   }, [year]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Đang tải...</p>
-      </div>
-    );
+    return <Loading />;
   }
   if (!bookingStats) {
     return (
@@ -155,9 +152,6 @@ export default function BookingReportPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-          <TabsTrigger value="monthly">Tháng</TabsTrigger>
-          <TabsTrigger value="status">Theo trạng thái</TabsTrigger>
-          <TabsTrigger value="source">Theo nguồn</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>
@@ -219,77 +213,6 @@ export default function BookingReportPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="monthly" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Báo cáo Đặt phòng</CardTitle>
-              <CardDescription>
-                Thống kê đặt phòng theo tháng cho năm {year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {bookingStats.monthlyStats.map(
-                  (
-                    item: { month: string; bookings: number },
-                    index: number
-                  ) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 text-muted-foreground">
-                          {item.month}
-                        </div>
-                        <div className="w-full max-w-md">
-                          <div className="h-2 w-full rounded-full bg-secondary">
-                            <div
-                              className="h-2 rounded-full bg-primary"
-                              style={{
-                                width: `${
-                                  maxBookings > 0
-                                    ? (item.bookings / maxBookings) * 100
-                                    : 4
-                                }%`,
-                                minWidth: 4,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="font-medium">
-                        {item.bookings} bookings
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="status" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Theo trạng thái</CardTitle>
-              <CardDescription>
-                Phân phối đặt phòng theo trạng thái cho năm {year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>{/* Add status-based statistics here */}</CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="source" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Theo nguồn</CardTitle>
-              <CardDescription>
-                Phân phối đặt phòng theo nguồn cho năm {year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>{/* Add source-based statistics here */}</CardContent>
           </Card>
         </TabsContent>
       </Tabs>

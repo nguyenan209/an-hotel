@@ -24,6 +24,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Loading from "@/components/loading";
 
 export default function Page() {
   const [dateRange, setDateRange] = useState("7d");
@@ -53,9 +54,7 @@ export default function Page() {
 
   if (isLoading || !stats) {
     return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Đang tải Dashboard...</p>
-      </div>
+      <Loading />
     );
   }
 
