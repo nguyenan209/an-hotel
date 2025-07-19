@@ -56,6 +56,7 @@ export default function BookingDetailsPage() {
   const [isComplaintDialogOpen, setIsComplaintDialogOpen] = useState(false);
   const { user, isLoggedIn } = useAuth();
   const [hasComplaint, setHasComplaint] = useState(false);
+  const [isComplaintSuccess, setIsComplaintSuccess] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -447,7 +448,12 @@ export default function BookingDetailsPage() {
       {/* Complaint Dialog */}
       <Dialog
         open={isComplaintDialogOpen}
-        onOpenChange={setIsComplaintDialogOpen}
+        onOpenChange={(open) => {
+          setIsComplaintDialogOpen(open);
+          if (!open) {
+            setIsComplaintSuccess(false);
+          }
+        }}
       >
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
@@ -455,10 +461,12 @@ export default function BookingDetailsPage() {
               <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
               Báo cáo vấn đề
             </DialogTitle>
-            <DialogDescription>
-              Vui lòng cung cấp chi tiết về vấn đề bạn đang gặp phải với đặt
-              phòng của bạn. your booking.
-            </DialogDescription>
+            {!isComplaintSuccess && (
+              <DialogDescription>
+                Vui lòng cung cấp chi tiết về vấn đề bạn đang gặp phải với đặt
+                phòng của bạn.
+              </DialogDescription>
+            )}
           </DialogHeader>
 
           <div className="py-4 overflow-y-auto flex-1">
@@ -470,6 +478,7 @@ export default function BookingDetailsPage() {
                 checkIn: new Date(booking.checkIn).toISOString(),
                 checkOut: new Date(booking.checkOut).toISOString(),
               }}
+              onSuccess={() => setIsComplaintSuccess(true)}
             />
           </div>
         </DialogContent>

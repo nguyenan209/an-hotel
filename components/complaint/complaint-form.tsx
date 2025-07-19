@@ -30,13 +30,13 @@ import TinyMCEEditor from "@/components/tinymce-editor";
 
 const complaintFormSchema = z.object({
   subject: z.string().min(5, {
-    message: "Subject must be at least 5 characters.",
+    message: "Tiêu đề phải có ít nhất 5 ký tự.",
   }),
   description: z.string().min(20, {
-    message: "Description must be at least 20 characters.",
+    message: "Mô tả phải có ít nhất 20 ký tự.",
   }),
   priority: z.string({
-    required_error: "Please select a priority level.",
+    required_error: "Vui lòng chọn mức độ ưu tiên.",
   }),
   bookingId: z.string().optional(),
 });
@@ -51,16 +51,17 @@ interface ComplaintFormProps {
     checkIn: string;
     checkOut: string;
   };
+  onSuccess?: () => void;
 }
 
-export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
+export function ComplaintForm({ bookingId, bookingInfo, onSuccess }: ComplaintFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const defaultValues: Partial<ComplaintFormValues> = {
     subject: bookingInfo
-      ? `Issue with booking at ${bookingInfo.homestayName}`
+      ? `Vấn đề với đặt phòng tại ${bookingInfo.homestayName}`
       : "",
     bookingId: bookingId || "",
     priority: "medium",
@@ -87,18 +88,19 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
           bookingId: data.bookingId,
         }),
       });
-      if (!res.ok) throw new Error("Failed to submit complaint");
+      if (!res.ok) throw new Error("Không thể gửi khiếu nại");
       setIsSuccess(true);
+      onSuccess?.();
       toast({
-        title: "Complaint submitted",
-        description: "We've received your complaint and will respond shortly.",
+        title: "Đã gửi khiếu nại",
+        description: "Chúng tôi đã nhận được khiếu nại của bạn và sẽ phản hồi sớm.",
       });
     } catch (err) {
-      setError("Failed to submit complaint. Please try again.");
+      setError("Không thể gửi khiếu nại. Vui lòng thử lại.");
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to submit your complaint. Please try again.",
+        title: "Lỗi",
+        description: "Không thể gửi khiếu nại của bạn. Vui lòng thử lại.",
       });
     } finally {
       setIsSubmitting(false);
@@ -110,12 +112,12 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
       <Alert className="bg-green-50 border-green-200">
         <CheckCircle2 className="h-5 w-5 text-green-600" />
         <AlertTitle className="text-green-800">
-          Complaint Submitted Successfully
+          Đã gửi khiếu nại thành công
         </AlertTitle>
         <AlertDescription className="text-green-700">
-          Thank you for bringing this to our attention. Our support team will
-          review your complaint and respond within 24-48 hours. You can track
-          the status of your complaint in the "My Complaints" section.
+          Cảm ơn bạn đã báo cáo vấn đề này. Đội ngũ hỗ trợ của chúng tôi sẽ
+          xem xét khiếu nại của bạn và phản hồi trong vòng 24-48 giờ. Bạn có thể theo dõi
+          trạng thái khiếu nại trong phần "Khiếu nại của tôi".
         </AlertDescription>
         <div className="mt-4">
           <Button
@@ -125,7 +127,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
               form.reset(defaultValues);
             }}
           >
-            Submit Another Complaint
+            Gửi khiếu nại khác
           </Button>
         </div>
       </Alert>
@@ -137,10 +139,10 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
       <div className="w-full max-w-xl mx-auto p-4 pb-8">
         {bookingInfo && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-8">
-            <h3 className="font-medium text-base mb-2">Booking Information</h3>
+            <h3 className="font-medium text-base mb-2">Thông tin đặt phòng</h3>
             <p className="text-sm mb-1">Homestay: {bookingInfo.homestayName}</p>
             <p className="text-sm">
-              Dates: {new Date(bookingInfo.checkIn).toLocaleDateString()} -{" "}
+              Ngày: {new Date(bookingInfo.checkIn).toLocaleDateString()} -{" "}
               {new Date(bookingInfo.checkOut).toLocaleDateString()}
             </p>
           </div>
@@ -149,7 +151,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Lỗi</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -161,16 +163,16 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
               name="subject"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Subject</FormLabel>
+                  <FormLabel className="text-sm font-medium">Tiêu đề</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Brief description of the issue"
+                      placeholder="Mô tả ngắn gọn về vấn đề"
                       className="p-2"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Provide a short title for your complaint.
+                    Cung cấp tiêu đề ngắn gọn cho khiếu nại của bạn.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -183,7 +185,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
-                    Description
+                    Mô tả
                   </FormLabel>
                   <FormControl>
                     <TinyMCEEditor
@@ -194,8 +196,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Include all relevant details about the issue you're
-                    experiencing.
+                    Bao gồm tất cả chi tiết liên quan về vấn đề bạn đang gặp phải.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -208,7 +209,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
-                    Priority
+                    Mức độ ưu tiên
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -216,19 +217,19 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="p-2">
-                        <SelectValue placeholder="Select priority level" />
+                        <SelectValue placeholder="Chọn mức độ ưu tiên" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="low">Low - Not urgent</SelectItem>
+                      <SelectItem value="low">Thấp - Không khẩn cấp</SelectItem>
                       <SelectItem value="medium">
-                        Medium - Needs attention
+                        Trung bình - Cần chú ý
                       </SelectItem>
-                      <SelectItem value="high">High - Urgent issue</SelectItem>
+                      <SelectItem value="high">Cao - Vấn đề khẩn cấp</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Select the urgency level of your complaint.
+                    Chọn mức độ khẩn cấp của khiếu nại của bạn.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -241,7 +242,7 @@ export function ComplaintForm({ bookingId, bookingInfo }: ComplaintFormProps) {
                 className="w-full py-3 text-base font-medium"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Submit Complaint"}
+                {isSubmitting ? "Đang gửi..." : "Gửi khiếu nại"}
               </Button>
             </div>
           </form>
