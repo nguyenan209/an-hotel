@@ -48,6 +48,20 @@ export default function HomestayDetailPage() {
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("1");
+
+  // Xử lý thay đổi ngày nhận phòng
+  const handleCheckInChange = (date: Date | undefined) => {
+    setCheckIn(date);
+    // Nếu ngày trả phòng trước ngày nhận phòng mới, reset ngày trả phòng
+    if (date && checkOut && checkOut <= date) {
+      setCheckOut(undefined);
+    }
+  };
+
+  // Xử lý thay đổi ngày trả phòng
+  const handleCheckOutChange = (date: Date | undefined) => {
+    setCheckOut(date);
+  };
   const [bookingType, setBookingType] = useState<BookingType>(
     BookingType.WHOLE
   );
@@ -378,8 +392,9 @@ export default function HomestayDetailPage() {
                 <label className="text-sm font-medium">Ngày nhận phòng</label>
                 <DatePicker
                   date={checkIn}
-                  setDate={setCheckIn}
+                  setDate={handleCheckInChange}
                   placeholder="Chọn ngày nhận phòng"
+                  maxDate={checkOut}
                 />
               </div>
 
@@ -387,8 +402,9 @@ export default function HomestayDetailPage() {
                 <label className="text-sm font-medium">Ngày trả phòng</label>
                 <DatePicker
                   date={checkOut}
-                  setDate={setCheckOut}
+                  setDate={handleCheckOutChange}
                   placeholder="Chọn ngày trả phòng"
+                  minDate={checkIn}
                 />
               </div>
 

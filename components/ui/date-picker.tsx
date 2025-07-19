@@ -18,6 +18,9 @@ interface DatePickerProps {
   setDate: (date: Date | undefined) => void;
   placeholder?: string;
   className?: string;
+  disabled?: (date: Date) => boolean;
+  minDate?: Date;
+  maxDate?: Date;
 }
 
 export function DatePicker({
@@ -25,6 +28,9 @@ export function DatePicker({
   setDate,
   placeholder = "Chọn ngày",
   className,
+  disabled,
+  minDate,
+  maxDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
 
@@ -32,6 +38,23 @@ export function DatePicker({
     setDate(selectedDate);
     // Tự động đóng popover sau khi chọn ngày
     setOpen(false);
+  };
+
+  const isDateDisabled = (day: Date) => {
+    // Disable ngày trong quá khứ
+    const today = new Date(new Date().setHours(0, 0, 0, 0));
+    if (day < today) return true;
+
+    // Disable theo minDate
+    if (minDate && day < minDate) return true;
+
+    // Disable theo maxDate
+    if (maxDate && day > maxDate) return true;
+
+    // Disable theo custom function
+    if (disabled && disabled(day)) return true;
+
+    return false;
   };
 
   return (
@@ -60,7 +83,7 @@ export function DatePicker({
           onSelect={handleSelect}
           initialFocus
           locale={vi}
-          disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
+          disabled={isDateDisabled}
         />
       </PopoverContent>
     </Popover>
