@@ -2,6 +2,7 @@
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { vi } from "date-fns/locale";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,16 @@ export function DatePicker({
   placeholder = "Chọn ngày",
   className,
 }: DatePickerProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    // Tự động đóng popover sau khi chọn ngày
+    setOpen(false);
+  };
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -48,7 +57,7 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleSelect}
           initialFocus
           locale={vi}
           disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
