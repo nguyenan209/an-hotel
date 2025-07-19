@@ -168,7 +168,21 @@ export function ComplaintForm({ bookingId, bookingInfo, onSuccess }: ComplaintFo
                     <Input
                       placeholder="Mô tả ngắn gọn về vấn đề"
                       className="p-2"
+                      autoComplete="off"
+                      autoFocus={false}
                       {...field}
+                      onFocus={(e) => {
+                        // Không tự động select text khi focus
+                        setTimeout(() => {
+                          e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+                        }, 0);
+                      }}
+                      onMouseUp={(e) => {
+                        // Ngăn select text khi click
+                        e.preventDefault();
+                        const target = e.target as HTMLInputElement;
+                        target.setSelectionRange(target.value.length, target.value.length);
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
