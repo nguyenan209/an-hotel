@@ -84,7 +84,9 @@ export default function OwnerLoginPage() {
         login(result.user, result.token);
         router.push("/owner");
       } else {
-        setErrors({ submit: result.message || "Email hoặc mật khẩu không đúng" });
+        setErrors({
+          submit: result.message || "Email hoặc mật khẩu không đúng",
+        });
       }
     } catch (error) {
       setErrors({ submit: "Có lỗi xảy ra, vui lòng thử lại" });
@@ -92,7 +94,7 @@ export default function OwnerLoginPage() {
       setIsLoading(false);
     }
   };
-    
+
   const handleGoHome = () => {
     router.push("/");
   };
@@ -181,13 +183,13 @@ export default function OwnerLoginPage() {
           {/* Thêm backdrop tối cho khu vực form */}
           <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
             <div className="text-white mb-6">
-              <h3 className="text-2xl font-bold mb-2">Sign in</h3>
+              <h3 className="text-2xl font-bold mb-2">Đăng nhập</h3>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-white/90 text-sm">
-                  Email Address
+                  Email
                 </Label>
                 <Input
                   id="email"
@@ -206,7 +208,7 @@ export default function OwnerLoginPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white/90 text-sm">
-                  Password
+                  Mật khẩu
                 </Label>
                 <div className="relative">
                   <Input
@@ -248,7 +250,7 @@ export default function OwnerLoginPage() {
                   className="border-white/50 data-[state=checked]:bg-pink-500 data-[state=checked]:text-white data-[state=checked]:border-pink-500"
                 />
                 <Label htmlFor="remember" className="text-white/90 text-sm">
-                  Remember Me
+                  Nhớ mật khẩu
                 </Label>
               </div>
 
@@ -266,10 +268,10 @@ export default function OwnerLoginPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Signing in...
+                    Đăng nhập...
                   </div>
                 ) : (
-                  "Sign in now"
+                  "Đăng nhập"
                 )}
               </Button>
 
@@ -278,7 +280,7 @@ export default function OwnerLoginPage() {
                   href="/forgot-password"
                   className="text-pink-200 hover:text-pink-100 text-sm transition-colors"
                 >
-                  Lost your password?
+                  Quên mật khẩu
                 </Link>
               </div>
 
@@ -288,9 +290,7 @@ export default function OwnerLoginPage() {
                   <Link
                     href="/terms"
                     className="text-pink-200 underline hover:text-pink-100"
-                  >
-                    Terms of Service
-                  </Link>{" "}
+                  ></Link>{" "}
                   |{" "}
                   <Link
                     href="/privacy"

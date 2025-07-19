@@ -30,7 +30,9 @@ export default function BookingReportPage() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/bookings?year=${year}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/bookings?year=${year}`
+        );
         const data = await res.json();
         setBookingStats(data.stats || null);
       } catch (e) {
@@ -45,34 +47,38 @@ export default function BookingReportPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading booking stats...</p>
+        <p className="text-lg">Đang tải báo cáo đặt phòng...</p>
       </div>
     );
   }
   if (!bookingStats) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg text-red-500">Failed to load booking stats.</p>
+        <p className="text-lg text-red-500">
+          Lỗi, không thể tải báo cáo đặt phòng.
+        </p>
       </div>
     );
   }
 
   // Tính maxBookings cho chart
-  const maxBookings = Math.max(...bookingStats.monthlyStats.map((s: { bookings: number }) => s.bookings));
+  const maxBookings = Math.max(
+    ...bookingStats.monthlyStats.map((s: { bookings: number }) => s.bookings)
+  );
 
   // Hàm scale chiều cao cột: tỉ lệ tuyệt đối
   const getBarHeight = (bookings: number) => {
-    if (maxBookings === 0) return '0%';
+    if (maxBookings === 0) return "0%";
     return `${(bookings / maxBookings) * 100}%`;
   };
 
   // Log dữ liệu chart để debug
-  console.log('monthlyStats', bookingStats.monthlyStats);
+  console.log("monthlyStats", bookingStats.monthlyStats);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Booking Reports</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Báo cáo Đặt phòng</h2>
         <div className="flex items-center gap-2">
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger className="w-[120px]">
@@ -96,38 +102,42 @@ export default function BookingReportPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Bookings
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng lượt đặt</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{bookingStats.total}</div>
-            <p className="text-xs text-muted-foreground">For the year {year}</p>
+            <p className="text-xs text-muted-foreground">Trong năm {year}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CardTitle className="text-sm font-medium">Hoàn thành</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {bookingStats.completed}
-            </div>
+            <div className="text-2xl font-bold">{bookingStats.completed}</div>
             <p className="text-xs text-muted-foreground">
-              {bookingStats.total > 0 ? Math.round((bookingStats.completed / bookingStats.total) * 100) : 0}% of total
+              {bookingStats.total > 0
+                ? Math.round(
+                    (bookingStats.completed / bookingStats.total) * 100
+                  )
+                : 0}
+              % of total
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+            <CardTitle className="text-sm font-medium">Bị huỷ</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {bookingStats.cancelled}
-            </div>
+            <div className="text-2xl font-bold">{bookingStats.cancelled}</div>
             <p className="text-xs text-muted-foreground">
-              {bookingStats.total > 0 ? Math.round((bookingStats.cancelled / bookingStats.total) * 100) : 0}% of total
+              {bookingStats.total > 0
+                ? Math.round(
+                    (bookingStats.cancelled / bookingStats.total) * 100
+                  )
+                : 0}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -137,60 +147,74 @@ export default function BookingReportPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{bookingStats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting confirmation
-            </p>
+            <p className="text-xs text-muted-foreground">Chờ xác nhận</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="status">By Status</TabsTrigger>
-          <TabsTrigger value="source">By Source</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="monthly">Theo tháng</TabsTrigger>
+          <TabsTrigger value="status">Theo trạng thái</TabsTrigger>
+          <TabsTrigger value="source">Theo nguồn</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Booking Overview</CardTitle>
+              <CardTitle>Tổng quan</CardTitle>
               <CardDescription>
-                Monthly booking statistics for the year {year}
+                Báo cáo đặt phòng theo tháng trong năm {year}
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[260px] pt-8 pb-4 border border-muted-foreground/10 rounded-lg">
               <div className="h-full w-full flex flex-col justify-end">
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
-                      <div key={index} className="relative flex-1 h-full">
-                        <div
-                          className={`absolute bottom-0 w-full rounded-md border ${item.bookings > 0 ? 'bg-pink-500 border-pink-700' : 'bg-muted-foreground/20 border-muted-foreground/30'}`}
-                          style={{
-                            height: getBarHeight(item.bookings),
-                            minHeight: item.bookings === 0 ? 4 : undefined,
-                          }}
-                        />
-                        {item.bookings > 0 && (
+                    {bookingStats.monthlyStats.map(
+                      (
+                        item: { month: string; bookings: number },
+                        index: number
+                      ) => (
+                        <div key={index} className="relative flex-1 h-full">
                           <div
-                            className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium"
+                            className={`absolute bottom-0 w-full rounded-md border ${
+                              item.bookings > 0
+                                ? "bg-pink-500 border-pink-700"
+                                : "bg-muted-foreground/20 border-muted-foreground/30"
+                            }`}
                             style={{
-                              bottom: `calc(${getBarHeight(item.bookings)} + 4px)`
+                              height: getBarHeight(item.bookings),
+                              minHeight: item.bookings === 0 ? 4 : undefined,
                             }}
-                          >
-                            {item.bookings}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          />
+                          {item.bookings > 0 && (
+                            <div
+                              className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium"
+                              style={{
+                                bottom: `calc(${getBarHeight(
+                                  item.bookings
+                                )} + 4px)`,
+                              }}
+                            >
+                              {item.bookings}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
-                      <div key={index} className="flex-1 text-center">
-                        {item.month}
-                      </div>
-                    ))}
+                    {bookingStats.monthlyStats.map(
+                      (
+                        item: { month: string; bookings: number },
+                        index: number
+                      ) => (
+                        <div key={index} className="flex-1 text-center">
+                          {item.month}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -200,39 +224,48 @@ export default function BookingReportPage() {
         <TabsContent value="monthly" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Monthly Breakdown</CardTitle>
+              <CardTitle>Chi tiết hàng tháng</CardTitle>
               <CardDescription>
-                Detailed monthly booking analysis for {year}
+                Chi tiết phân tích đánh giá cho năm {year}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {bookingStats.monthlyStats.map((item: { month: string; bookings: number }, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 text-muted-foreground">
-                        {item.month}
-                      </div>
-                      <div className="w-full max-w-md">
-                        <div className="h-2 w-full rounded-full bg-secondary">
-                          <div
-                            className="h-2 rounded-full bg-primary"
-                            style={{
-                              width: `${
-                                maxBookings > 0 ? (item.bookings / maxBookings) * 100 : 4
-                              }%`,
-                              minWidth: 4,
-                            }}
-                          />
+                {bookingStats.monthlyStats.map(
+                  (
+                    item: { month: string; bookings: number },
+                    index: number
+                  ) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 text-muted-foreground">
+                          {item.month}
+                        </div>
+                        <div className="w-full max-w-md">
+                          <div className="h-2 w-full rounded-full bg-secondary">
+                            <div
+                              className="h-2 rounded-full bg-primary"
+                              style={{
+                                width: `${
+                                  maxBookings > 0
+                                    ? (item.bookings / maxBookings) * 100
+                                    : 4
+                                }%`,
+                                minWidth: 4,
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
+                      <div className="font-medium">
+                        {item.bookings} đặt phòng
+                      </div>
                     </div>
-                    <div className="font-medium">{item.bookings} bookings</div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>
@@ -240,7 +273,7 @@ export default function BookingReportPage() {
         <TabsContent value="status" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>By Status</CardTitle>
+              <CardTitle>Theo Trạng thái</CardTitle>
               <CardDescription>
                 Booking distribution by status for {year}
               </CardDescription>
@@ -251,7 +284,7 @@ export default function BookingReportPage() {
         <TabsContent value="source" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>By Source</CardTitle>
+              <CardTitle>Theo nguồn</CardTitle>
               <CardDescription>
                 Booking distribution by source for {year}
               </CardDescription>

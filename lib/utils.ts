@@ -29,14 +29,15 @@ export function formatDate(dateString: string | Date): string {
 }
 
 export function formatDateWithTime(dateString: string | Date): string {
-  const date = typeof dateString === "string" ? new Date(dateString) : dateString;
+  const date =
+    typeof dateString === "string" ? new Date(dateString) : dateString;
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true
+    hour12: true,
   }).format(date);
 }
 
@@ -86,7 +87,7 @@ export function calculateNights(checkIn: string, checkOut: string) {
 }
 
 export const CANCELLATION_POLICIES =
-  "Free cancellation up to 7 days before check-in. After that, 50% of the total amount will be charged.";
+  "Chính sách huỷ đặt phòng cho phép huỷ trước 2 ngày so với thời gian checkin, sau thời gian này sẽ bị thu phí 50%.";
 
 export const generateBookingNumber = (payload: any): string => {
   const bookingNumber = `AN-HOTEL-BK${generateHash(payload)}`;

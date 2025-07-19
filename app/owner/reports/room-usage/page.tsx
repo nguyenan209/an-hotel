@@ -30,7 +30,9 @@ export default function RoomUsageReportPage() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/room-usage?year=${year}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/room-usage?year=${year}`
+        );
         const data = await res.json();
         setRoomUsageStats(data.stats || null);
       } catch (e) {
@@ -45,7 +47,7 @@ export default function RoomUsageReportPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading room usage stats...</p>
+        <p className="text-lg">usage stats...</p>
       </div>
     );
   }
@@ -164,31 +166,54 @@ export default function RoomUsageReportPage() {
                 {/* This would be a chart in a real implementation */}
                 <div className="flex h-full flex-col justify-end gap-2">
                   <div className="flex items-end gap-2 h-full">
-                    {roomUsageStats.monthlyOccupancy.every((item: { rate: number }) => item.rate === 0) ? (
-                      <div className="w-full text-center text-muted-foreground mt-10">No occupancy data for this year.</div>
+                    {roomUsageStats.monthlyOccupancy.every(
+                      (item: { rate: number }) => item.rate === 0
+                    ) ? (
+                      <div className="w-full text-center text-muted-foreground mt-10">
+                        No occupancy data for this year.
+                      </div>
                     ) : (
-                      roomUsageStats.monthlyOccupancy.map((item: { month: string; rate: number }, index: number) => (
-                        <div key={index} className="relative flex-1 h-full">
-                          <div
-                            className={`absolute bottom-0 w-full rounded-md border ${item.rate > 0 ? 'bg-pink-500 border-pink-700' : 'bg-muted-foreground/20 border-muted-foreground/30'}`}
-                            style={{
-                              height: `${item.rate}%`,
-                              minHeight: item.rate === 0 ? 4 : undefined,
-                            }}
-                          />
-                          {item.rate > 0 && (
-                            <div className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium" style={{ bottom: `calc(${item.rate}% + 4px)` }}>{item.rate}%</div>
-                          )}
-                        </div>
-                      ))
+                      roomUsageStats.monthlyOccupancy.map(
+                        (
+                          item: { month: string; rate: number },
+                          index: number
+                        ) => (
+                          <div key={index} className="relative flex-1 h-full">
+                            <div
+                              className={`absolute bottom-0 w-full rounded-md border ${
+                                item.rate > 0
+                                  ? "bg-pink-500 border-pink-700"
+                                  : "bg-muted-foreground/20 border-muted-foreground/30"
+                              }`}
+                              style={{
+                                height: `${item.rate}%`,
+                                minHeight: item.rate === 0 ? 4 : undefined,
+                              }}
+                            />
+                            {item.rate > 0 && (
+                              <div
+                                className="absolute left-1/2 -translate-x-1/2 mb-1 text-xs font-medium"
+                                style={{ bottom: `calc(${item.rate}% + 4px)` }}
+                              >
+                                {item.rate}%
+                              </div>
+                            )}
+                          </div>
+                        )
+                      )
                     )}
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    {roomUsageStats.monthlyOccupancy.map((item: { month: string; rate: number }, index: number) => (
-                      <div key={index} className="flex-1 text-center">
-                        {item.month}
-                      </div>
-                    ))}
+                    {roomUsageStats.monthlyOccupancy.map(
+                      (
+                        item: { month: string; rate: number },
+                        index: number
+                      ) => (
+                        <div key={index} className="flex-1 text-center">
+                          {item.month}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
               </div>

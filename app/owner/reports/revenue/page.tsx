@@ -35,7 +35,9 @@ export default function RevenueReportPage() {
   } = useQuery({
     queryKey: ["revenue-report", year],
     queryFn: async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/revenue?year=${year}`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/owner/reports/revenue?year=${year}`
+      );
       const data = await res.json();
       return data.revenueData || [];
     },
@@ -44,14 +46,16 @@ export default function RevenueReportPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg">Loading revenue data...</p>
+        <p className="text-lg">Đang tải dữ liệu...</p>
       </div>
     );
   }
   if (isError) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg text-red-500">Failed to load revenue data.</p>
+        <p className="text-lg text-red-500">
+          Không load được dữ liệu doanh thu
+        </p>
       </div>
     );
   }
@@ -63,7 +67,8 @@ export default function RevenueReportPage() {
   );
 
   // Calculate average monthly revenue
-  const averageMonthlyRevenue = revenueData.length > 0 ? totalRevenue / revenueData.length : 0;
+  const averageMonthlyRevenue =
+    revenueData.length > 0 ? totalRevenue / revenueData.length : 0;
 
   // Find highest revenue month
   const highestRevenueMonth = revenueData.reduce(
@@ -74,14 +79,15 @@ export default function RevenueReportPage() {
 
   // Find lowest revenue month
   const lowestRevenueMonth = revenueData.reduce(
-    (lowest: any, current: any) => (current.revenue < lowest.revenue ? current : lowest),
+    (lowest: any, current: any) =>
+      current.revenue < lowest.revenue ? current : lowest,
     revenueData[0] || { revenue: 0, month: "" }
   );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Revenue Reports</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Báo cáo Doanh thu</h2>
         <div className="flex items-center gap-2">
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger className="w-[120px]">
@@ -105,31 +111,37 @@ export default function RevenueReportPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng doanh thu
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(totalRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground">For the year {year}</p>
+            <p className="text-xs text-muted-foreground">Trong năm {year}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Average Monthly
+              Trung bình tháng
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(averageMonthlyRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground">Per month in {year}</p>
+            <p className="text-xs text-muted-foreground">
+              Trên tháng trong năm {year}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Highest Month</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tháng cao nhất
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -142,7 +154,9 @@ export default function RevenueReportPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lowest Month</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tháng thấp nhất
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -162,31 +176,42 @@ export default function RevenueReportPage() {
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Revenue Overview</CardTitle>
+              <CardTitle>Tổng quan doanh thu</CardTitle>
               <CardDescription>
-                Monthly revenue for the year {year}
+                Doanh thu theo tháng trong năm {year}
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
               <div className="h-full w-full flex flex-col justify-end">
                 <div className="flex items-end gap-2 h-full min-h-[300px]">
                   {revenueData.map((item: any, index: number) => (
-                    <div key={index} className="flex-1 relative h-full flex items-end">
+                    <div
+                      key={index}
+                      className="flex-1 relative h-full flex items-end"
+                    >
                       {/* Bar */}
                       <div
-                        className={`${item.revenue > 0 ? 'bg-primary' : 'bg-muted-foreground/20'} absolute bottom-0 w-full rounded-md`}
+                        className={`${
+                          item.revenue > 0
+                            ? "bg-primary"
+                            : "bg-muted-foreground/20"
+                        } absolute bottom-0 w-full rounded-md`}
                         style={{
-                          height: highestRevenueMonth.revenue > 0
-                            ? `${(item.revenue / highestRevenueMonth.revenue) * MAX_BAR_HEIGHT}%`
-                            : '0%',
-                          transition: 'height 0.3s',
+                          height:
+                            highestRevenueMonth.revenue > 0
+                              ? `${
+                                  (item.revenue / highestRevenueMonth.revenue) *
+                                  MAX_BAR_HEIGHT
+                                }%`
+                              : "0%",
+                          transition: "height 0.3s",
                         }}
                       >
                         {/* Label doanh thu trên đỉnh bar */}
                         {item.revenue > 0 && (
                           <div
                             className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs font-medium"
-                            style={{ whiteSpace: 'nowrap' }}
+                            style={{ whiteSpace: "nowrap" }}
                           >
                             {formatCurrency(item.revenue)}
                           </div>
@@ -203,7 +228,9 @@ export default function RevenueReportPage() {
                   ))}
                 </div>
                 {totalRevenue === 0 && (
-                  <div className="text-center text-muted-foreground mt-10 w-full">No revenue data for this year.</div>
+                  <div className="text-center text-muted-foreground mt-10 w-full">
+                    Không có dữ liệu doanh thu.
+                  </div>
                 )}
               </div>
             </CardContent>
