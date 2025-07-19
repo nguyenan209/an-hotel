@@ -13,7 +13,7 @@ export async function PATCH(
   try {
     const decoded = getTokenData(request);
     if (!decoded || !decoded.id || decoded.role !== "OWNER") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Không được phép truy cập" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -21,7 +21,7 @@ export async function PATCH(
 
     if (!status || !Object.values(ComplaintStatus).includes(status)) {
       return NextResponse.json(
-        { error: "Invalid status" },
+        { error: "Trạng thái không hợp lệ" },
         { status: 400 }
       );
     }
@@ -40,7 +40,7 @@ export async function PATCH(
 
     if (!complaint) {
       return NextResponse.json(
-        { error: "Complaint not found or unauthorized" },
+        { error: "Không tìm thấy khiếu nại hoặc không được phép truy cập" },
         { status: 404 }
       );
     }
@@ -87,12 +87,12 @@ export async function PATCH(
         data: {
           userId: updatedComplaint.customer.user.id,
           type: NotificationType.COMPLAINT,
-          title: "Your complaint has been resolved",
-          message: `Your complaint regarding booking #${updatedComplaint.booking?.bookingNumber || ""} has been marked as resolved by the owner.`,
+          title: "Khiếu nại của bạn đã được giải quyết",
+          message: `Khiếu nại của bạn về đặt phòng #${updatedComplaint.booking?.bookingNumber || ""} đã được chủ homestay đánh dấu là đã giải quyết.`,
           isRead: false,
         },
       });
-      // Gửi notification realtime qua Pusher
+      // Gửi thông báo realtime qua Pusher
       await pusherServer.trigger(
         getNotificationChannel(updatedComplaint.customer.user.id),
         NEW_NOTIFICATION_EVENT,
@@ -104,7 +104,7 @@ export async function PATCH(
   } catch (error) {
     console.error("[OWNER_COMPLAINT_STATUS_UPDATE]", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Lỗi máy chủ nội bộ" },
       { status: 500 }
     );
   }
