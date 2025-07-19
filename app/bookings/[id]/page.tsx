@@ -364,7 +364,7 @@ export default function BookingDetailsPage() {
                     className="w-full flex items-center"
                     onClick={() => setIsComplaintDialogOpen(true)}
                   >
-                    <AlertCircle className="mr-2 h-4 w-4" /> Báo cáo vấn đề
+                    <AlertCircle className="mr-2 h-4 w-4" /> Khiếu nại
                   </Button>
                 ))}
             </CardFooter>
@@ -459,7 +459,7 @@ export default function BookingDetailsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-              Báo cáo vấn đề
+              Khiếu nại
             </DialogTitle>
             {!isComplaintSuccess && (
               <DialogDescription>
