@@ -26,6 +26,8 @@ export default function RevenueReportPage() {
   const [timeRange, setTimeRange] = useState("year");
   const [year, setYear] = useState("2025");
 
+  const MAX_BAR_HEIGHT = 100; // phần trăm chiều cao tối đa cột cao nhất
+
   const {
     data: revenueData = [],
     isLoading,
@@ -166,9 +168,6 @@ export default function RevenueReportPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-          <TabsTrigger value="monthly">Tháng</TabsTrigger>
-          <TabsTrigger value="homestays">Theo Homestay</TabsTrigger>
-          <TabsTrigger value="customers">Theo Khách hàng</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>
@@ -179,120 +178,57 @@ export default function RevenueReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
-              <div className="h-full w-full">
-                <div className="flex h-full flex-col justify-end gap-2">
-                  <div className="flex items-end gap-2 h-full">
-                    {revenueData.map((item: any, index: number) => (
-                      <div key={index} className="relative flex-1">
-                        <div
-                          className={`absolute bottom-0 w-full rounded-md ${
-                            item.revenue > 0
-                              ? "bg-primary"
-                              : "bg-muted-foreground/20"
-                          }`}
-                          style={{
-                            height: `${
-                              highestRevenueMonth.revenue > 0
-                                ? (item.revenue / highestRevenueMonth.revenue) *
-                                  100
-                                : 4
-                            }%`,
-                            minHeight: 4,
-                          }}
-                        />
+              <div className="h-full w-full flex flex-col justify-end">
+                <div className="flex items-end gap-2 h-full min-h-[300px]">
+                  {revenueData.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex-1 relative h-full flex items-end"
+                    >
+                      {/* Bar */}
+                      <div
+                        className={`${
+                          item.revenue > 0
+                            ? "bg-primary"
+                            : "bg-muted-foreground/20"
+                        } absolute bottom-0 w-full rounded-md`}
+                        style={{
+                          height:
+                            highestRevenueMonth.revenue > 0
+                              ? `${
+                                  (item.revenue / highestRevenueMonth.revenue) *
+                                  MAX_BAR_HEIGHT
+                                }%`
+                              : "0%",
+                          transition: "height 0.3s",
+                        }}
+                      >
+                        {/* Label doanh thu trên đỉnh bar */}
                         {item.revenue > 0 && (
-                          <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium">
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs font-medium"
+                            style={{ whiteSpace: "nowrap" }}
+                          >
                             {formatCurrency(item.revenue)}
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    {revenueData.map((item: any, index: number) => (
-                      <div key={index} className="flex-1 text-center">
-                        {item.month}
-                      </div>
-                    ))}
-                  </div>
-                  {totalRevenue === 0 && (
-                    <div className="text-center text-muted-foreground mt-10 w-full">
-                      Không có dữ liệu doanh thu cho năm này.
                     </div>
-                  )}
+                  ))}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="monthly" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Báo cáo Doanh thu</CardTitle>
-              <CardDescription>
-                Doanh thu theo tháng cho năm {year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {revenueData.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 text-muted-foreground">
-                        {item.month}
-                      </div>
-                      <div className="w-full max-w-md">
-                        <div className="h-2 w-full rounded-full bg-secondary">
-                          <div
-                            className="h-2 rounded-full bg-primary"
-                            style={{
-                              width: `${
-                                highestRevenueMonth.revenue > 0
-                                  ? (item.revenue /
-                                      highestRevenueMonth.revenue) *
-                                    100
-                                  : 0
-                              }%`,
-                            }}
-                          />
-                        </div>
-                      </div>
+                <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                  {revenueData.map((item: any, index: number) => (
+                    <div key={index} className="flex-1 text-center">
+                      {item.month}
                     </div>
-                    <div className="font-medium">
-                      {formatCurrency(item.revenue)}
-                    </div>
+                  ))}
+                </div>
+                {totalRevenue === 0 && (
+                  <div className="text-center text-muted-foreground mt-10 w-full">
+                    Không có dữ liệu doanh thu cho năm này.
                   </div>
-                ))}
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="homestays" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Báo cáo Doanh thu</CardTitle>
-              <CardDescription>Doanh thu theo homestay</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Phần này sẽ hiển thị báo cáo doanh thu theo homestay.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="customers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Báo cáo Doanh thu</CardTitle>
-              <CardDescription>Doanh thu theo khách hàng</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Phần này sẽ hiển thị báo cáo doanh thu theo khách hàng.
-              </p>
             </CardContent>
           </Card>
         </TabsContent>
