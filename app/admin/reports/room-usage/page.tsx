@@ -54,7 +54,7 @@ export default function RoomUsageReportPage() {
   if (!roomUsageStats) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className="text-lg text-red-500">Failed to load room usage stats.</p>
+        <p className="text-lg text-red-500">Không thể tải dữ liệu thống kê sử dụng phòng.</p>
       </div>
     );
   }
@@ -63,12 +63,12 @@ export default function RoomUsageReportPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">
-          Room Usage Reports
+          Báo Cáo Sử Dụng Phòng
         </h2>
         <div className="flex items-center gap-2">
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Select year" />
+              <SelectValue placeholder="Chọn năm" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2021">2021</SelectItem>
@@ -80,7 +80,7 @@ export default function RoomUsageReportPage() {
           </Select>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            Xuất báo cáo
           </Button>
         </div>
       </div>
@@ -89,20 +89,20 @@ export default function RoomUsageReportPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Homestays
+              Tổng Homestay
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {roomUsageStats.totalHomestays}
             </div>
-            <p className="text-xs text-muted-foreground">In the system</p>
+            <p className="text-xs text-muted-foreground">Trong hệ thống</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Homestays
+              Homestay Hoạt Động
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -115,50 +115,50 @@ export default function RoomUsageReportPage() {
                   roomUsageStats.totalHomestays) *
                   100
               )}
-              % of total
+              % tổng số
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Occupancy Rate
+              Tỷ Lệ Lấp Đầy
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {roomUsageStats.occupancyRate}%
             </div>
-            <p className="text-xs text-muted-foreground">Average for {year}</p>
+            <p className="text-xs text-muted-foreground">Trung bình năm {year}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Avg. Stay Duration
+              Thời Gian Lưu Trú TB
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {roomUsageStats.averageStayDuration} days
+              {roomUsageStats.averageStayDuration} ngày
             </div>
-            <p className="text-xs text-muted-foreground">Per booking</p>
+            <p className="text-xs text-muted-foreground">Mỗi đặt phòng</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="occupancy" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="occupancy">Occupancy</TabsTrigger>
-          <TabsTrigger value="homestays">Homestays</TabsTrigger>
-          <TabsTrigger value="seasonal">Seasonal Trends</TabsTrigger>
+          <TabsTrigger value="occupancy">Tỷ Lệ Lấp Đầy</TabsTrigger>
+          <TabsTrigger value="homestays">Homestay</TabsTrigger>
+          <TabsTrigger value="seasonal">Xu Hướng Theo Mùa</TabsTrigger>
         </TabsList>
         <TabsContent value="occupancy" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Occupancy Rate</CardTitle>
+              <CardTitle>Tỷ Lệ Lấp Đầy</CardTitle>
               <CardDescription>
-                Monthly occupancy rate for the year {year}
+                Tỷ lệ lấp đầy theo tháng cho năm {year}
               </CardDescription>
             </CardHeader>
             <CardContent className="h-[400px]">
@@ -170,7 +170,7 @@ export default function RoomUsageReportPage() {
                       (item: { rate: number }) => item.rate === 0
                     ) ? (
                       <div className="w-full text-center text-muted-foreground mt-10">
-                        No occupancy data for this year.
+                        Không có dữ liệu lấp đầy cho năm này.
                       </div>
                     ) : (
                       roomUsageStats.monthlyOccupancy.map(
@@ -223,8 +223,8 @@ export default function RoomUsageReportPage() {
         <TabsContent value="homestays" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Homestay Status</CardTitle>
-              <CardDescription>Current status of all homestays</CardDescription>
+              <CardTitle>Trạng Thái Homestay</CardTitle>
+              <CardDescription>Trạng thái hiện tại của tất cả homestay</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
@@ -234,14 +234,14 @@ export default function RoomUsageReportPage() {
                       {roomUsageStats.activeHomestays}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Active
+                      Hoạt động
                     </span>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Active</span>
+                      <span className="text-sm font-medium">Hoạt động</span>
                       <span className="text-sm font-medium">
                         {roomUsageStats.activeHomestays}
                       </span>
@@ -261,7 +261,7 @@ export default function RoomUsageReportPage() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Maintenance</span>
+                      <span className="text-sm font-medium">Bảo trì</span>
                       <span className="text-sm font-medium">
                         {roomUsageStats.maintenanceHomestays}
                       </span>
@@ -281,7 +281,7 @@ export default function RoomUsageReportPage() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Inactive</span>
+                      <span className="text-sm font-medium">Không hoạt động</span>
                       <span className="text-sm font-medium">
                         {roomUsageStats.inactiveHomestays}
                       </span>
@@ -307,16 +307,16 @@ export default function RoomUsageReportPage() {
         <TabsContent value="seasonal" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Seasonal Trends</CardTitle>
+              <CardTitle>Xu Hướng Theo Mùa</CardTitle>
               <CardDescription>
-                Occupancy rate by season for {year}
+                Tỷ lệ lấp đầy theo mùa cho năm {year}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
                 <div>
                   <h3 className="mb-2 text-lg font-medium">
-                    High Season (Jun-Aug)
+                    Mùa Cao Điểm (Th6-Th8)
                   </h3>
                   <div className="h-2 w-full rounded-full bg-secondary">
                     <div
@@ -328,14 +328,14 @@ export default function RoomUsageReportPage() {
                   </div>
                   <div className="mt-1 flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Average Occupancy
+                      Tỷ Lệ Lấp Đầy TB
                     </span>
                     <span className="font-medium">88%</span>
                   </div>
                 </div>
                 <div>
                   <h3 className="mb-2 text-lg font-medium">
-                    Shoulder Season (Apr-May, Sep-Oct)
+                    Mùa Trung Bình (Th4-Th5, Th9-Th10)
                   </h3>
                   <div className="h-2 w-full rounded-full bg-secondary">
                     <div
@@ -347,14 +347,14 @@ export default function RoomUsageReportPage() {
                   </div>
                   <div className="mt-1 flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Average Occupancy
+                      Tỷ Lệ Lấp Đầy TB
                     </span>
                     <span className="font-medium">75%</span>
                   </div>
                 </div>
                 <div>
                   <h3 className="mb-2 text-lg font-medium">
-                    Low Season (Nov-Mar)
+                    Mùa Thấp Điểm (Th11-Th3)
                   </h3>
                   <div className="h-2 w-full rounded-full bg-secondary">
                     <div
@@ -366,7 +366,7 @@ export default function RoomUsageReportPage() {
                   </div>
                   <div className="mt-1 flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Average Occupancy
+                      Tỷ Lệ Lấp Đầy TB
                     </span>
                     <span className="font-medium">65%</span>
                   </div>
